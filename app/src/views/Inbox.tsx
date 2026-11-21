@@ -1,31 +1,34 @@
-import { PRESET_NAMES, type Address } from '@voxro/sdk';
+import { PRESET_NAMES } from '@voxro/sdk';
 import { useMemo, useState } from 'react';
 import { useNow } from '../chain/hooks.ts';
-import { Addr, Badge, Button, Empty, Note, Panel, Segmented, Stat, Toast, useToast } from '../components/ui.tsx';
-import { DEMO_SENDER, LAUNCHED } from '../config.ts';
+import { Addr, Badge, Button, Empty, Note, Panel, Segmented, Stat } from '../components/ui.tsx';
+import { DEPLOYED } from '../config.ts';
 import { fmtCountdown, fmtMoney, fmtTime } from '../format.ts';
 import { useI18n } from '../i18n.tsx';
-import { TIER_MULT } from '../sim/catalog.ts';
+import { TIER_MULT } from '../circuits/catalog.ts';
 import { backend, useInboxState } from '../backend.ts';
-import type { SimInbox, SimTicket } from '../sim/escrow.ts';
+import type { InboxView, TicketView } from '../model.ts';
+import { DeploymentNote } from './DeploymentNote.tsx';
+import { InboxSettings } from './InboxSettings.tsx';
+import { RelayPanel } from './RelayPanel.tsx';
 import { useWallet } from '../wallet/wallet.tsx';
 import { href } from '../router.ts';
 
 type Tab = 'inbox' | 'outbox';
 
-function StatusBadge({ s }: { s: SimTicket['status'] }) {
+function StatusBadge({ s }: { s: TicketView['status'] }) {
   const { t } = useI18n();
   return <Badge tone={s === 'Pending' ? 'warn' : s === 'Claimed' ? 'ok' : 'neutral'}>{s === 'Pending' ? t('c.pending') : s === 'Claimed' ? t('c.claimed') : t('c.refunded')}</Badge>;
 }
 
-function InboxTicket({ ticket, inbox, now }: { ticket: SimTicket; inbox: SimInbox; now: number }) {
+function InboxTicket({ ticket, inbox, now }: { ticket: TicketView; inbox: InboxView; now: number }) {
   const { t, lang } = useI18n();
-  const sim = useInboxState();
+  const state = useInboxState();
   const [open, setOpen] = useState<{ subject: string; body: string } | null>(null);
   const [text, setText] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const verify = ticket.reply ? backend.verifyClaim(sim, ticket) : null;
+  const verify = ticket.reply ? backend.verifyClaim(state, ticket) : null;
   const remaining = ticket.deadline - now;
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true);
@@ -83,7 +86,8 @@ function InboxTicket({ ticket, inbox, now }: { ticket: SimTicket; inbox: SimInbo
           <div style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>{open.body}</div>
         </div>
       )}
-      {ticket.status === 'Pending' && !ticket.reply && (
+      {ticket.status === 'Pending' && !ticket.reply && ticket.lane === 'container' && <Note>{t('inbox.containerReply')}</Note>}
+      {ticket.status === 'Pending' && !ticket.reply && ticket.lane === 'guest' && (
         <div className="stack">
           <textarea className="input" style={{ minHeight: 70 }} placeholder={t('inbox.reply')} value={text} onChange={(e) => setText(e.target.value)} />
           <div className="row">
@@ -165,7 +169,7 @@ function InboxTicket({ ticket, inbox, now }: { ticket: SimTicket; inbox: SimInbo
   );
 }
 
-function OutboxTicket({ ticket, inbox, now }: { ticket: SimTicket; inbox: SimInbox; now: number }) {
+function OutboxTicket({ ticket, inbox, now }: { ticket: TicketView; inbox: InboxView; now: number }) {
   const { t, lang } = useI18n();
   const [text, setText] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -207,7 +211,7 @@ function OutboxTicket({ ticket, inbox, now }: { ticket: SimTicket; inbox: SimInb
             disabled={busy}
             onClick={() =>
               void run(async () => {
-                const d = await backend.openReply(ticket, inbox);
+                const d = await backend.openReply(ticket);
                 setText(d && d.kind === 'message' ? d.body : '—');
               })
             }
@@ -232,20 +236,47 @@ function OutboxTicket({ ticket, inbox, now }: { ticket: SimTicket; inbox: SimInb
   );
 }
 
+function PublishKey({ inbox }: { inbox: InboxView }) {
+  const { t } = useI18n();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <div className="stack mt-s">
+      <Note tone="warn">{t('inbox.noKeyNote')}</Note>
+      <div className="row">
+        <Button
+          variant="signal"
+          size="sm"
+          disabled={busy}
+          onClick={() => {
+            setBusy(true);
+            setErr(null);
+            backend
+              .publishInboxKey(inbox)
+              .catch((e: unknown) => setErr(e instanceof Error ? e.message.slice(0, 200) : String(e)))
+              .finally(() => setBusy(false));
+          }}
+        >
+          {busy ? <span className="spin" /> : null} {t('inbox.publishKey')}
+        </Button>
+        {err && <span className="bad small">{err}</span>}
+      </div>
+    </div>
+  );
+}
+
 export function Inbox(_: { arg: string }) {
   const { t } = useI18n();
-  const sim = useInboxState();
+  const state = useInboxState();
   const w = useWallet();
   const [tab, setTab] = useState<Tab>('inbox');
-  const [inboxId, setInboxId] = useState<number>(sim.inboxes[0]?.id ?? 1);
-  const [toast, setToast] = useToast();
-  const now = useNow() + sim.clockOffset;
-  const sender: Address = w.address ?? DEMO_SENDER;
-  const owned = backend.mode === 'chain' && w.address ? sim.inboxes.filter((i) => i.owner.toLowerCase() === w.address!.toLowerCase()) : sim.inboxes;
+  const [inboxId, setInboxId] = useState<number | null>(null);
+  const now = useNow();
+  const me = w.address?.toLowerCase();
+  const owned = me ? state.inboxes.filter((i) => i.owner.toLowerCase() === me) : [];
   const inbox = owned.find((i) => i.id === inboxId) ?? owned[0];
-  const inboxTickets = useMemo(() => sim.tickets.filter((x) => x.inboxId === inbox?.id).sort((a, b) => (a.status === 'Pending' ? -1 : 1) - (b.status === 'Pending' ? -1 : 1) || b.id - a.id), [sim.tickets, inbox?.id]);
-  const mine = useMemo(() => sim.tickets.filter((x) => x.sender.toLowerCase() === sender.toLowerCase()).sort((a, b) => b.id - a.id), [sim.tickets, sender]);
-  const outbox = mine.length ? mine : sim.tickets.slice().sort((a, b) => b.id - a.id);
+  const inboxTickets = useMemo(() => state.tickets.filter((x) => x.inboxId === inbox?.id).sort((a, b) => (a.status === 'Pending' ? -1 : 1) - (b.status === 'Pending' ? -1 : 1) || b.id - a.id), [state.tickets, inbox?.id]);
+  const outbox = useMemo(() => (me ? state.tickets.filter((x) => x.sender.toLowerCase() === me).sort((a, b) => b.id - a.id) : []), [state.tickets, me]);
 
   return (
     <>
@@ -263,26 +294,11 @@ export function Inbox(_: { arg: string }) {
             ]}
             onChange={setTab}
           />
-          {backend.fastForward && (
-            <Button size="sm" variant="ghost" onClick={() => { backend.fastForward!(48 * 3600); setToast(t('c.ff')); }}>
-              {t('c.ff')}
-            </Button>
-          )}
-          {backend.reset && (
-            <Button size="sm" variant="ghost" onClick={() => { backend.reset!(); setToast(t('c.resetSim')); }}>
-              {t('c.resetSim')}
-            </Button>
-          )}
         </div>
       </div>
-      {!LAUNCHED ? <Note tone="warn">{t('c.simNote')}</Note> : <Note tone="ok">{t('chain.liveNote')}</Note>}
-      {backend.mode === 'chain' && !w.address && <Note tone="warn">{t('chain.connectToRead')}</Note>}
-      {backend.mode === 'chain' && w.address && owned.length === 0 && <Note>{t('chain.noOwnedInbox')}</Note>}
-      {sim.clockOffset > 0 && (
-        <div className="small muted mt-s">
-          {t('c.simClock')}: +{Math.round(sim.clockOffset / 3600)} h
-        </div>
-      )}
+      <DeploymentNote />
+      {DEPLOYED && !w.address && <Note tone="warn">{t('chain.connectToRead')}</Note>}
+      {DEPLOYED && w.address && state.loaded && tab === 'inbox' && owned.length === 0 && <Note>{t('chain.noOwnedInbox')}</Note>}
 
       {tab === 'inbox' && inbox && (
         <div className="grid side mt">
@@ -302,14 +318,15 @@ export function Inbox(_: { arg: string }) {
               <dl className="kv mt-s">
                 <dt>container</dt>
                 <dd>
-                  <Addr value={backend.containerOf(inbox)} />
+                  <Addr value={inbox.container} />
                 </dd>
                 <dt>X25519 key</dt>
-                <dd>
-                  <Addr value={inbox.key.publicKey} />
-                </dd>
+                <dd>{inbox.publicKey === '0x' ? <Badge tone="warn">{t('inbox.noKey')}</Badge> : <Addr value={inbox.publicKey} />}</dd>
               </dl>
+              {inbox.publicKey === '0x' && <PublishKey inbox={inbox} />}
             </Panel>
+            <RelayPanel key={`relay-${inbox.id}`} inbox={inbox} />
+            <InboxSettings key={inbox.id} inbox={inbox} />
           </div>
           <Panel className="flush">
             <div className="list" style={{ padding: '0 16px' }}>
@@ -322,18 +339,17 @@ export function Inbox(_: { arg: string }) {
         </div>
       )}
 
-      {tab === 'outbox' && (
+      {tab === 'outbox' && w.address && (
         <Panel className="flush mt">
           <div className="list" style={{ padding: '0 16px' }}>
             {outbox.length === 0 && <Empty>{t('inbox.empty')}</Empty>}
             {outbox.map((x) => {
-              const ib = sim.inboxes.find((i) => i.id === x.inboxId);
+              const ib = state.inboxes.find((i) => i.id === x.inboxId);
               return ib ? <OutboxTicket key={x.id} ticket={x} inbox={ib} now={now} /> : null;
             })}
           </div>
         </Panel>
       )}
-      <Toast msg={toast} />
     </>
   );
 }
