@@ -6,6 +6,7 @@ import { Addr, Badge, Bits, NetlistView, Panel, Stat } from '../components/ui.ts
 import { CATALOG_CPU, CONFIG } from '../config.ts';
 import { useAsync } from '../chain/hooks.ts';
 import { cpuIndexOf } from '../chain/escrow.ts';
+import { Intro } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 import { getCatalog, proveItem } from '../circuits/catalog.ts';
 
@@ -57,6 +58,7 @@ export function Gallery(_: { arg: string }) {
         <h2>{t('gal.title')}</h2>
         <p className="lede small mt-s">{t('gal.lede')}</p>
       </div>
+      <Intro page="gallery" />
       <div className="grid side">
         <Panel className="flush table-wrap">
           <table className="table">

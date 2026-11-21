@@ -4,6 +4,7 @@ import { useNow } from '../chain/hooks.ts';
 import { Addr, Badge, Button, Empty, Note, Panel, Segmented, Stat } from '../components/ui.tsx';
 import { DEPLOYED } from '../config.ts';
 import { fmtCountdown, fmtMoney, fmtTime } from '../format.ts';
+import { H, Intro } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 import { TIER_MULT } from '../circuits/catalog.ts';
 import { backend, useInboxState } from '../backend.ts';
@@ -13,6 +14,7 @@ import { InboxSettings } from './InboxSettings.tsx';
 import { RelayPanel } from './RelayPanel.tsx';
 import { useWallet } from '../wallet/wallet.tsx';
 import { href } from '../router.ts';
+import { ProfileLink } from '../components/ProfileLink.tsx';
 
 type Tab = 'inbox' | 'outbox';
 
@@ -296,14 +298,22 @@ export function Inbox(_: { arg: string }) {
           />
         </div>
       </div>
+      <Intro page="inbox" />
       <DeploymentNote />
       {DEPLOYED && !w.address && <Note tone="warn">{t('chain.connectToRead')}</Note>}
-      {DEPLOYED && w.address && state.loaded && tab === 'inbox' && owned.length === 0 && <Note>{t('chain.noOwnedInbox')}</Note>}
+      {DEPLOYED && w.address && state.loaded && tab === 'inbox' && owned.length === 0 && (
+        <Note>
+          {t('chain.noOwnedInbox')}{' '}
+          <a className="btn sm signal" href={href('start')} style={{ marginLeft: 8 }}>
+            {t('nav.start')}
+          </a>
+        </Note>
+      )}
 
       {tab === 'inbox' && inbox && (
         <div className="grid side mt">
           <div className="stack">
-            <Panel kicker={t('inbox.pickInbox')} title={`@${inbox.handle}`} right={<Badge tone="signal">{PRESET_NAMES[inbox.preset]}</Badge>}>
+            <Panel kicker={t('inbox.pickInbox')} info={<H k="inbox.pickInbox" />} title={`@${inbox.handle}`} right={<Badge tone="signal">{PRESET_NAMES[inbox.preset]}</Badge>}>
               <select className="input" value={inbox.id} onChange={(e) => setInboxId(Number(e.target.value))}>
                 {owned.map((i) => (
                   <option key={i.id} value={i.id}>
@@ -311,9 +321,10 @@ export function Inbox(_: { arg: string }) {
                   </option>
                 ))}
               </select>
+              <ProfileLink handle={inbox.handle} />
               <div className="grid cols-2 mt-s">
-                <Stat label={t('inbox.queueNow')} value={`Q = ${inbox.latch}`} sub={`latchState 0x0${inbox.latch}`} />
-                <Stat label={t('inbox.earned')} value={fmtMoney(inbox.token, inbox.earned)} sub={`${inbox.replies} replies`} tone="ok" />
+                <Stat label={t('inbox.queueNow')} info={<H k="inbox.queueNow" />} value={`Q = ${inbox.latch}`} sub={`latchState 0x0${inbox.latch}`} />
+                <Stat label={t('inbox.earned')} info={<H k="inbox.earned" />} value={fmtMoney(inbox.token, inbox.earned)} sub={`${inbox.replies} replies`} tone="ok" />
               </div>
               <dl className="kv mt-s">
                 <dt>container</dt>

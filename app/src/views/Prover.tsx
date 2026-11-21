@@ -2,6 +2,7 @@ import { OP_REF, XLAYER, beat, bitsFromInt, chainEval, chainStep, circuitsAbi, c
 import { useEffect, useMemo, useState } from 'react';
 import { explorerAddress, publicClient } from '../chain/client.ts';
 import { Addr, Badge, Bits, Button, Note, Panel, Stat } from '../components/ui.tsx';
+import { Intro } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 
 const cache = createCircuitCache();
@@ -150,6 +151,7 @@ export function Prover({ arg }: { arg: string }) {
         <h2>{t('prover.title')}</h2>
         <p className="lede small mt-s">{t('prover.lede')}</p>
       </div>
+      <Intro page="prover" />
       <div className="row">
         <input
           className="input mono"

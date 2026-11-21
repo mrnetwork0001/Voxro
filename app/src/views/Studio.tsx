@@ -6,6 +6,7 @@ import { useTelemetry } from '../chain/telemetry.ts';
 import { Addr, Badge, Button, Field, Ladder, Note, Panel, Segmented, Stat, Toast, TruthTable, Waveform, useToast } from '../components/ui.tsx';
 import { CONFIG, DEPLOYED } from '../config.ts';
 import { fmtAmount, parseAmount } from '../format.ts';
+import { H, Intro } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 import { navigate } from '../router.ts';
 import { DEFAULT_TRAFFIC, controllerTable, getController, priceLadder, proveItem, simulateTraffic } from '../circuits/catalog.ts';
@@ -115,10 +116,11 @@ export function Studio(_: { arg: string }) {
         <h2>{t('studio.title')}</h2>
         <p className="lede small mt-s">{t('studio.lede')}</p>
       </div>
+      <Intro page="studio" />
       <DeploymentNote />
       <div className="grid side mt">
         <div className="stack">
-          <Panel kicker={t('studio.policy')} title={PRESET_NAMES[preset]}>
+          <Panel kicker={t('studio.policy')} info={<H k="studio.policy" />} title={PRESET_NAMES[preset]}>
             <div className="stack">
               <Field label={t('c.preset')}>
                 <select className="input" value={preset} onChange={(e) => setPreset(e.target.value as ControllerPreset)}>
@@ -152,7 +154,7 @@ export function Studio(_: { arg: string }) {
                 <input className="input mono" placeholder="0x… (any registered TapeOut processor)" value={partner} onChange={(e) => setPartner(e.target.value.trim())} />
               )}
               <div className="grid cols-2">
-                <Field label={t('c.handle')}>
+                <Field label={t('c.handle')} info={<H k="studio.handle" />}>
                   <input className="input" placeholder="yourname" value={handle} onChange={(e) => setHandle(e.target.value)} />
                 </Field>
                 <Field label={t('c.token')}>
@@ -228,7 +230,7 @@ export function Studio(_: { arg: string }) {
             </div>
           </Panel>
 
-          <Panel kicker={t('studio.cost')} title={mailboxMode === 'existing' ? t('studio.cost.existing') : newMailboxCost !== null ? `${formatOkb(newMailboxCost)} + gas` : '…'}>
+          <Panel kicker={t('studio.cost')} info={<H k="studio.cost" />} title={mailboxMode === 'existing' ? t('studio.cost.existing') : newMailboxCost !== null ? `${formatOkb(newMailboxCost)} + gas` : '…'}>
             <dl className="kv">
               <dt>{t('studio.cost.mint')}</dt>
               <dd className="mono">{mbMintCost !== null ? `${formatOkb(mbMintCost)} (${mailboxNand.toString()} NAND)` : '…'}</dd>
@@ -250,12 +252,12 @@ export function Studio(_: { arg: string }) {
         </div>
 
         <div className="stack">
-          <Panel kicker={t('studio.compiled')} title={`#${item.id.toString()} ${item.name}`} right={<Badge tone={proof.ok ? 'ok' : 'bad'}>{proof.ok ? `${proof.total} / ${proof.total} ✓` : t('studio.prover.bad')}</Badge>}>
+          <Panel kicker={t('studio.compiled')} info={<H k="studio.compiled" />} title={`#${item.id.toString()} ${item.name}`} right={<Badge tone={proof.ok ? 'ok' : 'bad'}>{proof.ok ? `${proof.total} / ${proof.total} ✓` : t('studio.prover.bad')}</Badge>}>
             <div className="grid cols-4">
-              <Stat label={t('studio.pins')} value={`${item.resolved.nIn} / ${item.resolved.nOut} / ${item.resolved.nState}`} sub="nIn / nOut / nState" />
-              <Stat label={t('studio.gateCount')} value={item.resolved.gateCount} />
-              <Stat label={t('studio.burn')} value={`${item.circuit.burn.nand} NAND`} sub={`${item.circuit.burn.latch} LATCH`} tone="signal" />
-              <Stat label={t('studio.bytes')} value={item.circuit.bytes.length} sub={<Addr value={item.circuit.hex} />} />
+              <Stat label={t('studio.pins')} info={<H k="studio.pins" />} value={`${item.resolved.nIn} / ${item.resolved.nOut} / ${item.resolved.nState}`} sub="nIn / nOut / nState" />
+              <Stat label={t('studio.gateCount')} info={<H k="studio.gateCount" />} value={item.resolved.gateCount} />
+              <Stat label={t('studio.burn')} info={<H k="studio.burn" />} value={`${item.circuit.burn.nand} NAND`} sub={`${item.circuit.burn.latch} LATCH`} tone="signal" />
+              <Stat label={t('studio.bytes')} info={<H k="studio.bytes" />} value={item.circuit.bytes.length} sub={<Addr value={item.circuit.hex} />} />
             </div>
             <div className="small muted mt-s">
               REF → VOXR #1 SaturatingQueue3 · #2 SurgeCurveDecoder · #3 VipPassGate
@@ -268,19 +270,19 @@ export function Studio(_: { arg: string }) {
             </div>
           </Panel>
 
-          <Panel kicker={t('dir.ladder')} title={`${fmtAmount(token, basePrice)} ${TOKENS[token].symbol} base`}>
+          <Panel kicker={t('dir.ladder')} info={<H k="dir.ladder" />} title={`${fmtAmount(token, basePrice)} ${TOKENS[token].symbol} base`}>
             <div className="kicker">cold sender</div>
             <Ladder rungs={cold} current={-1} symbol={TOKENS[token].symbol} fmt={(v) => fmtAmount(token, v)} />
             <div className="kicker mt-s">partner-circuit holder (−1 tier, 50% off)</div>
             <Ladder rungs={holder} current={-1} symbol={TOKENS[token].symbol} fmt={(v) => fmtAmount(token, v)} />
           </Panel>
 
-          <Panel kicker={t('studio.waveform')} title={t('studio.waveform.sub')}>
+          <Panel kicker={t('studio.waveform')} info={<H k="studio.waveform" />} title={t('studio.waveform.sub')}>
             <Waveform points={traffic} />
             <div className="small muted">S = cold send · S* = partner holder · R = reply (claim) · X = refund · ✕ = blocked by pause</div>
           </Panel>
 
-          <Panel kicker={t('studio.table')} title={t('studio.table.sub')} right={<Segmented value={showAll ? 'all' : 'enq'} options={[{ id: 'enq', label: t('studio.showEnq') }, { id: 'all', label: t('studio.showAll') }]} onChange={(v) => setShowAll(v === 'all')} />}>
+          <Panel kicker={t('studio.table')} info={<H k="studio.table" />} title={t('studio.table.sub')} right={<Segmented value={showAll ? 'all' : 'enq'} options={[{ id: 'enq', label: t('studio.showEnq') }, { id: 'all', label: t('studio.showAll') }]} onChange={(v) => setShowAll(v === 'all')} />}>
             <TruthTable rows={shown} />
             <div className="small muted mt-s">
               {shown.length} / {rows.length} rows · {lang === 'zh' ? '位序 LSB 在前' : 'bits LSB-first'}: in = [active, dir, p0, p1, allow, partner]

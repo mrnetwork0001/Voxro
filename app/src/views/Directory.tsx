@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Addr, Badge, Button, Empty, Field, Gauge, Ladder, Note, Panel, Stat, Toast, useToast } from '../components/ui.tsx';
 import { DEPLOYED } from '../config.ts';
 import { fmtAmount, fmtDuration, fmtMoney } from '../format.ts';
+import { H, Intro } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 import { href } from '../router.ts';
 import { TIER_MULT, priceLadder } from '../circuits/catalog.ts';
@@ -110,6 +111,7 @@ export function Directory({ arg }: { arg: string }) {
           {w.address ? <Addr value={w.address} /> : <Badge>{t('dir.coldSender')}</Badge>}
         </div>
       </div>
+      <Intro page="directory" />
       <DeploymentNote />
       {DEPLOYED && (
         <div className="grid side mt">
@@ -161,15 +163,15 @@ export function Directory({ arg }: { arg: string }) {
               </Panel>
             ) : (
               <>
-                <Panel kicker={t('dir.compose')} title={`@${inbox.handle}`} right={<Badge tone="signal">{PRESET_NAMES[inbox.preset]}</Badge>}>
+                <Panel kicker={t('dir.compose')} info={<H k="dir.compose" />} title={`@${inbox.handle}`} right={<Badge tone="signal">{PRESET_NAMES[inbox.preset]}</Badge>}>
                   <p className="sub">{inbox.bio}</p>
                   <div className="small mt-s" style={{ color: 'var(--ink-2)' }}>
                     <span className="kicker">Onchain reply record</span> · {recordOf(inbox, t, lang)}
                   </div>
                   <div className="grid cols-3 mt-s">
-                    <Stat label={t('dir.quote')} value={<span className={`tier-${quote.tier}`}>{fmtMoney(inbox.token, quote.price)}</span>} sub={`${TIER_MULT[quote.tier]}${quote.vip ? ` · ${t('c.discount')}` : ''}${quote.allowlisted ? ` · ${t('c.allowlisted')}` : ''}`} tone="signal" />
-                    <Stat label={t('c.queue')} value={`${inbox.latch} → ${quote.nextQ}`} sub={quote.canSend ? 'canSend = 1' : 'canSend = 0'} />
-                    <Stat label={t('c.sla')} value={fmtDuration(inbox.slaSeconds, lang)} sub={`${t('c.basePrice')} ${fmtMoney(inbox.token, inbox.basePrice)}`} />
+                    <Stat label={t('dir.quote')} info={<H k="dir.quote" />} value={<span className={`tier-${quote.tier}`}>{fmtMoney(inbox.token, quote.price)}</span>} sub={`${TIER_MULT[quote.tier]}${quote.vip ? ` · ${t('c.discount')}` : ''}${quote.allowlisted ? ` · ${t('c.allowlisted')}` : ''}`} tone="signal" />
+                    <Stat label={t('c.queue')} info={<H k="c.queue" />} value={`${inbox.latch} → ${quote.nextQ}`} sub={quote.canSend ? 'canSend = 1' : 'canSend = 0'} />
+                    <Stat label={t('c.sla')} info={<H k="c.sla" />} value={fmtDuration(inbox.slaSeconds, lang)} sub={`${t('c.basePrice')} ${fmtMoney(inbox.token, inbox.basePrice)}`} />
                   </div>
                   <p className="small muted mt-s">{t('dir.quote.sub')}</p>
                   {!quote.canSend && <Note tone="warn">{t('dir.pausedMsg')}</Note>}
@@ -195,7 +197,7 @@ export function Directory({ arg }: { arg: string }) {
                   </div>
                 </Panel>
 
-                <Panel kicker={t('dir.ladder')} title={t('dir.ladder.sub')}>
+                <Panel kicker={t('dir.ladder')} info={<H k="dir.ladder" />} title={t('dir.ladder.sub')}>
                   <Ladder rungs={ladder} current={inbox.latch} symbol={TOKENS[inbox.token].symbol} fmt={(v) => fmtAmount(inbox.token, v)} />
                   {(quote.vip || quote.allowlisted) && (
                     <div className="mt-s">
@@ -206,7 +208,7 @@ export function Directory({ arg }: { arg: string }) {
                 </Panel>
 
                 {last && last.inboxId === inbox.id && (
-                  <Panel signal kicker={t('dir.sent')} title={`Ticket #${last.id}`} right={<a className="btn sm" href={href('inbox')}>{t('nav.inbox')}</a>}>
+                  <Panel signal kicker={t('dir.sent')} info={<H k="dir.sent" />} title={`Ticket #${last.id}`} right={<a className="btn sm" href={href('inbox')}>{t('nav.inbox')}</a>}>
                     <dl className="kv">
                       <dt>{t('c.lane')}</dt>
                       <dd>{t('c.lane.guest')}</dd>

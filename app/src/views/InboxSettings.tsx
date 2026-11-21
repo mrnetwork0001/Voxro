@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { backend } from '../backend.ts';
 import { Addr, Badge, Button, Field, Note, Panel, Segmented } from '../components/ui.tsx';
 import { fmtAmount, parseAmount } from '../format.ts';
+import { H } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 import { TOKENS, type InboxView, type Token } from '../model.ts';
 import { CONFIG } from '../config.ts';
@@ -51,7 +52,7 @@ export function InboxSettings({ inbox }: { inbox: InboxView }) {
   const teamChanged = key(members) !== key(inbox.memberIds);
 
   return (
-    <Panel kicker={t('set.kicker')} title={t('set.title')} right={<Badge tone={inbox.active ? 'ok' : 'warn'}>{inbox.active ? t('set.active') : t('set.paused')}</Badge>}>
+    <Panel kicker={t('set.kicker')} info={<H k="set.kicker" />} title={t('set.title')} right={<Badge tone={inbox.active ? 'ok' : 'warn'}>{inbox.active ? t('set.active') : t('set.paused')}</Badge>}>
       <div className="stack">
         {/* status */}
         <div className="row between">

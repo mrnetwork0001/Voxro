@@ -5,6 +5,7 @@ import { useTelemetry } from '../chain/telemetry.ts';
 import { Addr, Badge, Kicker, Panel, Stat, SurgeChart } from '../components/ui.tsx';
 import { CONFIG, DEPLOYED } from '../config.ts';
 import { fmtMoney } from '../format.ts';
+import { H, Intro } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 import { href } from '../router.ts';
 import { getCatalog, proveAll } from '../circuits/catalog.ts';
@@ -35,22 +36,23 @@ export function Pulse(_: { arg: string }) {
           <a className="btn signal" href={href('directory')}>
             {t('pulse.cta.send')}
           </a>
-          <a className="btn" href={href('studio')}>
+          <a className="btn" href={href('start')}>
             {t('pulse.cta.studio')}
           </a>
         </div>
       </section>
 
+      <Intro page="pulse" />
       <DeploymentNote />
 
       <div className="grid cols-4 mt">
-        <Stat label={t('c.block')} value={d ? `#${d.block.toString()}` : tele.error ? '—' : '…'} sub={tele.error ? <span className="bad">{tele.error.slice(0, 80)}</span> : 'X Layer · chainId 196'} tone={d ? 'ok' : undefined} />
-        <Stat label={t('pulse.processors')} value={d ? d.cpuCount.toString() : '…'} sub={<Addr value={XLAYER.factory} link={explorerAddress(XLAYER.factory)} />} />
-        <Stat label={t('pulse.deployFee')} value={d ? formatOkb(d.deployFee) : '…'} sub="Factory.deployFee()" />
-        <Stat label={t('pulse.tapeoutFee')} value={d ? formatOkb(d.tapeoutFee) : '…'} sub="Circuits.TAPEOUT_FEE()" />
-        <Stat label={t('pulse.openerFee')} value={d ? formatOkb(d.openerFee) : '…'} sub="Opener.FEE()" />
-        <Stat label={t('pulse.marketFee')} value={d ? `${(Number(d.marketFeeBps) / 100).toFixed(2)} %` : '…'} sub="CircuitMarket.feeBps()" />
-        <Stat label={t('pulse.hub')} value={<Addr value={XLAYER.deWebHub} link={explorerAddress(XLAYER.deWebHub)} />} sub="DeWebHub · TAP-10 v2" mono />
+        <Stat label={t('c.block')} info={<H k="c.block" />} value={d ? `#${d.block.toString()}` : tele.error ? '—' : '…'} sub={tele.error ? <span className="bad">{tele.error.slice(0, 80)}</span> : 'X Layer · chainId 196'} tone={d ? 'ok' : undefined} />
+        <Stat label={t('pulse.processors')} info={<H k="pulse.processors" />} value={d ? d.cpuCount.toString() : '…'} sub={<Addr value={XLAYER.factory} link={explorerAddress(XLAYER.factory)} />} />
+        <Stat label={t('pulse.deployFee')} info={<H k="pulse.deployFee" />} value={d ? formatOkb(d.deployFee) : '…'} sub="Factory.deployFee()" />
+        <Stat label={t('pulse.tapeoutFee')} info={<H k="pulse.tapeoutFee" />} value={d ? formatOkb(d.tapeoutFee) : '…'} sub="Circuits.TAPEOUT_FEE()" />
+        <Stat label={t('pulse.openerFee')} info={<H k="pulse.openerFee" />} value={d ? formatOkb(d.openerFee) : '…'} sub="Opener.FEE()" />
+        <Stat label={t('pulse.marketFee')} info={<H k="pulse.marketFee" />} value={d ? `${(Number(d.marketFeeBps) / 100).toFixed(2)} %` : '…'} sub="CircuitMarket.feeBps()" />
+        <Stat label={t('pulse.hub')} info={<H k="pulse.hub" />} value={<Addr value={XLAYER.deWebHub} link={explorerAddress(XLAYER.deWebHub)} />} sub="DeWebHub · TAP-10 v2" mono />
         <Stat
           label={t('pulse.voxr')}
           value={d?.voxr ? `${d.voxr.symbol} · ${d.voxr.nextId.toString()} ids` : <Badge tone="warn">{t('c.notDeployed.short')}</Badge>}
@@ -60,12 +62,12 @@ export function Pulse(_: { arg: string }) {
       </div>
 
       <div className="grid side mt">
-        <Panel kicker={t('pulse.catalog')} title="VOXR · 8 circuits">
+        <Panel kicker={t('pulse.catalog')} info={<H k="pulse.catalog" />} title="VOXR · 8 circuits">
           <div className="grid cols-2">
-            <Stat label={t('pulse.circuits')} value={catalog.length} sub="3 cells + 5 controllers" />
-            <Stat label={t('pulse.burn')} value={`${burn.nand} NAND · ${burn.latch} LATCH`} sub="top-level records only" />
-            <Stat label={t('pulse.proven')} value={proof.total.toLocaleString()} sub={proof.ok ? <span className="ok">0 mismatches</span> : <span className="bad">mismatch</span>} tone={proof.ok ? 'ok' : 'warn'} />
-            <Stat label={t('pulse.proveTime')} value={`${proof.elapsedMs.toFixed(1)} ms`} sub="in this browser, just now" />
+            <Stat label={t('pulse.circuits')} info={<H k="pulse.circuits" />} value={catalog.length} sub="3 cells + 5 controllers" />
+            <Stat label={t('pulse.burn')} info={<H k="pulse.burn" />} value={`${burn.nand} NAND · ${burn.latch} LATCH`} sub="top-level records only" />
+            <Stat label={t('pulse.proven')} info={<H k="pulse.proven" />} value={proof.total.toLocaleString()} sub={proof.ok ? <span className="ok">0 mismatches</span> : <span className="bad">mismatch</span>} tone={proof.ok ? 'ok' : 'warn'} />
+            <Stat label={t('pulse.proveTime')} info={<H k="pulse.proveTime" />} value={`${proof.elapsedMs.toFixed(1)} ms`} sub="in this browser, just now" />
           </div>
           <div className="table-wrap mt-s">
           <table className="table">
@@ -98,7 +100,7 @@ export function Pulse(_: { arg: string }) {
           </table>
           </div>
         </Panel>
-        <Panel kicker={t('pulse.curves')} title={t('pulse.curves.sub')}>
+        <Panel kicker={t('pulse.curves')} info={<H k="pulse.curves" />} title={t('pulse.curves.sub')}>
           <SurgeChart tables={SURGE_TABLES} />
           <div className="grid cols-4 mt-s">
             {(['gentle', 'balanced', 'steep', 'fortress'] as const).map((p) => (
@@ -112,7 +114,7 @@ export function Pulse(_: { arg: string }) {
       </div>
 
       <div className="grid side-r mt">
-        <Panel kicker={t('pulse.how')} title="LATCH → price → reply → settle">
+        <Panel kicker={t('pulse.how')} info={<H k="pulse.how" />} title="LATCH → price → reply → settle">
           <div className="steps">
             <div>{t('pulse.how.1')}</div>
             <div>{t('pulse.how.2')}</div>
@@ -121,11 +123,11 @@ export function Pulse(_: { arg: string }) {
         </Panel>
         <Panel kicker={DEPLOYED ? t('c.live') : t('c.notDeployed.short')} title={t('pulse.network')}>
           <div className="grid cols-2">
-            <Stat label={t('pulse.inboxes')} value={state.inboxes.filter((i) => i.active).length} />
-            <Stat label={t('pulse.pendingTickets')} value={pending} />
-            <Stat label={t('pulse.surgeIndex')} value={`${surgeIndex.toFixed(2)} / 7`} sub={t('pulse.surgeIndex.sub')} tone={surgeIndex >= 4 ? 'warn' : undefined} />
-            <Stat label={t('pulse.settled')} value={fmtMoney('USDT0', settled.USDT0.recipient + settled.USDT0.protocol)} sub={`${fmtMoney('USDT', settled.USDT.recipient + settled.USDT.protocol)} · ${fmtMoney('OKB', settled.OKB.recipient + settled.OKB.protocol)}`} />
-            <Stat label={t('pulse.protocol')} value={fmtMoney('USDT0', settled.USDT0.protocol)} sub="5% of claimed bounties" />
+            <Stat label={t('pulse.inboxes')} info={<H k="pulse.inboxes" />} value={state.inboxes.filter((i) => i.active).length} />
+            <Stat label={t('pulse.pendingTickets')} info={<H k="pulse.pendingTickets" />} value={pending} />
+            <Stat label={t('pulse.surgeIndex')} info={<H k="pulse.surgeIndex" />} value={`${surgeIndex.toFixed(2)} / 7`} sub={t('pulse.surgeIndex.sub')} tone={surgeIndex >= 4 ? 'warn' : undefined} />
+            <Stat label={t('pulse.settled')} info={<H k="pulse.settled" />} value={fmtMoney('USDT0', settled.USDT0.recipient + settled.USDT0.protocol)} sub={`${fmtMoney('USDT', settled.USDT.recipient + settled.USDT.protocol)} · ${fmtMoney('OKB', settled.OKB.recipient + settled.OKB.protocol)}`} />
+            <Stat label={t('pulse.protocol')} info={<H k="pulse.protocol" />} value={fmtMoney('USDT0', settled.USDT0.protocol)} sub="5% of claimed bounties" />
           </div>
         </Panel>
       </div>
