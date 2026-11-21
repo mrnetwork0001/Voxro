@@ -1,5 +1,5 @@
 import { formatNetlist, type ControllerInputs } from '@voxro/sdk';
-import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { useI18n } from '../i18n.tsx';
 import type { CatalogItem, Rung, TableRow, TrafficPoint } from '../circuits/catalog.ts';
 
@@ -8,12 +8,27 @@ export const Kicker = ({ children, signal }: { children: ReactNode; signal?: boo
 /** ⓘ hint: hover, focus or tap to read a plain-language explanation. */
 export function InfoTip({ children, label = 'What is this?' }: { children: ReactNode; label?: string }) {
   const [open, setOpen] = useState(false);
+  const pop = useRef<HTMLSpanElement>(null);
+  // keep the popover inside the screen: centre it under the ⓘ, then nudge it left/right if it would overflow
+  const fit = useCallback(() => {
+    const el = pop.current;
+    if (!el) return;
+    el.style.setProperty('--dx', '0px');
+    const r = el.getBoundingClientRect();
+    const m = 12;
+    const vw = document.documentElement.clientWidth;
+    const dx = r.left < m ? m - r.left : r.right > vw - m ? vw - m - r.right : 0;
+    el.style.setProperty('--dx', `${Math.round(dx)}px`);
+  }, []);
+  useLayoutEffect(() => {
+    if (open) fit();
+  }, [open, fit]);
   return (
-    <span className={`info-tip${open ? ' open' : ''}`} onMouseLeave={() => setOpen(false)}>
-      <button type="button" className="info-btn" aria-label={label} aria-expanded={open} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }} onBlur={() => setOpen(false)}>
+    <span className={`info-tip${open ? ' open' : ''}`} onMouseEnter={fit} onMouseLeave={() => setOpen(false)}>
+      <button type="button" className="info-btn" aria-label={label} aria-expanded={open} onFocus={fit} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }} onBlur={() => setOpen(false)}>
         i
       </button>
-      <span className="info-pop" role="tooltip">
+      <span ref={pop} className="info-pop" role="tooltip">
         {children}
       </span>
     </span>
