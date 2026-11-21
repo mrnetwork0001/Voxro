@@ -6,6 +6,7 @@ import {VoxroEscrow} from "../src/VoxroEscrow.sol";
 import {VoxroLens} from "../src/VoxroLens.sol";
 import {ICircuits, IFactory, ITransistors} from "../src/interfaces/ITapeOut.sol";
 import {CatalogLib} from "./CatalogLib.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IDeWebHubKeys {
     function publishKey(address circuits, uint256 tokenId, uint8 suite, uint16 keyIndex, bytes32 key, uint64 chains) external;
@@ -29,6 +30,36 @@ contract Deploy is Script {
     address constant DEFAULT_MAILBOX_CPU = 0xAa13ae45b0B2D52f210Ad7Ef12997113a0ebAF21;
     bytes constant BUFFER_NETLIST = hex"0000000200000200000003000003";
 
+    /// @dev Factory V2: the deploy fee is an ERC-20 (BEM) pulled with transferFrom, createCPU takes no OKB,
+    ///      and the transistor mint price is capped at MAX_MINT_PRICE (1e12 wei at the time of writing).
+    function _createCpu() internal returns (address transistors, address circuits) {
+        uint256 mintPrice = vm.envOr("VOXRO_MINT_PRICE", uint256(0)); // in fee-token units (BEM, 8 dp) on V2 processors
+        require(mintPrice <= FACTORY.MAX_MINT_PRICE(), "VOXRO_MINT_PRICE above Factory.MAX_MINT_PRICE");
+        address feeToken = FACTORY.bem();
+        uint256 deployFee = FACTORY.deployFee();
+        if (feeToken != address(0) && deployFee > 0) {
+            require(IERC20(feeToken).balanceOf(msg.sender) >= deployFee, "need BEM for the Factory deploy fee");
+            IERC20(feeToken).approve(address(FACTORY), deployFee);
+            (transistors, circuits) = FACTORY.createCPU("Voxro", "VOXR", STORY, 1_000_000, mintPrice);
+        } else {
+            (transistors, circuits) = FACTORY.createCPU{value: deployFee}("Voxro", "VOXR", STORY, 1_000_000, mintPrice);
+        }
+    }
+
+    /// @dev V2 processors charge mintPrice + protocolFee in the Factory fee token; V1 processors in OKB.
+    function _mintVoxr(ITransistors t, uint256 id, uint256 amount) internal {
+        uint256 cost = amount * t.mintPrice() + t.protocolFee();
+        address feeToken = FACTORY.bem();
+        if (feeToken != address(0)) {
+            IERC20(feeToken).approve(address(t), cost);
+            t.mint(id, amount);
+        } else {
+            t.mint{value: cost}(id, amount);
+        }
+    }
+
+    string constant STORY = "Attention escrow and hardware surge pricing for priority inboxes on X Layer. Every inbox is a provable 3-LATCH circuit; replies settle over TapeSend with zero oracle.";
+
     function run() external {
         require(block.chainid == 196, "X Layer only");
         address broadcaster = msg.sender;
@@ -45,19 +76,14 @@ contract Deploy is Script {
         bytes32 mailboxKey = vm.envOr("VOXRO_MAILBOX_KEY", bytes32(0)); // X25519 pubkey derived in the app; publishKey needs an EOA
 
         vm.startBroadcast();
-        uint256 deployFee = FACTORY.deployFee();
-        (address transistors, address circuits) =
-            FACTORY.createCPU{value: deployFee}("Voxro", "VOXR", "Attention escrow and hardware surge pricing for priority inboxes on X Layer. Every inbox is a provable 3-LATCH circuit; replies settle over TapeSend with zero oracle.", 1_000_000, 1e13);
+        (address transistors, address circuits) = _createCpu();
         console2.log("VOXR circuits   ", circuits);
         console2.log("VOXR transistors", transistors);
 
         CatalogLib.Circuit[] memory cat = CatalogLib.load(vm, circuits);
         (uint256 nand, uint256 latch) = CatalogLib.burn(cat);
-        ITransistors t = ITransistors(transistors);
-        uint256 mintPrice = t.mintPrice();
-        uint256 pf = t.protocolFee();
-        t.mint{value: (nand + nandHeadroom) * mintPrice + pf}(0, nand + nandHeadroom);
-        t.mint{value: (latch + latchHeadroom) * mintPrice + pf}(1, latch + latchHeadroom);
+        _mintVoxr(ITransistors(transistors), 0, nand + nandHeadroom);
+        _mintVoxr(ITransistors(transistors), 1, latch + latchHeadroom);
 
         uint256 fee = ICircuits(circuits).TAPEOUT_FEE();
         for (uint256 i = 0; i < cat.length; i++) {

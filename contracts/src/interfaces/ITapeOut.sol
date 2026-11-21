@@ -7,6 +7,9 @@ interface IFactory {
     function cpuCount() external view returns (uint256);
     function cpuAt(uint256 i) external view returns (address circuits);
     function deployFee() external view returns (uint256);
+    /// @notice ERC-20 the deploy fee is paid in (BEM, 8 decimals) since the Factory V2 upgrade; zero = paid in OKB.
+    function bem() external view returns (address);
+    function MAX_MINT_PRICE() external view returns (uint256);
     function createCPU(string calldata name, string calldata symbol, string calldata story, uint256 transistorSupply, uint256 mintPrice)
         external
         payable
