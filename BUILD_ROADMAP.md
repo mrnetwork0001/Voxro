@@ -39,7 +39,7 @@
 
 ## Phase 4 — Mainnet Deployment, Sourcify & Demo Film
 - [x] Full dry-run of deployment on an X Layer fork (`contracts/script/Deploy.s.sol`, `test/Fork.t.sol`).
-- [ ] User-signed X Layer mainnet launch (`≈0.126 OKB` + gas, see `contracts/README.md`) from the dedicated `mrnetwork0001` wallet via a Foundry keystore (`cast wallet import voxro`).
+- [x] User-signed X Layer mainnet launch *(done 2026-11-21, block 76,497,669, from `0x6d64…de3F` via a Foundry keystore; TapeOut Factory V2: 0.1 BEM deploy fee)*: VOXR processor #439 `0xd47C1A47d809438d66fd472cd2A30392ace4e581`, VoxroEscrow `0xd463a83b572AC72C8bE328069d61d2B19Cdf73D5`, VoxroLens `0xc994Cd83C3eA571d38Ed7EbDa8f30c05D06F5640`, flagship inbox `@voxro` #1.
 - [ ] Exact-match Sourcify verification of `VoxroEscrow` and `VoxroLens`.
 - [ ] Publish `#1.2.<VOXR_CPU>.tape` on X Layer `DeWEB` + deploy HTTPS mirror (`voxro.shieldsuite.xyz`).
 - [ ] Record `< 2:50` Demo Video + submit Google Form before Dec 7, 2026 @ 23:59 UTC.
