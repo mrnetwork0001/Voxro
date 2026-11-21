@@ -1,13 +1,14 @@
 /** The inbox's shareable bio link (voxro.shieldsuite.xyz/#/@handle) with a Copy button. */
 import { useState } from 'react';
 import { useI18n } from '../i18n.tsx';
-import { profileLink } from '../router.ts';
+import { profileLink, telegramAlerts } from '../router.ts';
 
 export function ProfileLink({ handle }: { handle: string }) {
   const { lang } = useI18n();
   const [copied, setCopied] = useState(false);
   const url = profileLink(handle);
   return (
+    <>
     <div className="wiz-share mt-s" title={lang === 'zh' ? '放到你的简介中' : 'Put this in your bio'}>
       <span className="mono small">{url}</span>
       <button
@@ -23,5 +24,9 @@ export function ProfileLink({ handle }: { handle: string }) {
         {copied ? (lang === 'zh' ? '已复制' : 'Copied') : lang === 'zh' ? '复制链接' : 'Copy link'}
       </button>
     </div>
+    <a className="tg-alerts small" href={telegramAlerts(handle)} target="_blank" rel="noreferrer">
+      {lang === 'zh' ? '🔔 在 Telegram 接收提醒' : '🔔 Get alerts in Telegram'}
+    </a>
+    </>
   );
 }

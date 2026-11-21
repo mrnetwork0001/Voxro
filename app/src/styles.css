@@ -749,3 +749,6 @@ textarea.input { min-height: 120px; resize: vertical; font-family: var(--font-sa
 /* the intro banner's ⓘ is decorative: no hand/help pointer on it */
 .page-intro .info-btn { cursor: default; }
 .intro-reopen .info-btn { cursor: inherit; }
+
+.tg-alerts { display: inline-block; margin-top: 8px; color: var(--signal); text-decoration: none; font-family: var(--font-mono); }
+.tg-alerts:hover { text-decoration: underline; }

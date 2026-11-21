@@ -17,7 +17,7 @@ import { parseAmount } from '../format.ts';
 import { Intro } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 import { TOKENS, type Token } from '../model.ts';
-import { href, profileLink } from '../router.ts';
+import { href, profileLink, telegramAlerts } from '../router.ts';
 import { useWallet } from '../wallet/wallet.tsx';
 import { TIER_MULT } from '../circuits/catalog.ts';
 import { DeploymentNote } from './DeploymentNote.tsx';
@@ -351,6 +351,9 @@ export function Start(_: { arg: string }) {
                   </a>
                   <a className="btn" href={`#/@${created}`}>
                     {zh ? '查看我的主页' : 'View my profile'}
+                  </a>
+                  <a className="btn" href={telegramAlerts(created)} target="_blank" rel="noreferrer">
+                    {zh ? '🔔 Telegram 提醒' : '🔔 Alerts in Telegram'}
                   </a>
                   <a className="btn" href={href('card')}>
                     {zh ? '制作联系名片' : 'Make a contact card'}

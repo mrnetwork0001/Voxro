@@ -22,6 +22,9 @@ export const href = (id: RouteId, arg?: string) => (id === 'landing' ? '#/' : `#
 /** Shareable public link for an inbox, e.g. https://voxro.shieldsuite.xyz/#/@voxro */
 export const PUBLIC_ORIGIN = 'https://voxro.shieldsuite.xyz';
 export const profileLink = (handle: string) => `${PUBLIC_ORIGIN}/#/@${handle}`;
+/** The Voxro Telegram bot, opened straight into alerts for an inbox. */
+export const TELEGRAM_BOT = 'VoxrolayerBOT';
+export const telegramAlerts = (handle: string) => `https://t.me/${TELEGRAM_BOT}?start=watch_${handle}`;
 
 export function navigate(id: RouteId, arg?: string) {
   location.hash = href(id, arg);
