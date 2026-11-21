@@ -4,3 +4,4 @@ export * from './tapesend/index.js';
 export * from './deweb/index.js';
 export * from './datasheet/index.js';
 export * from './escrow/index.js';
+export * as channel from './channel/index.js';
