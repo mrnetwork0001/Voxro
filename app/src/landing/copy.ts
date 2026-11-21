@@ -9,8 +9,8 @@ export interface LandingCopy {
     lede: string;
     launch: string;
     secondary: string;
-    stats: { block: string; processors: string; proven: string; burn: string };
-    widget: { title: string; sub: string; quote: string; queue: string; send: string; reply: string; refund: string; blocked: string };
+    stats: { circuits: string; circuitsSub: string; inboxes: string; processors: string; proven: string; burn: string };
+    widget: { title: string; sub: string; quote: string; queue: string; send: string; reply: string; refund: string; blocked: string; liveTitle: string; liveSub: string; liveLocked: string; liveClaimed: string; liveRefunded: string; liveEmpty: string };
   };
   problem: { kicker: string; title: string; lede: string; cards: Array<{ title: string; body: string }> };
   how: { kicker: string; title: string; steps: Array<{ title: string; body: string }> };
@@ -30,11 +30,11 @@ const en: LandingCopy = {
   hero: {
     kicker: 'Attention escrow on X Layer · TapeOut circuits · TapeSend · DeWEB',
     h1: ['Your inbox,', 'priced by a circuit.'],
-    lede: 'Voxro is a paid priority inbox with no server. Senders lock USD₮0 to reach you, an on-chain LATCH counter raises the price when you are busy, and your encrypted TapeSend reply releases the bounty with zero oracle. No reply, 100% refund.',
+    lede: 'Voxro is a paid priority inbox with no server. Senders lock USD₮0 to reach you, an onchain LATCH counter raises the price when you are busy, and your encrypted TapeSend reply releases the bounty with zero oracle. No reply, 100% refund.',
     launch: 'Launch app',
     secondary: 'See the circuits',
-    stats: { block: 'X Layer block', processors: 'TapeOut processors live', proven: 'Transitions proven', burn: 'Transistors burned by the catalog' },
-    widget: { title: 'Live gate · FounderBalancedInbox', sub: 'The real compiled circuit, stepped in your browser', quote: 'Next cold sender pays', queue: 'LATCH queue', send: 'Cold sender locked {price} · Q {from}→{to}', reply: 'Reply verified · {paid} paid, {fee} fee · Q {from}→{to}', refund: 'Silence · 100% refund · Q {from}→{to}', blocked: 'Paused for cold senders at Q = 7' },
+    stats: { circuits: 'Circuits compiled', circuitsSub: 'cells + inbox policies', inboxes: 'Inboxes live', processors: 'TapeOut processors live', proven: 'Transitions proven', burn: 'Transistors burned by the catalog' },
+    widget: { title: 'Example · FounderBalancedInbox', sub: 'The real compiled circuit with example traffic, stepped in your browser', liveTitle: 'Live · @{handle}', liveSub: 'Real escrow state on X Layer, refreshed every 10 s', liveLocked: 'Paid message locked · {price}', liveClaimed: 'Reply verified · {paid} to the recipient', liveRefunded: 'Unanswered · {price} refunded', liveEmpty: 'No messages yet. Be the first sender.', quote: 'Next cold sender pays', queue: 'LATCH queue', send: 'Cold sender locked {price} · Q {from}→{to}', reply: 'Reply verified · {paid} paid, {fee} fee · Q {from}→{to}', refund: 'Silence · 100% refund · Q {from}→{to}', blocked: 'Paused for cold senders at Q = 7' },
   },
   problem: {
     kicker: '01 · Why',
@@ -48,7 +48,7 @@ const en: LandingCopy = {
   },
   how: {
     kicker: '02 · How it works',
-    title: 'Four steps, all on chain, nothing in between.',
+    title: 'Four steps, all onchain, nothing in between.',
     steps: [
       { title: 'Tape out your gate', body: 'Pick a surge curve and VIP rules. The compiler emits an InboxController circuit on the VOXR processor: six NAND of glue around three reusable REF cells. All 512 state transitions are proven before a single transistor is spent.' },
       { title: 'Senders encrypt and lock', body: 'A sender encrypts to your DeWebHub X25519 key (TAP-10 v2, X25519 + XChaCha20-Poly1305) and locks the quoted stake. The escrow runs your circuit with dir = 1 and the LATCH queue steps up.' },
@@ -75,7 +75,7 @@ const en: LandingCopy = {
   lanes: {
     kicker: '04 · Two lanes in',
     title: 'Container to container, or one click with no container.',
-    lede: 'TapeSend power users send from their own DeWEB container. Everyone else uses the Guest Express lane: same encryption, same escrow, no 0.08 OKB container to open first. In both lanes the reply is verified on chain through DeWebHub.inboxAt().',
+    lede: 'TapeSend power users send from their own DeWEB container. Everyone else uses the Guest Express lane: same encryption, same escrow, no 0.08 OKB container to open first. In both lanes the reply is verified onchain through DeWebHub.inboxAt().',
     head: ['', 'Container lane', 'Guest Express'],
     rows: [
       ['Who', 'Holders of an opened DeWEB container', 'Any wallet, including first-time OKX Wallet users'],
@@ -94,7 +94,7 @@ const en: LandingCopy = {
       { title: 'End-to-end encrypted', body: 'TAP-10 v2 sealed payloads. Only the recipient key (or the guest reply key) opens a message; the chain stores a digest, never plaintext.' },
       { title: 'Oracle-free settlement', body: 'claimBounty verifies the recipient container, the time window and keccak256(ref ‖ keccak256(payload)) against DeWebHub storage. No signer, no server.' },
       { title: '100% refund on silence', body: 'After the reply window, refundExpired returns the full stake to the sender and steps the queue down. The protocol fee is charged on answered messages only.' },
-      { title: 'Pricing you can prove', body: 'The circuit is immutable on a frozen beacon. The app proves every transition before tape-out and can replay them through step() on chain.' },
+      { title: 'Pricing you can prove', body: 'The circuit is immutable on a frozen beacon. The app proves every transition before tape-out and can replay them through step() onchain.' },
       { title: 'Ownerless contracts', body: 'No admin keys, no upgrades, no pause switch. Fees are pull-based so an odd token can never block settlement.' },
       { title: 'Unstoppable front end', body: 'The client and every contact card are published to X Layer SiteRegistry as tape:// sites with zero external requests. If voxro.shieldsuite.xyz disappears, nothing changes.' },
     ],
@@ -136,16 +136,16 @@ const en: LandingCopy = {
     kicker: '09 · FAQ',
     title: 'Questions judges ask.',
     items: [
-      { q: 'Why a NAND + LATCH circuit instead of basePrice × multiplier in Solidity?', a: 'Because every recipient wants different rules, and custom Solidity for each would be unaudited code holding other people’s money. A bounded 3-LATCH circuit has 512 transitions; the app proves all of them before tape-out and can replay them on chain, so senders can check the exact pricing and refund rules they are signing up for. REF also lets anyone compose ecosystem discounts with zero transistor burn.' },
-      { q: 'What stops a recipient from replying “k” to farm bounties?', a: 'The same thing that keeps Earn.com-style markets honest: a public, on-chain response history and sender ratings on the contact card. A KOL who farms junk replies watches their quality score fall and their inbound dry up.' },
+      { q: 'Why a NAND + LATCH circuit instead of basePrice × multiplier in Solidity?', a: 'Because every recipient wants different rules, and custom Solidity for each would be unaudited code holding other people’s money. A bounded 3-LATCH circuit has 512 transitions; the app proves all of them before tape-out and can replay them onchain, so senders can check the exact pricing and refund rules they are signing up for. REF also lets anyone compose ecosystem discounts with zero transistor burn.' },
+      { q: 'What stops a recipient from replying “k” to farm bounties?', a: 'Every inbox carries a public onchain reply record kept by the escrow itself: how many paid messages were answered, how many expired or were declined, and the average reply time. It is shown in the directory before anyone pays and on the recipient’s contact card, and nobody can edit it. Senders choose who is worth paying; an inbox that farms junk replies shows it, and its inbound dries up.' },
       { q: 'Does every sender have to pay 0.08 OKB to open a container?', a: 'No. Recipients open one container, which powers both their tape:// site and their TapeSend key. Senders can use their own container or the one-click Guest Express lane, encrypted to the exact same key. Both lanes are verified through DeWebHub.inboxAt().' },
       { q: 'What happens if voxro.shieldsuite.xyz goes offline?', a: 'Nothing. The client and contact cards live on SiteRegistry, messages live in DeWebHub, circuits live on the frozen TapeOut beacon and the escrow is ownerless. Anyone can send, reply, claim or refund directly from chain data.' },
-      { q: 'Is anything deployed yet?', a: 'The SDK, compiler, prover, TAP-10 port, the VoxroEscrow and VoxroLens contracts (13 unit and fuzz tests) and this client are complete. The whole launch has been rehearsed on an X Layer fork: processor creation, eight tape-outs, a mailbox container, live quotes from step(), a real DeWebHub reply and a keeper claim. Mainnet deployment is the next step; until then the app runs every flow against a local simulation driven by the real circuits.' },
+      { q: 'Is anything deployed yet?', a: 'The SDK, compiler, prover, TAP-10 port, the VoxroEscrow and VoxroLens contracts (13 unit and fuzz tests) and this client are complete. The whole launch has been rehearsed on an X Layer fork: processor creation, eight tape-outs, a mailbox container, live quotes from step(), a real DeWebHub reply and a keeper claim. The app has no simulated mode: it reads everything from X Layer mainnet, keeps writes disabled until VoxroEscrow is deployed, and from then on every action is a real transaction from your wallet.' },
       { q: 'Why is the TapeSend mailbox on another processor?', a: 'DeWebHub pins the bytecode hash of the processors’ Circuits proxy. Processors created after Factory index 386 have a different proxy and are rejected with NotCPU, so no new processor can send TapeSend today. Voxro keeps the pricing circuit on VOXR and gives each recipient a free two-NAND mailbox circuit on a hub-compatible processor. The escrow was designed with the policy circuit and the inbox container separate, so nothing changed.' },
     ],
   },
   cta: { title: 'Open the app and step the circuit yourself.', body: 'Live X Layer reads, real TAP-10 encryption in your browser, and a 512-transition proof you can watch run.', launch: 'Launch app', spec: 'Read the circuit spec' },
-  footer: { line: 'Voxro (VOXR) · X Layer chainId 196 · X Layer TapeOut Accelerate', built: 'Built by mrnetwork0001 · MIT' },
+  footer: { line: 'Voxro (VOXR) · X Layer chainId 196 · X Layer TapeOut Accelerate', built: 'A ShieldSuite product · built on X Layer' },
 };
 
 const zh: LandingCopy = {
@@ -156,8 +156,8 @@ const zh: LandingCopy = {
     lede: 'Voxro 是一个没有服务器的付费优先收件箱。发送方锁定 USD₮0 才能触达你，链上 LATCH 计数器在你忙碌时自动提价，你的加密 TapeSend 回复零预言机释放赏金。无人回复，100% 退款。',
     launch: '启动应用',
     secondary: '查看电路',
-    stats: { block: 'X Layer 区块', processors: '在线 TapeOut 处理器', proven: '已验证状态转移', burn: '目录消耗的晶体管' },
-    widget: { title: '实时门电路 · FounderBalancedInbox', sub: '真实编译电路，在你的浏览器中逐拍运行', quote: '下一位冷启动发送方支付', queue: 'LATCH 队列', send: '冷启动发送方锁定 {price} · Q {from}→{to}', reply: '回复已验证 · 支付 {paid}，手续费 {fee} · Q {from}→{to}', refund: '无人回复 · 100% 退款 · Q {from}→{to}', blocked: 'Q = 7 时对冷启动发送方暂停' },
+    stats: { circuits: '已编译电路', circuitsSub: '单元 + 收件箱策略', inboxes: '在线收件箱', processors: '在线 TapeOut 处理器', proven: '已验证状态转移', burn: '目录消耗的晶体管' },
+    widget: { title: '示例 · FounderBalancedInbox', sub: '真实编译电路配合示例流量，在你的浏览器中逐拍运行', liveTitle: '实时 · @{handle}', liveSub: 'X Layer 上真实的托管状态，每 10 秒刷新', liveLocked: '付费消息已锁定 · {price}', liveClaimed: '回复已验证 · {paid} 付给接收方', liveRefunded: '未回复 · 已退款 {price}', liveEmpty: '尚无消息，成为第一位发送方。', quote: '下一位冷启动发送方支付', queue: 'LATCH 队列', send: '冷启动发送方锁定 {price} · Q {from}→{to}', reply: '回复已验证 · 支付 {paid}，手续费 {fee} · Q {from}→{to}', refund: '无人回复 · 100% 退款 · Q {from}→{to}', blocked: 'Q = 7 时对冷启动发送方暂停' },
   },
   problem: {
     kicker: '01 · 为什么',
@@ -260,15 +260,15 @@ const zh: LandingCopy = {
     title: '评委会问的问题。',
     items: [
       { q: '为什么用 NAND + LATCH 电路，而不是在 Solidity 里算 basePrice × multiplier？', a: '因为每个接收方想要的规则都不同，而为每个人写自定义 Solidity 就是让未经审计的代码托管别人的钱。一个有界的 3-LATCH 电路只有 512 个状态转移；应用在流片前全部验证，并能在链上重放，发送方可以核对自己签下的确切定价与退款规则。REF 还让任何人零晶体管消耗地组合生态折扣。' },
-      { q: '怎么防止接收方回一个“k”来刷赏金？', a: '与 Earn.com 式市场保持诚实的机制相同：名片上公开的链上回复历史与发送方评分。刷垃圾回复的 KOL 会看着自己的质量分下降、来信枯竭。' },
+      { q: '怎么防止接收方回一个“k”来刷赏金？', a: '每个收件箱都有由托管合约自己记录的公开链上回复记录：已回复多少条付费消息、多少条过期或被拒绝、平均回复时间。付款前就能在目录中看到，也会显示在接收方的名片上，任何人都无法修改。发送方自行判断谁值得付费；刷低质量回复的收件箱会被记录暴露，来信也会随之减少。' },
       { q: '每个发送方都得付 0.08 OKB 开容器吗？', a: '不用。接收方开一个容器，同时驱动其 tape:// 站点与 TapeSend 密钥。发送方可以用自己的容器，也可以用一键访客快速通道，加密到完全相同的密钥。两条通道都通过 DeWebHub.inboxAt() 验证。' },
       { q: 'voxro.shieldsuite.xyz 下线了怎么办？', a: '没有影响。客户端与名片在 SiteRegistry 上，消息在 DeWebHub 里，电路在冻结的 TapeOut beacon 上，托管合约无主。任何人都能直接基于链上数据发送、回复、领取或退款。' },
-      { q: '现在有什么已经部署了？', a: 'SDK、编译器、验证器、TAP-10 移植、VoxroEscrow 与 VoxroLens 合约（13 个单元/模糊测试）以及本客户端均已完成。整个上线流程已在 X Layer 分叉上彩排：创建处理器、八次流片、邮箱容器、来自 step() 的实时报价、真实的 DeWebHub 回复与守护者领取。下一步是主网部署；在此之前，应用用真实电路驱动的本地模拟运行全部流程。' },
+      { q: '现在有什么已经部署了？', a: 'SDK、编译器、验证器、TAP-10 移植、VoxroEscrow 与 VoxroLens 合约（13 个单元/模糊测试）以及本客户端均已完成。整个上线流程已在 X Layer 分叉上彩排：创建处理器、八次流片、邮箱容器、来自 step() 的实时报价、真实的 DeWebHub 回复与守护者领取。应用没有模拟模式：所有数据均读取自 X Layer 主网，VoxroEscrow 部署前写入操作保持禁用，部署后每个操作都是来自您钱包的真实交易。' },
       { q: '为什么 TapeSend 邮箱在另一个处理器上？', a: 'DeWebHub 固定了处理器 Circuits 代理的字节码哈希。Factory 索引 386 之后创建的处理器使用了不同的代理，会被 NotCPU 拒绝，因此今天任何新处理器都无法使用 TapeSend。Voxro 把定价电路放在 VOXR 上，并为每位接收方在兼容处理器上免费提供一个两个 NAND 的邮箱电路。托管合约在设计上就把策略电路与收件箱容器分开，所以无需改动。' },
     ],
   },
   cta: { title: '打开应用，亲手步进这个电路。', body: '实时 X Layer 读取、浏览器内真实的 TAP-10 加密，以及你能亲眼看着运行的 512 转移证明。', launch: '启动应用', spec: '阅读电路规范' },
-  footer: { line: 'Voxro (VOXR) · X Layer chainId 196 · X Layer TapeOut Accelerate', built: '由 mrnetwork0001 构建 · MIT' },
+  footer: { line: 'Voxro (VOXR) · X Layer chainId 196 · X Layer TapeOut Accelerate', built: 'ShieldSuite 出品 · 构建于 X Layer' },
 };
 
 export const LANDING: Record<Lang, LandingCopy> = { en, zh };

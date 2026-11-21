@@ -3,16 +3,36 @@ import { useEffect, useMemo, useState } from 'react';
 import { explorerAddress } from '../chain/client.ts';
 import { useTelemetry } from '../chain/telemetry.ts';
 import { Addr, Badge, Gauge, Ladder, Segmented, SurgeChart } from '../components/ui.tsx';
-import { LAUNCHED } from '../config.ts';
+import { DEPLOYED } from '../config.ts';
 import { fmtAmount, fmtMoney } from '../format.ts';
 import { useI18n } from '../i18n.tsx';
 import { LANDING } from '../landing/copy.ts';
 import { href } from '../router.ts';
-import { getCatalog, priceLadder, proveAll, stepController } from '../sim/catalog.ts';
-import { useTheme } from '../theme.tsx';
+import { getCatalog, priceLadder, proveAll, stepController } from '../circuits/catalog.ts';
+import { Wordmark } from '../components/Wordmark.tsx';
+import { Burger, Drawer, SectionLink, useDrawer } from '../components/MobileNav.tsx';
+import { useLandingReveal } from '../landing/reveal.ts';
+import xlayerIcon from '../assets/xlayer-icon.svg';
+import tapeoutMark from '../assets/tapeout-mark.svg';
+import { backend, useInboxState } from '../backend.ts';
+import { TOKENS, type InboxView, type TicketView } from '../model.ts';
 
 const BASE = 10_000_000n; // 10 USD₮0
 const SCRIPT = ['send', 'send', 'send', 'reply', 'send', 'send', 'send', 'reply', 'reply', 'send', 'send', 'refund', 'reply', 'reply', 'reply', 'reply'] as const;
+
+/** Section label as a terminal path, e.g. `~/voxro/who-its-for▌` (numbering dropped). */
+function SectionTag({ path, label }: { path: string; label: string }) {
+  const { lang } = useI18n();
+  const name = label.replace(/^\s*\d+\s*·\s*/, '');
+  return (
+    <div className="lp-num lp-tag" aria-label={name}>
+      <span className="lp-tag-prompt" aria-hidden="true">~/voxro/</span>
+      <span className="lp-tag-path">{path}</span>
+      <span className="lp-tag-cursor" aria-hidden="true" />
+      {lang === 'zh' && <span className="lp-tag-name">{name}</span>}
+    </div>
+  );
+}
 
 function fill(tpl: string, vars: Record<string, string | number>) {
   let s = tpl;
@@ -20,8 +40,71 @@ function fill(tpl: string, vars: Record<string, string | number>) {
   return s;
 }
 
-/** Hero widget: the real FounderBalancedInbox circuit stepped on a timer. */
+/**
+ * Hero widget. After launch: a real inbox (the flagship @voxro, else the busiest) with its escrow
+ * quote, LATCH queue and latest onchain events. Before launch: the real FounderBalancedInbox
+ * circuit stepped on example traffic, labelled as an example.
+ */
 function LiveGate() {
+  const state = useInboxState();
+  const live = DEPLOYED && state.loaded ? (state.inboxes.find((i) => i.handle === 'voxro' && i.active) ?? [...state.inboxes].filter((i) => i.active).sort((a, b) => b.replies + b.refunded - (a.replies + a.refunded))[0]) : undefined;
+  return live ? <RealGate inbox={live} tickets={state.tickets.filter((t) => t.inboxId === live.id)} /> : <ExampleGate />;
+}
+
+function RealGate({ inbox, tickets }: { inbox: InboxView; tickets: TicketView[] }) {
+  const { lang } = useI18n();
+  const c = LANDING[lang].hero.widget;
+  const q = backend.quoteFor(inbox);
+  const curve = inbox.preset === 'configurable' ? inbox.curve : inbox.preset;
+  const ladder = useMemo(() => priceLadder(inbox.preset, inbox.basePrice, { allowlisted: false, holdsPartner: false }, inbox.curve), [inbox.preset, inbox.basePrice, inbox.curve]);
+  const events = tickets
+    .flatMap((t) => {
+      const out: Array<{ at: number; line: string }> = [{ at: t.createdAt, line: fill(c.liveLocked, { price: fmtMoney(t.token, t.amount) }) }];
+      if (t.status === 'Claimed' && t.settledAt) out.push({ at: t.settledAt, line: fill(c.liveClaimed, { paid: fmtMoney(t.token, t.payout?.recipient ?? 0n) }) });
+      if (t.status === 'Refunded' && t.settledAt) out.push({ at: t.settledAt, line: fill(c.liveRefunded, { price: fmtMoney(t.token, t.amount) }) });
+      return out;
+    })
+    .sort((a, b) => b.at - a.at)
+    .slice(0, 4);
+  return (
+    <div className="lp-widget">
+      <div>
+        <div className="kicker signal">
+          <span className="dot live" style={{ marginRight: 8 }} />
+          {fill(c.liveTitle, { handle: inbox.handle })}
+        </div>
+        <div className="small muted">{c.liveSub}</div>
+      </div>
+      <div className="grid cols-2">
+        <div>
+          <div className="kicker">{c.quote}</div>
+          <div className={`quote tier-${q.tier}`}>{fmtAmount(inbox.token, q.price)}</div>
+          <div className="small muted">
+            {TOKENS[inbox.token].symbol} · {['1.0×', '1.5×', '2.5×', '4.0×'][q.tier]}
+          </div>
+        </div>
+        <div>
+          <div className="kicker">{c.queue}</div>
+          <div style={{ marginTop: 8 }}>
+            <Gauge q={inbox.latch} tiers={SURGE_TABLES[curve] as number[]} pause={!q.canSend} />
+          </div>
+        </div>
+      </div>
+      <Ladder rungs={ladder} current={inbox.latch} symbol={TOKENS[inbox.token].symbol} fmt={(v) => fmtAmount(inbox.token, v)} />
+      <div className="lp-log">
+        {events.length === 0 && <div className="muted">{c.liveEmpty}</div>}
+        {events.map((e, i) => (
+          <div key={`${e.at}-${i}`}>
+            <span className="t">{new Date(e.at * 1000).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' })}</span>
+            {e.line}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ExampleGate() {
   const { lang } = useI18n();
   const c = LANDING[lang].hero.widget;
   const [st, setSt] = useState<{ q: number; i: number; log: Array<{ t: string; line: string }> }>({ q: 0, i: 0, log: [] });
@@ -87,35 +170,48 @@ const STACK_ADDRS = [XLAYER.factory, XLAYER.deWebHub, XLAYER.siteRegistry, XLAYE
 
 export function Landing() {
   const { lang, setLang } = useI18n();
-  const { theme, toggle } = useTheme();
   const tele = useTelemetry();
   const L = LANDING[lang];
   const catalog = getCatalog();
+  const chainState = useInboxState();
   const burn = useMemo(() => catalogBurn(catalog), [catalog]);
   const proof = useMemo(() => proveAll(), []);
   const launch = href('pulse');
+  const drawer = useDrawer();
+  useLandingReveal();
+  const sections: Array<[string, string]> = [['why', L.nav.product], ['how', L.nav.how], ['trust', L.nav.trust], ['faq', L.nav.faq]];
 
   return (
     <div className="lp">
       <header className="lp-nav">
         <div className="lp-nav-inner">
-          <a className="wordmark" href="#/" title="Voxro">
-            <svg className="mark" viewBox="0 0 32 32" aria-hidden="true">
-              <path d="M6 7h5l5 13 5-13h5L19 26h-6z" fill="var(--signal)" />
-            </svg>
-            VOXRO
-          </a>
+          <Wordmark />
           <nav className="links" aria-label="Sections">
-            <a href="#why">{L.nav.product}</a>
-            <a href="#how">{L.nav.how}</a>
-            <a href="#hardware">{L.nav.hardware}</a>
-            <a href="#lanes">{L.nav.lanes}</a>
-            <a href="#trust">{L.nav.trust}</a>
-            <a href="#faq">{L.nav.faq}</a>
-            <a href={href('prover')}>{L.nav.prover}</a>
-            <a href={href('gallery')}>{L.nav.docs}</a>
+            {sections.map(([id, label]) => (
+              <SectionLink key={id} to={id}>
+                {label}
+              </SectionLink>
+            ))}
           </nav>
           <div className="controls">
+            <Segmented
+              className="lang-desktop"
+              value={lang}
+              options={[
+                { id: 'en', label: 'EN' },
+                { id: 'zh', label: '中文' },
+              ]}
+              onChange={setLang}
+            />
+          </div>
+          <Burger open={drawer.open} onToggle={drawer.toggle} />
+        </div>
+      </header>
+      <Drawer
+        open={drawer.open}
+        onClose={drawer.close}
+        footer={
+          <>
             <Segmented
               value={lang}
               options={[
@@ -124,15 +220,18 @@ export function Landing() {
               ]}
               onChange={setLang}
             />
-            <button className="btn ghost sm" onClick={toggle} aria-label="Toggle theme" title={theme}>
-              {theme === 'dark' ? '☀' : '☾'}
-            </button>
-            <a className="btn signal sm" href={launch}>
-              {L.nav.launch} →
+            <a className="btn signal lg" href={launch} onClick={drawer.close}>
+              {L.nav.launch}
             </a>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      >
+        {sections.map(([id, label]) => (
+          <SectionLink key={id} to={id} onNavigate={drawer.close}>
+            {label}
+          </SectionLink>
+        ))}
+      </Drawer>
 
       <main className="lp-wrap">
         <section className="lp-hero" id="top">
@@ -145,18 +244,40 @@ export function Landing() {
             <p className="lede">{L.hero.lede}</p>
             <div className="actions">
               <a className="btn signal lg" href={launch}>
-                {L.hero.launch} →
+                {L.hero.launch}
               </a>
               <a className="btn lg" href={href('gallery')}>
                 {L.hero.secondary}
               </a>
             </div>
-            <div className="row mt" style={{ gap: 8 }}>
-              <Badge tone={tele.data ? 'ok' : 'neutral'}>
-                <span className={`dot ${tele.data ? 'live' : ''}`} /> X Layer {tele.data ? `#${tele.data.block.toString()}` : '…'}
-              </Badge>
-              <Badge tone={LAUNCHED ? 'signal' : 'warn'}>{LAUNCHED ? 'Mainnet' : lang === 'zh' ? '上线前 · 本地模拟' : 'Pre-launch · local simulation'}</Badge>
-              <Badge>TAP-02 · TAP-10 v2 · DeWEB</Badge>
+            <div className="lp-status" role="group" aria-label="Network status">
+              <div className="lp-status-cell">
+                <span className="lp-status-k">{lang === 'zh' ? '网络' : 'Network'}</span>
+                <span className="lp-status-v">
+                  <span className={`lp-led${tele.data ? ' on' : ''}`} />
+                  <img className="lp-logo xl" src={xlayerIcon} alt="X Layer" width={20} height={16} />
+                  X Layer <b>{tele.data ? `#${tele.data.block.toString()}` : '…'}</b>
+                </span>
+              </div>
+              <div className="lp-status-cell">
+                <span className="lp-status-k">{lang === 'zh' ? '状态' : 'Status'}</span>
+                <span className="lp-status-v">
+                  <span className={`lp-led ${DEPLOYED ? 'on' : 'amber'}`} />
+                  {DEPLOYED ? (lang === 'zh' ? '主网运行中' : 'Mainnet live') : lang === 'zh' ? '主网即将上线' : 'Mainnet launch soon'}
+                </span>
+              </div>
+              <div className="lp-status-cell">
+                <span className="lp-status-k lp-status-k-brand">
+                  {lang === 'zh' ? '协议栈' : 'Stack'} ·
+                  <img className="lp-logo sm" src={tapeoutMark} alt="" width={14} height={14} />
+                  <span>TapeOut</span>
+                </span>
+                <span className="lp-status-v lp-stack-tags">
+                  <i>TAP-02</i>
+                  <i>TAP-10 v2</i>
+                  <i>DeWEB</i>
+                </span>
+              </div>
             </div>
           </div>
           <LiveGate />
@@ -164,8 +285,8 @@ export function Landing() {
 
         <div className="lp-strip">
           <div>
-            <div className="kicker">{L.hero.stats.block}</div>
-            <div className="v ok">{tele.data ? `#${tele.data.block.toString()}` : '…'}</div>
+            <div className="kicker">{DEPLOYED ? L.hero.stats.inboxes : L.hero.stats.circuits}</div>
+            <div className="v">{DEPLOYED ? (chainState.loaded ? chainState.inboxes.filter((i) => i.active).length : '…') : catalog.length}</div>
           </div>
           <div>
             <div className="kicker">{L.hero.stats.processors}</div>
@@ -185,7 +306,7 @@ export function Landing() {
 
         <section className="lp-section" id="why">
           <div className="lp-section-head">
-            <div className="lp-num">{L.problem.kicker}</div>
+            <SectionTag path="why" label={L.problem.kicker} />
             <div>
               <h2 className="lp-h2">{L.problem.title}</h2>
               <p className="lp-lede">{L.problem.lede}</p>
@@ -203,7 +324,7 @@ export function Landing() {
 
         <section className="lp-section" id="how">
           <div className="lp-section-head">
-            <div className="lp-num">{L.how.kicker}</div>
+            <SectionTag path="how-it-works" label={L.how.kicker} />
             <h2 className="lp-h2">{L.how.title}</h2>
           </div>
           <div className="lp-cards four">
@@ -235,7 +356,7 @@ export function Landing() {
 
         <section className="lp-section" id="hardware">
           <div className="lp-section-head">
-            <div className="lp-num">{L.hardware.kicker}</div>
+            <SectionTag path="hardware" label={L.hardware.kicker} />
             <div>
               <h2 className="lp-h2">{L.hardware.title}</h2>
               <p className="lp-lede">{L.hardware.lede}</p>
@@ -301,7 +422,7 @@ export function Landing() {
 
         <section className="lp-section" id="lanes">
           <div className="lp-section-head">
-            <div className="lp-num">{L.lanes.kicker}</div>
+            <SectionTag path="lanes" label={L.lanes.kicker} />
             <div>
               <h2 className="lp-h2">{L.lanes.title}</h2>
               <p className="lp-lede">{L.lanes.lede}</p>
@@ -334,7 +455,7 @@ export function Landing() {
 
         <section className="lp-section" id="trust">
           <div className="lp-section-head">
-            <div className="lp-num">{L.trust.kicker}</div>
+            <SectionTag path="guarantees" label={L.trust.kicker} />
             <h2 className="lp-h2">{L.trust.title}</h2>
           </div>
           <div className="lp-cards">
@@ -349,7 +470,7 @@ export function Landing() {
 
         <section className="lp-section" id="who">
           <div className="lp-section-head">
-            <div className="lp-num">{L.who.kicker}</div>
+            <SectionTag path="who-its-for" label={L.who.kicker} />
             <h2 className="lp-h2">{L.who.title}</h2>
           </div>
           <div className="lp-cards four">
@@ -365,7 +486,7 @@ export function Landing() {
 
         <section className="lp-section" id="model">
           <div className="lp-section-head">
-            <div className="lp-num">{L.model.kicker}</div>
+            <SectionTag path="business-model" label={L.model.kicker} />
             <h2 className="lp-h2">{L.model.title}</h2>
           </div>
           <div className="lp-cards">
@@ -380,7 +501,7 @@ export function Landing() {
 
         <section className="lp-section" id="stack">
           <div className="lp-section-head">
-            <div className="lp-num">{L.stack.kicker}</div>
+            <SectionTag path="built-on" label={L.stack.kicker} />
             <h2 className="lp-h2">{L.stack.title}</h2>
           </div>
           <div className="lp-stack">
@@ -396,7 +517,7 @@ export function Landing() {
 
         <section className="lp-section lp-faq" id="faq">
           <div className="lp-section-head">
-            <div className="lp-num">{L.faq.kicker}</div>
+            <SectionTag path="faq" label={L.faq.kicker} />
             <h2 className="lp-h2">{L.faq.title}</h2>
           </div>
           {L.faq.items.map((f, i) => (
@@ -413,7 +534,7 @@ export function Landing() {
           <p className="lp-lede">{L.cta.body}</p>
           <div className="row mt">
             <a className="btn signal lg" href={launch}>
-              {L.cta.launch} →
+              {L.cta.launch}
             </a>
             <a className="btn lg" href={href('studio')}>
               {L.cta.spec}
