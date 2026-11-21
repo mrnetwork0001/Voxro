@@ -5,6 +5,7 @@ import { Addr, Badge, Button, Field, Note, Panel, Segmented } from '../component
 import { fmtAmount, parseAmount } from '../format.ts';
 import { useI18n } from '../i18n.tsx';
 import { TOKENS, type InboxView, type Token } from '../model.ts';
+import { CONFIG } from '../config.ts';
 
 const isAddr = (s: string) => /^0x[0-9a-fA-F]{40}$/.test(s);
 
@@ -57,6 +58,28 @@ export function InboxSettings({ inbox }: { inbox: InboxView }) {
             {busy === 'active' ? <span className="spin" /> : null} {inbox.active ? t('set.pause') : t('set.resume')}
           </Button>
         </div>
+
+        {/* VIP rule */}
+        <div className="kicker mt-s">{t('vip.rule')}</div>
+        <div className="row between">
+          <span className="small">
+            {t('vip.current')}:{' '}
+            <Badge tone={inbox.communityVip ? 'signal' : undefined}>{inbox.communityVip ? t('vip.community') : inbox.vipKind === 1 ? t('vip.partner') : inbox.vipKind === 2 ? 'Adapter' : t('vip.none')}</Badge>
+          </span>
+          <span className="row" style={{ gap: 6 }}>
+            {CONFIG.communityVip && !inbox.communityVip && (
+              <Button size="sm" variant="signal" disabled={busy !== null} onClick={() => void run('vip', () => backend.setVipRule(inbox.id, 'community'), t('vip.saved'))}>
+                {busy === 'vip' ? <span className="spin" /> : null} {t('vip.useCommunity')}
+              </Button>
+            )}
+            {inbox.vipKind !== 0 && (
+              <Button size="sm" variant="ghost" disabled={busy !== null} onClick={() => void run('vipoff', () => backend.setVipRule(inbox.id, 'none'), t('vip.saved'))}>
+                {t('vip.remove')}
+              </Button>
+            )}
+          </span>
+        </div>
+        {inbox.communityVip && <div className="small muted">{t('vip.community.hint')}</div>}
 
         {/* pricing */}
         <div className="kicker mt-s">{t('set.pricing')}</div>

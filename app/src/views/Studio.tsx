@@ -35,6 +35,7 @@ export function Studio(_: { arg: string }) {
   const [preset, setPreset] = useState<ControllerPreset>('balanced');
   const [curve, setCurve] = useState<CurveProfile>('balanced');
   const [partner, setPartner] = useState('');
+  const [vipRule, setVipRule] = useState<'community' | 'partner' | 'none'>(CONFIG.communityVip ? 'community' : 'none');
   const [handle, setHandle] = useState('');
   const [token, setToken] = useState<Token>('USDT0');
   const [price, setPrice] = useState('10');
@@ -69,7 +70,7 @@ export function Studio(_: { arg: string }) {
   const mbTapeoutFee = mailboxMint.data?.tapeoutFee ?? XLAYER_FEES.tapeoutFee;
   const openerFee = tele.data?.openerFee ?? null;
   const newMailboxCost = mbMintCost !== null && openerFee !== null ? mbMintCost + mbTapeoutFee + openerFee : null;
-  const partnerAddr = /^0x[0-9a-fA-F]{40}$/.test(partner) ? (partner as Address) : null;
+  const partnerAddr = vipRule === 'partner' && /^0x[0-9a-fA-F]{40}$/.test(partner) ? (partner as Address) : null;
 
   const register = async () => {
     if (!w.address) return setToast(t('onboard.connect'));
@@ -79,7 +80,7 @@ export function Studio(_: { arg: string }) {
       const mailbox = mailboxMode === 'existing' && /^0x[0-9a-fA-F]{40}$/.test(mbCircuits) && /^\d+$/.test(mbToken) ? { circuits: mbCircuits as Address, tokenId: BigInt(mbToken) } : undefined;
       if (mailboxMode === 'existing' && !mailbox) throw new Error(t('onboard.mailbox.invalid'));
       const ib = await backend.registerInbox(
-        { handle: handle.trim().replace(/^@/, ''), preset, curve, partnerCpu: partnerAddr, token, basePrice, slaSeconds: Math.max(1, Number(slaHours)) * 3600, ...(mailbox ? { mailbox } : {}) },
+        { handle: handle.trim().replace(/^@/, ''), preset, curve, partnerCpu: partnerAddr, community: vipRule === 'community', token, basePrice, slaSeconds: Math.max(1, Number(slaHours)) * 3600, ...(mailbox ? { mailbox } : {}) },
         (st) => setSteps((prev) => [...prev.filter((x) => x.key !== st.key), st]),
       );
       if (!withNotify) {
@@ -136,9 +137,20 @@ export function Studio(_: { arg: string }) {
               <div className="small">
                 <span className="kicker">{t('c.curve')}</span> <span className="mono">{effCurve} = [{SURGE_TABLES[effCurve].join(' ')}]</span>
               </div>
-              <Field label={t('studio.partner')} hint={t('studio.partner.hint')}>
-                <input className="input mono" placeholder="0x… (any registered TapeOut processor)" value={partner} onChange={(e) => setPartner(e.target.value.trim())} />
+              <Field label={t('vip.rule')} hint={vipRule === 'community' ? t('vip.community.hint') : vipRule === 'partner' ? t('studio.partner.hint') : t('vip.none.hint')}>
+                <Segmented
+                  value={vipRule}
+                  options={[
+                    ...(CONFIG.communityVip ? [{ id: 'community' as const, label: t('vip.community') }] : []),
+                    { id: 'partner' as const, label: t('vip.partner') },
+                    { id: 'none' as const, label: t('vip.none') },
+                  ]}
+                  onChange={setVipRule}
+                />
               </Field>
+              {vipRule === 'partner' && (
+                <input className="input mono" placeholder="0x… (any registered TapeOut processor)" value={partner} onChange={(e) => setPartner(e.target.value.trim())} />
+              )}
               <div className="grid cols-2">
                 <Field label={t('c.handle')}>
                   <input className="input" placeholder="yourname" value={handle} onChange={(e) => setHandle(e.target.value)} />

@@ -12,6 +12,28 @@ import { useWallet } from '../wallet/wallet.tsx';
 import { DeploymentNote } from './DeploymentNote.tsx';
 import { notifyRecipient } from '../chain/relay.ts';
 
+/** Explains the TapeOut Community VIP rule and, for the connected wallet, which membership qualifies it. */
+function CommunityVipNote({ vipNow }: { vipNow: boolean }) {
+  const { t } = useI18n();
+  const w = useWallet();
+  const [el, setEl] = useState<{ rig: boolean; tapecode: boolean; bem: boolean; fab: boolean } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    setEl(null);
+    if (w.address) void backend.communityEligibility(w.address).then((r) => alive && setEl(r)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [w.address]);
+  const via = el ? [el.rig && t('vip.rig'), el.tapecode && t('vip.tapecode'), el.bem && t('vip.bem'), el.fab && t('vip.fab')].filter(Boolean).join(' · ') : '';
+  return (
+    <Note tone={vipNow || via ? 'ok' : undefined}>
+      <b>{t('vip.badge')}</b> · {t('vip.community.hint')}
+      <div className="mt-s small">{!w.address ? t('vip.connect') : via ? `✓ ${t('vip.youQualify')}: ${via}` : el ? t('vip.youDont') : '…'}</div>
+    </Note>
+  );
+}
+
 const curveOf = (i: InboxView) => (i.preset === 'configurable' ? i.curve : i.preset);
 const recordOf = (i: InboxView, t: ReturnType<typeof useI18n>['t'], lang: 'en' | 'zh') =>
   i.replies + i.refunded === 0 ? t('dir.record.none') : t('dir.record', { answered: i.replies, expired: i.refunded, avg: i.avgReplySeconds === null ? '—' : fmtDuration(Math.round(i.avgReplySeconds), lang) });
@@ -107,6 +129,7 @@ export function Directory({ arg }: { arg: string }) {
                           <span className="handle">@{i.handle}</span>
                           <Badge tone={i.preset === 'fortress' ? 'bad' : i.preset === 'gentle' ? 'ok' : 'neutral'}>{PRESET_NAMES[i.preset]}</Badge>
                           {!q.canSend && <Badge tone="bad">{t('c.paused')}</Badge>}
+                          {i.communityVip && <Badge tone="signal">VIP · TapeOut</Badge>}
                         </div>
                         <div className="mono small muted">
                           {tapeNameOf(i)} · #{i.circuitId} · {t('c.sla')} {fmtDuration(i.slaSeconds, lang)}
@@ -151,6 +174,7 @@ export function Directory({ arg }: { arg: string }) {
                   <p className="small muted mt-s">{t('dir.quote.sub')}</p>
                   {!quote.canSend && <Note tone="warn">{t('dir.pausedMsg')}</Note>}
                   {noKey && <Note tone="warn">{t('dir.noKey')}</Note>}
+                  {inbox.communityVip && <CommunityVipNote vipNow={quote.vip} />}
                   <div className="stack mt">
                     <div className="small muted">
                       {t('c.lane.guest')} · {t('dir.lane.help.guest')}
