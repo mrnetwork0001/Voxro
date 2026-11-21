@@ -25,7 +25,7 @@ function telegramConfig() {
 async function notify(entry, total) {
   const tg = telegramConfig();
   if (!tg) return;
-  const text = `🟢 Voxro waitlist #${total}\n${entry.email}${entry.x ? `\nX: https://x.com/${entry.x.slice(1)}` : ''}`;
+  const text = `🟢 Voxro waitlist #${total}\nName: ${entry.name || '—'}\nEmail: ${entry.email}\nX: ${entry.x ? `${entry.x} (https://x.com/${entry.x.slice(1)})` : '—'}`;
   try {
     await fetch(`https://api.telegram.org/bot${tg.TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: tg.TELEGRAM_CHAT_ID, text, disable_web_page_preview: true }), signal: AbortSignal.timeout(8000) });
   } catch { /* never fail a signup because Telegram is down */ }
@@ -48,6 +48,7 @@ createServer((req, res) => {
     let b;
     try { b = JSON.parse(raw); } catch { return send(res, 400, { error: 'Bad request.' }); }
     if (b.website) return send(res, 200, { ok: true }); // honeypot: pretend success for bots
+    const name = String(b.name || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 60);
     const email = String(b.email || '').trim().toLowerCase();
     let x = String(b.x || '').trim().replace(/^https?:\/\/(www\.)?(x|twitter)\.com\//i, '');
     if (!EMAIL.test(email)) return send(res, 400, { error: 'Please enter a valid email.' });
@@ -55,7 +56,7 @@ createServer((req, res) => {
     if (x && !x.startsWith('@')) x = '@' + x;
     if (seen.has(email)) return send(res, 200, { ok: true, already: true });
     seen.add(email);
-    const entry = { t: new Date().toISOString(), email, x: x || null, ip };
+    const entry = { t: new Date().toISOString(), name: name || null, email, x: x || null, ip };
     appendFileSync(FILE, JSON.stringify(entry) + '\n');
     send(res, 200, { ok: true });
     void notify(entry, seen.size);

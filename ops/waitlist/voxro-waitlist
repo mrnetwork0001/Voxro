@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # voxro-waitlist            list sign-ups, newest first
 # voxro-waitlist count      number of sign-ups
-# voxro-waitlist csv        export as CSV (time,email,x)
+# voxro-waitlist csv        export as CSV (time,name,email,x)
 # voxro-waitlist emails     just the emails, comma-separated (for BCC)
 # voxro-waitlist set-telegram   connect Telegram alerts (token is typed here, hidden)
 # voxro-waitlist test-telegram  send a test alert
@@ -15,14 +15,14 @@ rows = [json.loads(l) for l in open(sys.argv[1]) if l.strip()]
 print(f"{len(rows)} sign-ups\n")
 for i, r in reversed(list(enumerate(rows, 1))):
     t = r["t"][:16].replace("T", " ")
-    print(f"{i:>4}  {t}  {r['email']:<38} {r.get('x') or ''}")
+    print(f"{i:>4}  {t}  {(r.get('name') or '-')[:22]:<22} {r['email']:<38} {r.get('x') or ''}")
 PY
     ;;
   count) grep -c . "$FILE" || true ;;
   csv)   python3 -c '
 import json,sys,csv
-w=csv.writer(sys.stdout); w.writerow(["time","email","x"])
-[w.writerow([r["t"],r["email"],r.get("x") or ""]) for r in (json.loads(l) for l in open(sys.argv[1]) if l.strip())]' "$FILE" ;;
+w=csv.writer(sys.stdout); w.writerow(["time","name","email","x"])
+[w.writerow([r["t"],r.get("name") or "",r["email"],r.get("x") or ""]) for r in (json.loads(l) for l in open(sys.argv[1]) if l.strip())]' "$FILE" ;;
   emails) python3 -c '
 import json,sys; print(", ".join(json.loads(l)["email"] for l in open(sys.argv[1]) if l.strip()))' "$FILE" ;;
   set-telegram)
