@@ -254,7 +254,6 @@ export function Landing() {
               <div className="lp-status-cell">
                 <span className="lp-status-k">{lang === 'zh' ? '网络' : 'Network'}</span>
                 <span className="lp-status-v">
-                  <span className={`lp-led${tele.data ? ' on' : ''}`} />
                   <img className="lp-logo xl" src={xlayerIcon} alt="X Layer" width={20} height={16} />
                   X Layer <b>{tele.data ? `#${tele.data.block.toString()}` : '…'}</b>
                 </span>
