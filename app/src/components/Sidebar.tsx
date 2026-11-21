@@ -11,8 +11,9 @@ import { useI18n, type MsgKey } from '../i18n.tsx';
 import { useInboxState } from '../backend.ts';
 import { href, type AppRouteId } from '../router.ts';
 import { useWallet } from '../wallet/wallet.tsx';
+import { openTour } from './Tour.tsx';
 import mark from '../assets/shieldsuite-mark.png';
-import { IconCard, IconCircuits, IconDirectory, IconInbox, IconLogout, IconPanelClose, IconPanelOpen, IconProver, IconPulse, IconStart, IconStudio, IconWallet, type Icon } from './icons.tsx';
+import { IconCard, IconCircuits, IconDirectory, IconGuide, IconInbox, IconLogout, IconPanelClose, IconPanelOpen, IconProver, IconPulse, IconStart, IconStudio, IconWallet, type Icon } from './icons.tsx';
 
 const ICONS: Record<AppRouteId, Icon> = { start: IconStart, pulse: IconPulse, directory: IconDirectory, inbox: IconInbox, studio: IconStudio, card: IconCard, gallery: IconCircuits, prover: IconProver, receipt: IconProver };
 const GROUPS: Array<{ label: MsgKey | ''; ids: AppRouteId[] }> = [
@@ -130,7 +131,7 @@ export function Sidebar({ active }: { active: AppRouteId }) {
                 const tip = c.urgent ? `${name} · ${t('side.urgent', { n: c.urgent })}` : c.waiting ? `${name} · ${t('side.waiting', { n: c.waiting })}` : name;
                 return (
                   <li key={id}>
-                    <a className={`sb-item${on ? ' on' : ''}`} href={href(id)} aria-current={on ? 'page' : undefined} aria-label={collapsed ? tip : undefined}>
+                    <a data-tour={`nav-${id}`} className={`sb-item${on ? ' on' : ''}`} href={href(id)} aria-current={on ? 'page' : undefined} aria-label={collapsed ? tip : undefined}>
                       <span className="sb-icon">
                         <I />
                         {collapsed && c.urgent > 0 && <span className="sb-dot urgent" />}
@@ -157,6 +158,10 @@ export function Sidebar({ active }: { active: AppRouteId }) {
       </nav>
 
       <div className="sb-foot">
+        <button type="button" data-tour="tour" className={`sb-guide${collapsed ? ' icon' : ''}`} onClick={openTour} title={t('tour.open')} aria-label={t('tour.open')}>
+          <IconGuide />
+          {!collapsed && <span>{t('tour.open')}</span>}
+        </button>
         <div className="sb-chip" title={`X Layer${tele.data ? ` #${tele.data.block.toString()}` : ''} · ${DEPLOYED ? t('c.mainnet') : t('c.notDeployed.short')}`}>
           <span className={`dot ${tele.error ? 'bad' : tele.data ? 'live' : ''}`} />
           {collapsed ? <span>XL</span> : <span>X Layer · {DEPLOYED ? t('c.mainnet') : t('c.notDeployed.short')}</span>}
@@ -176,7 +181,7 @@ export function Sidebar({ active }: { active: AppRouteId }) {
           </div>
         )}
         {w.address ? (
-          <div className="sb-person">
+          <div className="sb-person" data-tour="wallet">
             <span className="sb-avatar" style={{ background: `linear-gradient(135deg, #${w.address.slice(2, 8)}, #${w.address.slice(-6)})` }} aria-hidden="true" />
             {!collapsed && (
               <span className="sb-who">
@@ -189,11 +194,11 @@ export function Sidebar({ active }: { active: AppRouteId }) {
             </button>
           </div>
         ) : w.hasProvider ? (
-          <button type="button" className={`btn signal sm sb-connect${collapsed ? ' icon' : ''}`} onClick={() => void w.connect()} disabled={w.connecting} title={t('c.connect')} aria-label={t('c.connect')}>
+          <button type="button" data-tour="wallet" className={`btn signal sm sb-connect${collapsed ? ' icon' : ''}`} onClick={() => void w.connect()} disabled={w.connecting} title={t('c.connect')} aria-label={t('c.connect')}>
             {collapsed ? <IconWallet /> : w.connecting ? t('c.connecting') : t('c.connect')}
           </button>
         ) : (
-          <a className={`btn sm sb-connect${collapsed ? ' icon' : ''}`} href={w.okxDeepLink} target="_blank" rel="noreferrer" title={t('c.openInOkx')} aria-label={t('c.openInOkx')}>
+          <a data-tour="wallet" className={`btn sm sb-connect${collapsed ? ' icon' : ''}`} href={w.okxDeepLink} target="_blank" rel="noreferrer" title={t('c.openInOkx')} aria-label={t('c.openInOkx')}>
             {collapsed ? <IconWallet /> : t('c.openInOkx')}
           </a>
         )}

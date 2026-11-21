@@ -15,6 +15,8 @@ import { Landing } from './views/Landing.tsx';
 import { Prover } from './views/Prover.tsx';
 import { Pulse } from './views/Pulse.tsx';
 import { Receipt } from './views/Receipt.tsx';
+import { Tour, openTour } from './components/Tour.tsx';
+import { IconGuide } from './components/icons.tsx';
 import { Start } from './views/Start.tsx';
 import { Studio } from './views/Studio.tsx';
 import { useWallet } from './wallet/wallet.tsx';
@@ -96,8 +98,15 @@ export function App() {
               ]}
               onChange={setLang}
             />
-            <WalletButton />
+            <span data-tour="wallet" className="row">
+              <WalletButton />
+            </span>
           </div>
+          {phone && (
+            <button type="button" data-tour="tour" className="guide-btn" onClick={openTour} aria-label={t('tour.open')} title={t('tour.open')}>
+              <IconGuide />
+            </button>
+          )}
           <Burger open={drawer.open} onToggle={drawer.toggle} />
           </div>
         </div>
@@ -132,6 +141,7 @@ export function App() {
         <View arg={arg} />
       </main>
       <ChainBridge />
+      <Tour />
       <footer className="footer">
         <div className="footer-inner">
           <span>Voxro · {t('app.tag')}</span>

@@ -8,6 +8,7 @@ const M = {
   'app.tag': ['Attention escrow · hardware surge pricing · X Layer', '注意力托管 · 硬件级拥堵定价 · X Layer'],
   'nav.pulse': ['Pulse', '脉搏'],
   'nav.directory': ['Directory', '目录'],
+  'tour.open': ['Guide', '导览'],
   'nav.start': ['Create inbox', '创建收件箱'],
   'nav.inbox': ['Inbox', '收件箱'],
   'nav.studio': ['Studio', '工作室'],

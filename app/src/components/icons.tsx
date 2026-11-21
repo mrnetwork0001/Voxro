@@ -38,6 +38,13 @@ export const IconStudio: Icon = (p) => (
     <path d="M2 9h3M2 15h3M21 12h1" />
   </S>
 );
+/** Guide: a compass for the product tour. */
+export const IconGuide: Icon = (p) => (
+  <S {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M15.5 8.5l-2 5-5 2 2-5z" />
+  </S>
+);
 /** Start: a new inbox (tray with a plus). */
 export const IconStart: Icon = (p) => (
   <S {...p}>
