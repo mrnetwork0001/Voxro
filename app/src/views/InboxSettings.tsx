@@ -47,6 +47,8 @@ export function InboxSettings({ inbox }: { inbox: InboxView }) {
     .map((s) => s.trim())
     .filter(Boolean);
   const allowValid = allowList.length > 0 && allowList.every(isAddr);
+  const key = (l: Array<{ circuits: string; tokenId: bigint }>) => l.map((m) => `${m.circuits.toLowerCase()}#${m.tokenId}`).join(',');
+  const teamChanged = key(members) !== key(inbox.memberIds);
 
   return (
     <Panel kicker={t('set.kicker')} title={t('set.title')} right={<Badge tone={inbox.active ? 'ok' : 'warn'}>{inbox.active ? t('set.active') : t('set.paused')}</Badge>}>
@@ -167,7 +169,7 @@ export function InboxSettings({ inbox }: { inbox: InboxView }) {
           >
             {t('set.addMember')}
           </Button>
-          <Button size="sm" variant="signal" disabled={busy !== null} onClick={() => void run('members', () => backend.setMembers(inbox.id, members), t('set.saved'))}>
+          <Button size="sm" variant={teamChanged ? 'signal' : undefined} disabled={busy !== null || !teamChanged || members.length === 0} onClick={() => void run('members', () => backend.setMembers(inbox.id, members), t('set.saved'))}>
             {busy === 'members' ? <span className="spin" /> : null} {t('set.saveTeam')}
           </Button>
           <Segmented value="n" options={[{ id: 'n', label: `${members.length} / 16` }]} onChange={() => {}} />
