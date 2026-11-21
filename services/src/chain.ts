@@ -185,6 +185,11 @@ export async function quote(inboxId: number, sender: Address = ZERO) {
   return { canSend: q.canSend, price: q.price, tier: Number(q.tier), vip: q.vipDiscount };
 }
 
+/** Current X Layer time: the clock the escrow's deadlines are enforced against. */
+export async function chainNow(): Promise<number> {
+  return Number((await client.getBlock()).timestamp);
+}
+
 export const TIER_X = ['1×', '1.5×', '2.5×', '4×'];
 export const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 export const profileLink = (h: string) => `${ORIGIN}/#/@${h}`;
