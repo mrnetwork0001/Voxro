@@ -2,6 +2,8 @@ import type { Address } from '@voxro/sdk';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createWalletClient, custom, type WalletClient } from 'viem';
 import { xlayer } from '../chain/client.ts';
+import { inTelegram } from '../telegram.ts';
+import { okxConnectProvider } from './okxConnect.ts';
 
 export interface Eip1193Provider {
   request(args: { method: string; params?: unknown[] | Record<string, unknown> }): Promise<unknown>;
@@ -29,7 +31,8 @@ const Ctx = createContext<WalletState | null>(null);
 const KEY = 'voxro.wallet.connected';
 
 function pickProvider(): Eip1193Provider | undefined {
-  return window.okxwallet ?? window.ethereum;
+  // inside Telegram there is no injected wallet: sign with OKX Wallet through OKX Connect
+  return window.okxwallet ?? window.ethereum ?? (inTelegram() ? okxConnectProvider() : undefined);
 }
 
 const X_LAYER_PARAMS = {
@@ -74,7 +77,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const disconnect = useCallback(() => {
     setAddress(undefined);
     localStorage.removeItem(KEY);
-  }, []);
+    void (provider as { disconnectSession?: () => Promise<void> } | undefined)?.disconnectSession?.();
+  }, [provider]);
 
   const switchToXLayer = useCallback(async () => {
     if (!provider) return;

@@ -16,6 +16,7 @@
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@noble/curves": "^2.4.0",
     "@noble/hashes": "^2.4.0",
+    "@okxconnect/universal-provider": "1.9.1",
     "@voxro/sdk": "workspace:*",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
