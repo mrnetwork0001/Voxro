@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 export type AppRouteId = 'pulse' | 'directory' | 'inbox' | 'start' | 'studio' | 'card' | 'gallery' | 'prover' | 'receipt';
 export type RouteId = 'landing' | AppRouteId;
 /** App views in masthead order; the landing page lives at `#/`. */
-export const ROUTES: AppRouteId[] = ['pulse', 'directory', 'inbox', 'start', 'studio', 'card', 'gallery', 'prover'];
+export const ROUTES: AppRouteId[] = ['pulse', 'directory', 'start', 'inbox', 'card', 'studio', 'gallery', 'prover'];
 /** Routes that exist but are not in the masthead. */
 const HIDDEN: AppRouteId[] = ['receipt'];
 

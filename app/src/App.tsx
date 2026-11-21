@@ -132,7 +132,7 @@ export function App() {
         }
       >
         {ROUTES.map((r) => (
-          <a key={r} href={href(r)} aria-current={r === id ? 'page' : undefined} onClick={drawer.close}>
+          <a key={r} data-tour={`nav-${r}`} href={href(r)} aria-current={r === id ? 'page' : undefined} onClick={drawer.close}>
             {t(`nav.${r}` as MsgKey)}
           </a>
         ))}
@@ -141,7 +141,7 @@ export function App() {
         <View arg={arg} />
       </main>
       <ChainBridge />
-      <Tour />
+      <Tour menu={phone ? (o) => (o ? drawer.show() : drawer.close()) : undefined} />
       <footer className="footer">
         <div className="footer-inner">
           <span>Voxro · {t('app.tag')}</span>

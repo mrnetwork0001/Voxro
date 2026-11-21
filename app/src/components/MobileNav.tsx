@@ -19,7 +19,8 @@ export function useDrawer() {
     document.body.classList.toggle('drawer-lock', open);
     return () => document.body.classList.remove('drawer-lock');
   }, [open]);
-  return { open, close, toggle };
+  const show = useCallback(() => setOpen(true), []);
+  return { open, close, toggle, show };
 }
 
 /** Three-line button that animates to an ×; only shown at ≤ 900px. */

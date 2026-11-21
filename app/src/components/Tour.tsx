@@ -42,7 +42,8 @@ function findTarget(name?: string): HTMLElement | null {
   const sel = name === 'info' ? '.view .info-btn' : `[data-tour="${name}"]`;
   for (const el of Array.from(document.querySelectorAll<HTMLElement>(sel))) {
     const r = el.getBoundingClientRect();
-    if (r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden') return el;
+    const onScreen = r.right > 0 && r.left < window.innerWidth && r.bottom > 0 && r.top < window.innerHeight;
+    if (r.width > 0 && r.height > 0 && onScreen && getComputedStyle(el).visibility !== 'hidden') return el;
   }
   return null;
 }
@@ -51,7 +52,8 @@ type Box = { top: number; left: number; width: number; height: number };
 const PAD = 6;
 const CARD_W = 340;
 
-export function Tour() {
+/** `menu` (phones): open/close the slide-out menu so the nav steps can point at its links. */
+export function Tour({ menu }: { menu?: (open: boolean) => void } = {}) {
   const { lang } = useI18n();
   const zh = lang === 'zh';
   const [open, setOpen] = useState(false);
@@ -63,12 +65,13 @@ export function Tour() {
 
   const close = useCallback(() => {
     setOpen(false);
+    menu?.(false);
     try {
       localStorage.setItem(DONE_KEY, 'done');
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [menu]);
 
   // first visit → start automatically; openTour() → start from step 1
   useEffect(() => {
@@ -120,14 +123,21 @@ export function Tour() {
     setCard({ top: Math.min(Math.max(12, top), vh - ch - 12), left: Math.min(Math.max(12, left), vw - cw - 12) });
   }, [i]);
 
+  const navStep = Boolean(STEPS[i]?.target?.startsWith('nav-'));
+  useEffect(() => {
+    if (open && menu) menu(navStep);
+  }, [open, navStep, menu]);
+
   useLayoutEffect(() => {
     if (!open) return;
+    const later = [120, 320].map((ms) => window.setTimeout(() => { findTarget(STEPS[i]?.target)?.scrollIntoView({ block: 'nearest' }); place(); }, ms));
     findTarget(STEPS[i]?.target)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     place();
     const raf = requestAnimationFrame(place); // re-place once the card has its real height
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, true);
     return () => {
+      later.forEach(clearTimeout);
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
