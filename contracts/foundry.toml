@@ -11,7 +11,7 @@ optimizer_runs = 2000
 via_ir = true
 bytecode_hash = "none"
 cbor_metadata = true
-fs_permissions = [{ access = "read", path = "./" }, { access = "write", path = "./deployments" }]
+fs_permissions = [{ access = "read", path = "./" }, { access = "read-write", path = "./deployments" }]
 
 [profile.default.fuzz]
 runs = 10000
