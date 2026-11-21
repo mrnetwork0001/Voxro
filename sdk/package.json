@@ -1,0 +1,62 @@
+{
+  "name": "@voxro/sdk",
+  "version": "0.1.0",
+  "description": "Voxro SDK: TapeOut netlist core, inbox gate compiler and prover, TapeSend (TAP-10) and DeWEB helpers for X Layer",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./tapeout": {
+      "types": "./dist/tapeout/index.d.ts",
+      "import": "./dist/tapeout/index.js"
+    },
+    "./compiler": {
+      "types": "./dist/compiler/index.d.ts",
+      "import": "./dist/compiler/index.js"
+    },
+    "./tapesend": {
+      "types": "./dist/tapesend/index.d.ts",
+      "import": "./dist/tapesend/index.js"
+    },
+    "./deweb": {
+      "types": "./dist/deweb/index.d.ts",
+      "import": "./dist/deweb/index.js"
+    },
+    "./datasheet": {
+      "types": "./dist/datasheet/index.d.ts",
+      "import": "./dist/datasheet/index.js"
+    },
+    "./escrow": {
+      "types": "./dist/escrow/index.d.ts",
+      "import": "./dist/escrow/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:fork": "./scripts/fork-test.sh",
+    "test:unit": "vitest run test/tap02-vectors.test.ts test/cells.test.ts",
+    "abi": "node ../contracts/script/gen-abi.cjs"
+  },
+  "dependencies": {
+    "@noble/ciphers": "^2.4.0",
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
+    "viem": "^2.57.14"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
