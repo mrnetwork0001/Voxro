@@ -1,4 +1,4 @@
-// Minimal browser shims so the simulation store runs under node.
+// Minimal browser shims (localStorage) so the chain data layer runs under node.
 const mem = new Map<string, string>();
 (globalThis as unknown as { localStorage: Storage }).localStorage = {
   getItem: (k: string) => mem.get(k) ?? null,

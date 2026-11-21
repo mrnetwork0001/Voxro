@@ -1,6 +1,6 @@
 /**
- * LAUNCHED-mode data layer: VoxroEscrow + VoxroLens + DeWebHub on X Layer, exposed in the same
- * shapes the views already consume (SimInbox / SimTicket / SimState) plus async write actions.
+ * The app's only data layer: VoxroEscrow + VoxroLens + DeWebHub on X Layer mainnet, mapped into the
+ * view model (model.ts) plus async write actions from the connected wallet.
  * Nothing here scans logs: envelopes and replies are read from escrow storage.
  */
 import {
@@ -18,6 +18,9 @@ import {
   factoryAbi,
   decodeContent,
   deWebHubAbi,
+  domainBindingAbi,
+  siteRegistryAbi,
+  type PublishPlan,
   deriveKeyPair,
   digestOf,
   encodeContent,
@@ -28,8 +31,8 @@ import {
   keyDerivationText,
   mintValue,
   openPayload,
-  quotePrice,
-  randomKeyPair,
+  deriveGuestKeyPair,
+  guestKeyText,
   seal,
   splitBounty,
   transistorsAbi,
@@ -41,24 +44,23 @@ import {
   type DecodedContent,
   type Hex,
 } from '@voxro/sdk';
-import { randomBytes } from '@noble/hashes/utils.js';
 import { useSyncExternalStore } from 'react';
-import { BaseError, ContractFunctionRevertedError, decodeEventLog, erc20Abi, parseAbi, type WalletClient } from 'viem';
-import { CONFIG, VOXR_CPU_INDEX } from '../config.ts';
-import { PRESET_CIRCUIT_ID, stepController } from '../sim/catalog.ts';
-import type { ClaimCheck, HubEntry, Lane, Quote, SimInbox, SimState, SimTicket, Token } from '../sim/escrow.ts';
-import { TOKENS } from '../sim/escrow.ts';
+import { BaseError, ContractFunctionRevertedError, decodeEventLog, erc20Abi, getAbiItem, parseAbi, type WalletClient } from 'viem';
+import { PRESET_CIRCUIT_ID } from '../circuits/catalog.ts';
+import { CONFIG, DEPLOYED } from '../config.ts';
+import { TOKENS, type ChainState, type ClaimCheck, type HubEntry, type InboxView, type Quote, type TicketView, type Token } from '../model.ts';
 import { explorerTx, publicClient } from './client.ts';
 
 export const openerAbi = parseAbi(['function FEE() view returns (uint256)', 'function open(address circuits, uint256 tokenId) payable']);
 
-const ESCROW = CONFIG.escrow as Address;
-const LENS = CONFIG.lens as Address;
-const VOXR = (CONFIG.voxrCpu ?? '0x0000000000000000000000000000000000000000') as Address;
+const ZERO = '0x0000000000000000000000000000000000000000' as Address;
+const ESCROW = (CONFIG.escrow ?? ZERO) as Address;
+const LENS = (CONFIG.lens ?? ZERO) as Address;
+const VOXR = (CONFIG.voxrCpu ?? ZERO) as Address;
 /** Mailbox processor: DeWebHub pins the Circuits proxy codehash of processors ≤ index 386; newer ones (VOXR) cannot publish keys or send. */
 export const MAILBOX_CPU = CONFIG.mailboxCpu as Address;
 const HUB = XLAYER.deWebHub;
-const STATUS: SimTicket['status'][] = ['Pending', 'Claimed', 'Refunded', 'Refunded'];
+const STATUS: TicketView['status'][] = ['Pending', 'Claimed', 'Refunded', 'Refunded'];
 
 // ─── pure mapping helpers (unit-tested) ──────────────────────────────────────────────────────
 export function tokenOf(addr: string): Token {
@@ -102,7 +104,7 @@ export interface LensTicket {
   ticket: { inboxId: bigint; sender: Address; replyTargetEndpoint: Hex; expectedReplyRef: Hex; token: Address; amount: bigint; createdAt: number; deadline: number; status: number; lane: number; guestReplyKey: Hex; replyInboxIndex: number; replyTimestamp: number; replyFrom: Address };
 }
 
-export function mapInbox(v: LensInbox, sender: Address, extra: { memberIds: Array<{ circuits: Address; tokenId: bigint }>; publicKey: Hex; earned: bigint; voxr?: Address }): SimInbox {
+export function mapInbox(v: LensInbox, sender: Address, extra: { memberIds: Array<{ circuits: Address; tokenId: bigint }>; publicKey: Hex; earned: bigint; containerCpuIndex?: number | null; voxr?: Address }): InboxView {
   const ib = v.inbox;
   const preset = presetOf(ib.policyCpu, ib.policyCircuitId, extra.voxr ?? VOXR);
   const curve: CurveProfile = CURVE_PROFILES[ib.curve as 0 | 1 | 2 | 3] ?? 'balanced';
@@ -123,20 +125,22 @@ export function mapInbox(v: LensInbox, sender: Address, extra: { memberIds: Arra
     slaSeconds: ib.slaSeconds,
     latch: v.queueDepth,
     active: ib.active,
-    allowlist: [],
     circuitId: Number(ib.policyCircuitId),
     containerTokenId: Number(ib.inboxCircuitId),
-    key: { publicKey: extra.publicKey, secretKey: '0x' },
-    createdAt: 0,
+    containerCpuIndex: extra.containerCpuIndex ?? null,
+    publicKey: extra.publicKey,
     replies: ib.answered,
+    refunded: ib.refunded,
+    avgReplySeconds: ib.answered > 0 ? Number(ib.replySeconds) / ib.answered : null,
     earned: extra.earned,
-    container: v.members[0],
+    container: v.members[0] ?? ZERO,
+    memberContainers: [...v.members],
     memberIds: extra.memberIds,
-    live: { sender, quote: { canSend: q.canSend, price: q.price, tier: q.tier, vip: q.vipDiscount, allowlisted: q.allowlisted, nextState: q.nextState, nextQ: Number(BigInt(q.nextState) & 7n), inputs } as Quote & { nextState: Hex } },
+    live: { sender, quote: { canSend: q.canSend, price: q.price, tier: q.tier, vip: q.vipDiscount, allowlisted: q.allowlisted, nextQ: Number(BigInt(q.nextState) & 7n), inputs } },
   };
 }
 
-export function mapTicket(v: LensTicket, inbox: SimInbox | undefined, extra: { envelope: Hex; replyPayload: Hex; guestSecret?: Hex; localReply?: LocalReply }): SimTicket {
+export function mapTicket(v: LensTicket, inbox: InboxView | undefined, extra: { envelope: Hex; replyPayload: Hex; guestSecret?: Hex; localReply?: LocalReply }): TicketView {
   const t = v.ticket;
   const { tier, vip } = tierOf(t.amount, inbox?.basePrice ?? 0n);
   const status = STATUS[t.status] ?? 'Pending';
@@ -214,8 +218,8 @@ const lsSet = (k: string, v: unknown) => {
 };
 
 // ─── store ───────────────────────────────────────────────────────────────────────────────────
-const empty: SimState = { v: 1, inboxes: [], tickets: [], hub: {}, nextInboxId: 1, nextTicketId: 1, clockOffset: 0, blockNumber: 0 };
-let state: SimState = empty;
+const empty: ChainState = { inboxes: [], tickets: [], hub: {}, blockNumber: 0, loaded: false };
+let state: ChainState = empty;
 let lastError: string | null = null;
 let sender: Address = '0x0000000000000000000000000000000000000000';
 const listeners = new Set<() => void>();
@@ -229,7 +233,7 @@ export const chainStore = {
     return () => void listeners.delete(cb);
   },
 };
-export const useChainState = (): SimState => useSyncExternalStore(chainStore.subscribe, chainStore.get, chainStore.get);
+export const useChainState = (): ChainState => useSyncExternalStore(chainStore.subscribe, chainStore.get, chainStore.get);
 
 export function setSender(a: Address | undefined) {
   const next = a ?? ('0x0000000000000000000000000000000000000000' as Address);
@@ -245,6 +249,7 @@ const hub = { address: HUB, abi: deWebHubAbi } as const;
 
 let inflight: Promise<void> | null = null;
 export function refresh(): Promise<void> {
+  if (!DEPLOYED) return Promise.resolve();
   if (inflight) return inflight;
   inflight = (async () => {
     try {
@@ -282,12 +287,14 @@ export function refresh(): Promise<void> {
       // earned per inbox from claimed tickets
       const earned = new Map<number, bigint>();
       for (const tv of tviews) if (tv.ticket.status === TicketStatus.Claimed) earned.set(Number(tv.ticket.inboxId), (earned.get(Number(tv.ticket.inboxId)) ?? 0n) + splitBounty(tv.ticket.amount).recipient);
+      // Factory index of each inbox circuit's processor (for its tape:// name); cached, best effort
+      const inboxCpuIndex = await Promise.all(views.map((v) => cpuIndexOf(v.inbox.inboxCircuits).catch(() => null)));
       const inboxes = views.map((v, i) => {
         const k = keys[i]!;
         const pk = k.status === 'success' && (k.result as { usable: boolean; key: Hex }).usable ? (k.result as { key: Hex }).key : ('0x' as Hex);
-        return mapInbox(v, sender, { memberIds: [...(memberIds[i] as ReadonlyArray<{ circuits: Address; tokenId: bigint }>)], publicKey: pk, earned: earned.get(Number(v.id)) ?? 0n });
+        return mapInbox(v, sender, { memberIds: [...(memberIds[i] as ReadonlyArray<{ circuits: Address; tokenId: bigint }>)], publicKey: pk, earned: earned.get(Number(v.id)) ?? 0n, containerCpuIndex: inboxCpuIndex[i] ?? null });
       });
-      const hubMap: SimState['hub'] = {};
+      const hubMap: ChainState['hub'] = {};
       const tickets = tviews.map((tv, i) => {
         const id = Number(tv.id);
         const localReply = tv.ticket.status === TicketStatus.Pending ? lsGet<LocalReply>(replyStore(id)) : undefined;
@@ -304,8 +311,9 @@ export function refresh(): Promise<void> {
         }
         return t;
       });
-      state = { ...empty, inboxes, tickets, hub: hubMap, nextInboxId: inboxes.length + 1, nextTicketId: tickets.length + 1, blockNumber: Number(block) };
+      state = { inboxes, tickets, hub: hubMap, blockNumber: Number(block), loaded: true };
       lastError = null;
+      void recoverMissingReplies();
     } catch (e) {
       lastError = describeError(e);
     } finally {
@@ -318,7 +326,7 @@ export function refresh(): Promise<void> {
 
 let pollId: number | undefined;
 export function startPolling(ms = 10_000) {
-  if (pollId !== undefined) return;
+  if (!DEPLOYED || pollId !== undefined) return;
   void refresh();
   pollId = window.setInterval(() => void refresh(), ms);
 }
@@ -347,16 +355,16 @@ export const onTxStatus = (cb: (s: TxStatus) => void) => {
   txListeners.add(cb);
   return () => void txListeners.delete(cb);
 };
-const emit = (s: TxStatus) => txListeners.forEach((l) => l(s));
+export const emit = (s: TxStatus) => txListeners.forEach((l) => l(s));
 
-async function requireWallet(): Promise<WalletCtx> {
+export async function requireWallet(): Promise<WalletCtx> {
   if (!wallet) throw new Error('Connect a wallet first');
   const id = await wallet.walletClient.getChainId();
   if (id !== XLAYER_CHAIN_ID) await wallet.switchToXLayer();
   return wallet;
 }
 
-async function tx(label: string, send: () => Promise<Hex>) {
+export async function tx(label: string, send: () => Promise<Hex>) {
   emit({ kind: 'info', label: `${label}: confirm in wallet…` });
   let hash: Hex;
   try {
@@ -383,7 +391,6 @@ export async function cpuIndexOf(circuits: Address): Promise<number> {
   const k = circuits.toLowerCase();
   const hit = cpuIndexCache.get(k);
   if (hit !== undefined) return hit;
-  if (k === VOXR.toLowerCase()) return VOXR_CPU_INDEX;
   const count = Number(await publicClient.readContract({ address: XLAYER.factory, abi: factoryAbi, functionName: 'cpuCount' }));
   for (let start = 0; start < count; start += 200) {
     const n = Math.min(200, count - start);
@@ -400,7 +407,7 @@ export async function cpuIndexOf(circuits: Address): Promise<number> {
 const keyCache = new Map<string, { secretKey: Uint8Array; publicKey: Uint8Array }>();
 
 /** Which member of `inbox` the connected wallet holds (its container + token). */
-async function myMember(inbox: SimInbox, holder: Address) {
+export async function myMember(inbox: InboxView, holder: Address) {
   const ids = inbox.memberIds ?? [];
   const owners = await publicClient.multicall({ allowFailure: true, contracts: ids.map((m) => ({ address: m.circuits, abi: circuitsAbi, functionName: 'ownerOf' as const, args: [m.tokenId] as const })) });
   const i = owners.findIndex((o) => o.status === 'success' && (o.result as string).toLowerCase() === holder.toLowerCase());
@@ -420,36 +427,98 @@ export async function recipientKey(circuits: Address, tokenId: bigint, container
   const params = { tokenId, cpuIndex, container, holder: w.address, hub: HUB, chainId: XLAYER_CHAIN_ID, keyIndex: 0 };
   const text = keyDerivationText(params, 'voxro');
   emit({ kind: 'info', label: 'Sign the Voxro key derivation message' });
-  const signature = await w.walletClient.signMessage({ account: w.address, message: text });
+  const signature = await w.walletClient.signMessage({ account: w.walletClient.account ?? w.address, message: text });
   const kp = deriveKeyPair({ ...params, signature, app: 'voxro' });
   keyCache.set(cacheKey, kp);
   return kp;
 }
 
 // ─── reads used synchronously by the views ───────────────────────────────────────────────────
-export function quoteFor(inbox: SimInbox, who: Address, holdsPartner: boolean): Quote {
-  if (inbox.live && inbox.live.sender.toLowerCase() === who.toLowerCase() && !holdsPartner) return inbox.live.quote;
-  const inputs = controllerInputsFor({ enqueue: true, ...(inbox.preset === 'configurable' ? { profile: inbox.curve } : {}), allowlisted: inbox.live?.quote.allowlisted ?? false, holdsPartner: holdsPartner || (inbox.live?.quote.vip ?? false) });
-  const { out, newQ } = stepController(inbox.preset, inbox.latch, inputs);
-  return { canSend: Boolean(out.canSend), price: quotePrice(inbox.basePrice, out), tier: out.effTier, vip: Boolean(out.vipDiscount50), allowlisted: inbox.live?.quote.allowlisted ?? false, nextQ: newQ, inputs };
+/** The escrow's own `quoteSend(inboxId, sender)` for the connected wallet, as returned by VoxroLens. */
+export function quoteFor(inbox: InboxView): Quote {
+  return inbox.live.quote;
 }
 
-export function verifyClaim(s: SimState, t: SimTicket): { ok: boolean; checks: ClaimCheck[]; entry?: HubEntry } {
+/** Recomputes the three checks `claimBounty` performs against `DeWebHub.inboxAt(replyTarget, i)`. */
+export function verifyClaim(s: ChainState, t: TicketView): { ok: boolean; checks: ClaimCheck[]; entry?: HubEntry } {
   const inbox = s.inboxes.find((i) => i.id === t.inboxId);
   const entry = t.reply ? s.hub[t.replyTargetEndpoint]?.[t.reply.inboxIndex] : undefined;
   if (!entry || !t.reply || !inbox) return { ok: false, checks: [] };
   const recomputed = digestOf(t.expectedReplyRef, hexToBytes(t.reply.payload));
+  const isMember = inbox.memberContainers.some((m) => m.toLowerCase() === entry.from.toLowerCase());
   const checks: ClaimCheck[] = [
-    { key: 'from', ok: (inbox.memberIds?.length ?? 0) === 0 || entry.from.toLowerCase() === (inbox.container ?? '').toLowerCase() || Boolean(inbox.memberIds), detail: `${entry.from} is a member container` },
+    { key: 'from', ok: isMember, detail: `${entry.from} ${isMember ? 'is' : 'is NOT'} a member container` },
     { key: 'time', ok: entry.timestamp >= t.createdAt && entry.timestamp <= t.deadline, detail: `${t.createdAt} ≤ ${entry.timestamp} ≤ ${t.deadline}` },
     { key: 'digest', ok: entry.digest === recomputed, detail: `${entry.digest.slice(0, 18)}… == ${recomputed.slice(0, 18)}…` },
   ];
   return { ok: checks.every((c) => c.ok), checks, entry };
 }
 
+// ─── recoverable keys & replies (work from any browser with the same wallet) ─────────────────
+const guestSigCache = new Map<string, Hex>();
+/** One signature per escrow + account seeds every Guest reply key (see SDK deriveGuestKeyPair). */
+async function guestSignature(w: WalletCtx): Promise<Hex> {
+  const k = `${ESCROW.toLowerCase()}:${w.address.toLowerCase()}`;
+  const hit = guestSigCache.get(k);
+  if (hit) return hit;
+  emit({ kind: 'info', label: 'Sign once to create your Voxro reply keys (no gas)' });
+  const sig = await w.walletClient.signMessage({ account: w.walletClient.account ?? w.address, message: guestKeyText({ escrow: ESCROW, sender: w.address, chainId: XLAYER_CHAIN_ID }) });
+  guestSigCache.set(k, sig);
+  return sig;
+}
+
+const SENT_EVENT = getAbiItem({ abi: deWebHubAbi, name: 'Sent' });
+/**
+ * Finds a ticket's reply on DeWebHub without any browser state: walks the reply endpoint's inbox
+ * back to the ticket's creation time, keeps entries from this inbox's member containers inside the
+ * window, and pulls each candidate's payload from its `Sent` event until the digest matches.
+ */
+export async function recoverReply(t: TicketView, inbox: InboxView): Promise<LocalReply | undefined> {
+  const members = new Set(inbox.memberContainers.map((m) => m.toLowerCase()));
+  const count = Number(await publicClient.readContract({ ...hub, functionName: 'inboxCount', args: [t.replyTargetEndpoint] }));
+  for (let hi = count; hi > 0; hi -= 50) {
+    const lo = Math.max(0, hi - 50);
+    const entries = await publicClient.multicall({ allowFailure: false, contracts: Array.from({ length: hi - lo }, (_, k) => ({ ...hub, functionName: 'inboxAt' as const, args: [t.replyTargetEndpoint, BigInt(lo + k)] as const })) });
+    for (let k = entries.length - 1; k >= 0; k--) {
+      const e = entries[k] as { from: Address; blockNumber: number | bigint; timestamp: number | bigint; digest: Hex };
+      const ts = Number(e.timestamp);
+      if (ts < t.createdAt) return undefined;
+      if (ts > t.deadline || !members.has(e.from.toLowerCase())) continue;
+      const logs = await publicClient.getLogs({ address: HUB, event: SENT_EVENT, args: { to: t.replyTargetEndpoint, ref: t.expectedReplyRef }, fromBlock: BigInt(e.blockNumber), toBlock: BigInt(e.blockNumber) });
+      for (const l of logs) {
+        const payload = l.args.payload as Hex | undefined;
+        if (payload && Number(l.args.inboxIndex) === lo + k && digestOf(t.expectedReplyRef, hexToBytes(payload)) === e.digest) {
+          return { inboxIndex: lo + k, payload, timestamp: ts, from: e.from };
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
+/** After each refresh: for pending tickets of inboxes this wallet owns, recover replies sent from another browser. */
+const recoverChecked = new Map<number, number>();
+async function recoverMissingReplies() {
+  const me = sender.toLowerCase();
+  const targets = state.tickets.filter((t) => t.status === 'Pending' && !t.reply && state.inboxes.find((i) => i.id === t.inboxId)?.owner.toLowerCase() === me).slice(0, 10);
+  let found = false;
+  for (const t of targets) {
+    const count = Number(await publicClient.readContract({ ...hub, functionName: 'inboxCount', args: [t.replyTargetEndpoint] }).catch(() => 0n));
+    if (recoverChecked.get(t.id) === count) continue;
+    recoverChecked.set(t.id, count);
+    const inbox = state.inboxes.find((i) => i.id === t.inboxId)!;
+    const r = await recoverReply(t, inbox).catch(() => undefined);
+    if (r) {
+      lsSet(replyStore(t.id), r);
+      found = true;
+    }
+  }
+  if (found) await refresh();
+}
+
 // ─── writes ──────────────────────────────────────────────────────────────────────────────────
-export async function lock(p: { inboxId: number; lane: Lane; subject: string; body: string }): Promise<SimTicket> {
-  if (p.lane !== 'guest') throw new Error('Container lane: use the official TapeSend client to send, then lockForTapeSend (coming soon in this UI)');
+/** Guest Express lane: seal to every member key, then `sendGuestPriority` (approve first for ERC-20 inboxes). */
+export async function lock(p: { inboxId: number; subject: string; body: string }): Promise<TicketView> {
   const w = await requireWallet();
   const inbox = state.inboxes.find((i) => i.id === p.inboxId);
   if (!inbox || !inbox.memberIds?.length) throw new Error('inbox not loaded');
@@ -457,16 +526,16 @@ export async function lock(p: { inboxId: number; lane: Lane; subject: string; bo
   const keys = (views as Array<{ usable: boolean; key: Hex }>).filter((k) => k.usable).map((k) => hexToBytes(k.key));
   if (keys.length === 0) throw new Error('No member of this inbox has published a usable TapeSend key yet');
   const content = encodeContent({ subject: p.subject, body: p.body, ts: Math.floor(Date.now() / 1000) });
-  const envelope = seal({ ...guestContext(inbox.container!), content, recipients: keys });
-  const guest = randomKeyPair(randomBytes);
+  const envelope = seal({ ...guestContext(inbox.container), content, recipients: keys });
+  const guest = deriveGuestKeyPair({ signature: await guestSignature(w), escrow: ESCROW, sender: w.address, envelope, chainId: XLAYER_CHAIN_ID });
   const q = await publicClient.readContract({ ...escrow, functionName: 'quoteSend', args: [BigInt(inbox.id), w.address] });
   if (!q.canSend) throw new Error('Paused for cold senders (Q would reach 7)');
   const tokenAddr = TOKENS[inbox.token].address;
   if (tokenAddr) {
     const allowance = await publicClient.readContract({ address: tokenAddr, abi: erc20Abi, functionName: 'allowance', args: [w.address, ESCROW] });
-    if (allowance < q.price) await tx(`Approve ${TOKENS[inbox.token].symbol}`, () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, address: tokenAddr, abi: erc20Abi, functionName: 'approve', args: [ESCROW, q.price] }));
+    if (allowance < q.price) await tx(`Approve ${TOKENS[inbox.token].symbol}`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: tokenAddr, abi: erc20Abi, functionName: 'approve', args: [ESCROW, q.price] }));
   }
-  const receipt = await tx('sendGuestPriority', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, ...escrow, functionName: 'sendGuestPriority', args: [BigInt(inbox.id), bytesToHex(guest.publicKey), bytesToHex(envelope)], value: tokenAddr ? 0n : q.price }));
+  const receipt = await tx('sendGuestPriority', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'sendGuestPriority', args: [BigInt(inbox.id), bytesToHex(guest.publicKey), bytesToHex(envelope)], value: tokenAddr ? 0n : q.price }));
   let ticketId = 0;
   for (const log of receipt.logs) {
     try {
@@ -483,24 +552,24 @@ export async function lock(p: { inboxId: number; lane: Lane; subject: string; bo
   return t;
 }
 
-export async function openEnvelope(t: SimTicket, inbox: SimInbox): Promise<DecodedContent> {
+export async function openEnvelope(t: TicketView, inbox: InboxView): Promise<DecodedContent> {
   const w = await requireWallet();
   const me = await myMember(inbox, w.address);
   const kp = await recipientKey(me.circuits, me.tokenId, me.container);
-  const content = openPayload({ ...guestContext(inbox.container!), payload: hexToBytes(t.envelope), secretKey: kp.secretKey }).content;
+  const content = openPayload({ ...guestContext(inbox.container), payload: hexToBytes(t.envelope), secretKey: kp.secretKey }).content;
   return decodeContent(content);
 }
 
-export async function reply(ticketId: number, body: string): Promise<SimTicket> {
+export async function reply(ticketId: number, body: string): Promise<TicketView> {
   const w = await requireWallet();
   const t = state.tickets.find((x) => x.id === ticketId);
   const inbox = t && state.inboxes.find((i) => i.id === t.inboxId);
   if (!t || !inbox) throw new Error('ticket not loaded');
-  if (t.lane !== 'guest') throw new Error('Container-lane replies: coming soon');
+  if (t.lane !== 'guest') throw new Error('This ticket was sent over the Container lane: reply from your TapeSend client to its replyTargetEndpoint');
   const me = await myMember(inbox, w.address);
   const content = encodeContent({ body, ts: Math.floor(Date.now() / 1000) });
   const payload = seal({ ...replyContext(me.container, t.expectedReplyRef), content, recipients: [hexToBytes(t.senderKey.publicKey)] });
-  await tx('DeWebHub.send (reply)', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, ...hub, functionName: 'send', args: [me.circuits, me.tokenId, t.replyTargetEndpoint, t.expectedReplyRef, bytesToHex(payload)] }));
+  await tx('DeWebHub.send (reply)', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...hub, functionName: 'send', args: [me.circuits, me.tokenId, t.replyTargetEndpoint, t.expectedReplyRef, bytesToHex(payload)] }));
   const count = await publicClient.readContract({ ...hub, functionName: 'inboxCount', args: [t.replyTargetEndpoint] });
   // find our entry (last few) and verify the digest before remembering it
   let found: LocalReply | undefined;
@@ -517,33 +586,47 @@ export async function reply(ticketId: number, body: string): Promise<SimTicket> 
   return state.tickets.find((x) => x.id === ticketId)!;
 }
 
-export async function claim(ticketId: number): Promise<SimTicket> {
+export async function claim(ticketId: number): Promise<TicketView> {
   const w = await requireWallet();
-  const local = lsGet<LocalReply>(replyStore(ticketId));
-  if (!local) throw new Error('no reply recorded for this ticket in this browser');
-  await tx('claimBounty', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, ...escrow, functionName: 'claimBounty', args: [BigInt(ticketId), BigInt(local.inboxIndex), local.payload] }));
+  let local = lsGet<LocalReply>(replyStore(ticketId));
+  if (!local) {
+    const t = state.tickets.find((x) => x.id === ticketId);
+    const inbox = t && state.inboxes.find((i) => i.id === t.inboxId);
+    if (t && inbox) local = await recoverReply(t, inbox);
+    if (!local) throw new Error('No reply to this ticket was found on DeWebHub from this inbox');
+    lsSet(replyStore(ticketId), local);
+  }
+  await tx('claimBounty', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'claimBounty', args: [BigInt(ticketId), BigInt(local.inboxIndex), local.payload] }));
   await refresh();
   return state.tickets.find((x) => x.id === ticketId)!;
 }
 
-export async function refundExpired(ticketId: number): Promise<SimTicket> {
+export async function refundExpired(ticketId: number): Promise<TicketView> {
   const w = await requireWallet();
-  await tx('refundExpired', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, ...escrow, functionName: 'refundExpired', args: [BigInt(ticketId)] }));
+  await tx('refundExpired', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'refundExpired', args: [BigInt(ticketId)] }));
   await refresh();
   return state.tickets.find((x) => x.id === ticketId)!;
 }
 
-export async function decline(ticketId: number): Promise<SimTicket> {
+export async function decline(ticketId: number): Promise<TicketView> {
   const w = await requireWallet();
-  await tx('declineTicket', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, ...escrow, functionName: 'declineTicket', args: [BigInt(ticketId)] }));
+  await tx('declineTicket', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'declineTicket', args: [BigInt(ticketId)] }));
   await refresh();
   return state.tickets.find((x) => x.id === ticketId)!;
 }
 
-export async function openReply(t: SimTicket, _inbox: SimInbox): Promise<DecodedContent | null> {
+export async function openReply(t: TicketView): Promise<DecodedContent | null> {
   if (!t.reply) return null;
-  const secret = lsGet<Hex>(guestKeyStore(t.id)) ?? (t.senderKey.secretKey !== '0x' ? t.senderKey.secretKey : undefined);
-  if (!secret) throw new Error('reply key for this ticket is not in this browser');
+  let secret = lsGet<Hex>(guestKeyStore(t.id)) ?? (t.senderKey.secretKey !== '0x' ? t.senderKey.secretKey : undefined);
+  if (!secret) {
+    // not in this browser: rebuild it from the sender's wallet + the envelope stored by the escrow
+    const w = await requireWallet();
+    if (w.address.toLowerCase() !== t.sender.toLowerCase()) throw new Error('Connect the wallet that sent this message to read its reply');
+    const kp = deriveGuestKeyPair({ signature: await guestSignature(w), escrow: ESCROW, sender: w.address, envelope: hexToBytes(t.envelope), chainId: XLAYER_CHAIN_ID });
+    if (bytesToHex(kp.publicKey).toLowerCase() !== t.senderKey.publicKey.toLowerCase()) throw new Error('This message used a one-off reply key that only exists in the browser that sent it');
+    secret = bytesToHex(kp.secretKey);
+    lsSet(guestKeyStore(t.id), secret);
+  }
   const from = state.hub[t.replyTargetEndpoint]?.[t.reply.inboxIndex]?.from;
   if (!from) throw new Error('reply entry not loaded');
   const content = openPayload({ ...replyContext(from, t.expectedReplyRef), payload: hexToBytes(t.reply.payload), secretKey: hexToBytes(secret) }).content;
@@ -575,7 +658,7 @@ export function mailboxNetlist(): { hex: Hex; nIn: number; nOut: number; nand: n
 export async function registerInbox(
   p: { handle: string; preset: ControllerPreset; curve: CurveProfile; partnerCpu: Address | null; token: Token; basePrice: bigint; slaSeconds: number; mailbox?: MailboxPick; policyCircuitId?: bigint },
   onStep: (s: OnboardStep) => void,
-): Promise<SimInbox> {
+): Promise<InboxView> {
   const w = await requireWallet();
   const step = (key: OnboardStep['key'], status: OnboardStep['status'], detail?: string, hash?: Hex) => onStep({ key, status, ...(detail ? { detail } : {}), ...(hash ? { hash } : {}) });
   // 1. a mailbox circuit on a hub-compatible processor (its ERC-6551 container receives TapeSend replies)
@@ -591,8 +674,8 @@ export async function registerInbox(
       publicClient.readContract({ address: transistors, abi: transistorsAbi, functionName: 'balanceOf', args: [w.address, 0n] }),
     ]);
     const need = BigInt(nl.nand);
-    if (have < need) await tx(`Mint ${need - have} NAND`, () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, address: transistors, abi: transistorsAbi, functionName: 'mint', args: [0n, need - have], value: mintValue(need - have, mintPrice, pf) }));
-    const r = await tx('tapeout (mailbox)', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, address: MAILBOX_CPU, abi: circuitsAbi, functionName: 'tapeout', args: [nl.hex, nl.nIn, nl.nOut], value: fee }));
+    if (have < need) await tx(`Mint ${need - have} NAND`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: transistors, abi: transistorsAbi, functionName: 'mint', args: [0n, need - have], value: mintValue(need - have, mintPrice, pf) }));
+    const r = await tx('tapeout (mailbox)', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: MAILBOX_CPU, abi: circuitsAbi, functionName: 'tapeout', args: [nl.hex, nl.nIn, nl.nOut], value: fee }));
     const id = await publicClient.readContract({ address: MAILBOX_CPU, abi: circuitsAbi, functionName: 'nextId' });
     mailbox = { circuits: MAILBOX_CPU, tokenId: id };
     step('tapeout', 'done', `mailbox circuit #${id}`, r.transactionHash);
@@ -607,7 +690,7 @@ export async function registerInbox(
   if (!kv.opened) {
     step('open', 'running');
     const feeOpen = await publicClient.readContract({ address: XLAYER.opener, abi: openerAbi, functionName: 'FEE' });
-    const r = await tx('Opener.open', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, address: XLAYER.opener, abi: openerAbi, functionName: 'open', args: [mailbox!.circuits, mailbox!.tokenId], value: feeOpen }));
+    const r = await tx('Opener.open', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: XLAYER.opener, abi: openerAbi, functionName: 'open', args: [mailbox!.circuits, mailbox!.tokenId], value: feeOpen }));
     step('open', 'done', undefined, r.transactionHash);
   } else step('open', 'skipped', 'already opened');
   // 3. TapeSend key
@@ -615,7 +698,7 @@ export async function registerInbox(
   if (!kv.usable) {
     step('key', 'running');
     const kp = await recipientKey(mailbox.circuits, mailbox.tokenId, container);
-    const r = await tx('DeWebHub.publishKey', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, ...hub, functionName: 'publishKey', args: [mailbox!.circuits, mailbox!.tokenId, 1, 0, bytesToHex(kp.publicKey), 4n] }));
+    const r = await tx('DeWebHub.publishKey', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...hub, functionName: 'publishKey', args: [mailbox!.circuits, mailbox!.tokenId, 1, 0, bytesToHex(kp.publicKey), 4n] }));
     step('key', 'done', bytesToHex(kp.publicKey).slice(0, 14) + '…', r.transactionHash);
   } else step('key', 'skipped', 'key already published');
   // 4. register: policy on VOXR, mailbox as the inbox NFT + sole member
@@ -635,7 +718,7 @@ export async function registerInbox(
     slaSeconds: p.slaSeconds,
     curve: CURVE_PROFILES.indexOf(p.curve),
   };
-  const r = await tx('registerInbox', () => w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, ...escrow, functionName: 'registerInbox', args: [params] }));
+  const r = await tx('registerInbox', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'registerInbox', args: [params] }));
   let inboxId = 0;
   for (const log of r.logs) {
     try {
@@ -650,6 +733,59 @@ export async function registerInbox(
   const ib = state.inboxes.find((i) => i.id === inboxId);
   if (!ib) throw new Error('inbox not found after registration');
   return ib;
+}
+
+// ─── inbox management (recipient only: VoxroEscrow onlyRecipient) ──────────────────────────────
+async function manage(label: string, fn: (w: WalletCtx) => Promise<Hex>) {
+  const w = await requireWallet();
+  await tx(label, () => fn(w));
+  await refresh();
+}
+const acct = (w: WalletCtx) => w.walletClient.account ?? w.address;
+
+export const setPricing = (inboxId: number, p: { token: Token; basePrice: bigint; slaSeconds: number; curve: CurveProfile }) =>
+  manage('setPricing', (w) => w.walletClient.writeContract({ account: acct(w), chain: w.walletClient.chain, ...escrow, functionName: 'setPricing', args: [BigInt(inboxId), TOKENS[p.token].address ?? ('0x0000000000000000000000000000000000000000' as Address), p.basePrice, p.slaSeconds, CURVE_PROFILES.indexOf(p.curve)] }));
+
+export const setActive = (inboxId: number, active: boolean) =>
+  manage(active ? 'Resume inbox' : 'Pause inbox', (w) => w.walletClient.writeContract({ account: acct(w), chain: w.walletClient.chain, ...escrow, functionName: 'setActive', args: [BigInt(inboxId), active] }));
+
+export const setAllowlist = (inboxId: number, senders: Address[], allowed: boolean) =>
+  manage(allowed ? 'Add to allowlist' : 'Remove from allowlist', (w) => w.walletClient.writeContract({ account: acct(w), chain: w.walletClient.chain, ...escrow, functionName: 'setAllowlist', args: [BigInt(inboxId), senders, allowed] }));
+
+/** Replaces the inbox's extra members (team inbox, ≤ 16). Each member circuit must be on a hub-compatible processor with an opened container. */
+export const setMembers = (inboxId: number, members: MailboxPick[]) =>
+  manage('setMembers', (w) => w.walletClient.writeContract({ account: acct(w), chain: w.walletClient.chain, ...escrow, functionName: 'setMembers', args: [BigInt(inboxId), members.map((m) => ({ circuits: m.circuits, tokenId: m.tokenId }))] }));
+
+/** Whether `sender` is on the inbox's allowlist (escrow public mapping). */
+export const isAllowlisted = (inboxId: number, who: Address) => publicClient.readContract({ ...escrow, functionName: 'allowlisted', args: [BigInt(inboxId), who] });
+
+// ─── publish the TapeSend key for an inbox registered without one (e.g. the deploy script's flagship) ──
+export async function publishInboxKey(inbox: InboxView): Promise<void> {
+  const w = await requireWallet();
+  const me = await myMember(inbox, w.address);
+  const kv = await publicClient.readContract({ ...hub, functionName: 'keyFor', args: [me.circuits, me.tokenId] });
+  if (!kv.opened) throw new Error('This mailbox container is not opened yet');
+  if (kv.usable) return;
+  const kp = await recipientKey(me.circuits, me.tokenId, me.container);
+  await tx('DeWebHub.publishKey', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...hub, functionName: 'publishKey', args: [me.circuits, me.tokenId, 1, 0, bytesToHex(kp.publicKey), 4n] }));
+  await refresh();
+}
+
+// ─── DeWEB contact card: SiteRegistry files under the inbox container + DomainBinding name ─────
+/** Publishes a contact-card plan from the wallet that holds the inbox circuit, then binds its tape:// name. */
+export async function publishCard(plan: PublishPlan, name: string, inbox: InboxView, onProgress?: (done: number, total: number) => void): Promise<void> {
+  const w = await requireWallet();
+  await myMember(inbox, w.address); // fails early with a clear message if this wallet cannot write the container
+  const total = plan.calls.length + 1;
+  for (let i = 0; i < plan.calls.length; i++) {
+    const call = plan.calls[i]!;
+    await tx(`SiteRegistry.${call.functionName} (${i + 1}/${plan.calls.length})`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: plan.registry, abi: siteRegistryAbi, functionName: call.functionName, args: call.args as never }));
+    onProgress?.(i + 1, total);
+  }
+  const months = 120n;
+  const fee = await publicClient.readContract({ address: XLAYER.domainBinding, abi: domainBindingAbi, functionName: 'monthlyFee' });
+  await tx(`DomainBinding.bind ${name}`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: XLAYER.domainBinding, abi: domainBindingAbi, functionName: 'bind', args: [name, plan.container, months], value: fee * months }));
+  onProgress?.(total, total);
 }
 
 export const chainBackendInfo = { escrow: ESCROW, lens: LENS, voxr: VOXR };

@@ -3,7 +3,9 @@ import { XLAYER, ZERO_REF, endpointHex, escrowEndpoint, hexToBytes, openPayload,
 import { sha256 } from '@noble/hashes/sha2.js';
 import { BaseError, ContractFunctionRevertedError, encodeErrorResult } from 'viem';
 import { describe, expect, it } from 'vitest';
-import { describeError, guestContext, mailboxNetlist, mapInbox, mapTicket, presetOf, replyContext, tierOf, tokenOf, type LensInbox, type LensTicket } from '../src/chain/escrow.ts';
+import { describeError, guestContext, mailboxNetlist, mapInbox, mapTicket, presetOf, replyContext, tierOf, tokenOf, verifyClaim, type LensInbox, type LensTicket } from '../src/chain/escrow.ts';
+import type { ChainState } from '../src/model.ts';
+import { digestOf } from '@voxro/sdk';
 import { voxroEscrowAbi } from '@voxro/sdk';
 
 const ESCROW = '0x00000000000000000000000000000000000000e5' as Address;
@@ -40,6 +42,9 @@ describe('chain mapping', () => {
     const ib = mapInbox(v, '0x00000000000000000000000000000000000000dd', { memberIds: [{ circuits: '0x00000000000000000000000000000000000000aa', tokenId: 12n }], publicKey: '0x11', earned: 9_500_000n, voxr: VOXR });
     expect(ib).toMatchObject({ id: 7, handle: 'mrnetwork', preset: 'balanced', token: 'USDT0', latch: 2, containerTokenId: 12, replies: 3, earned: 9_500_000n, container: MEMBER, partnerCpu: '0x00000000000000000000000000000000000000bb' });
     expect(ib.live?.quote).toMatchObject({ price: 15_000_000n, tier: 1, nextQ: 3, canSend: true });
+    expect(ib.memberContainers).toEqual([MEMBER]);
+    expect(ib.publicKey).toBe('0x11');
+    expect(ib.containerCpuIndex).toBeNull();
 
     const tv: LensTicket = { id: 3n, ticket: { inboxId: 7n, sender: '0x00000000000000000000000000000000000000dd', replyTargetEndpoint: escrowEndpoint(ESCROW), expectedReplyRef: ('0x' + '11'.repeat(32)) as Hex, token: XLAYER.usdt0, amount: 15_000_000n, createdAt: 1000, deadline: 2000, status: 1, lane: 1, guestReplyKey: ('0x' + '22'.repeat(32)) as Hex, replyInboxIndex: 4, replyTimestamp: 1500, replyFrom: MEMBER } };
     const t = mapTicket(tv, ib, { envelope: '0x54530201', replyPayload: '0x5453020199' });
@@ -49,6 +54,30 @@ describe('chain mapping', () => {
     const pending = mapTicket({ ...tv, ticket: { ...tv.ticket, status: 0 } }, ib, { envelope: '0x54530201', replyPayload: '0x' });
     expect(pending.status).toBe('Pending');
     expect(pending.reply).toBeUndefined();
+  });
+
+  it('verifyClaim mirrors claimBounty: reply must come from a member container, in time, with the right digest', () => {
+    const v: LensInbox = {
+      id: 1n,
+      inbox: { policyCpu: VOXR, policyCircuitId: 4n, inboxCircuits: '0x00000000000000000000000000000000000000aa', inboxCircuitId: 1n, paymentToken: '0x0000000000000000000000000000000000000000', basePrice: 1n, slaSeconds: 3600, curve: 0, latchState: '0x01', active: true, vipKind: 0, vipSource: '0x0000000000000000000000000000000000000000', handle: ('0x' + '61'.padEnd(64, '0')) as Hex, pending: 1, answered: 0, refunded: 0, replySeconds: 0n },
+      recipient: '0x00000000000000000000000000000000000000cc',
+      members: [MEMBER],
+      memberEndpoints: [endpointHex(MEMBER)],
+      queueDepth: 1,
+      quote: { canSend: true, price: 1n, nextState: '0x02', tier: 0, vipDiscount: false, allowlisted: false, vip: false },
+    };
+    const ib = mapInbox(v, MEMBER, { memberIds: [], publicKey: '0x11', earned: 0n, voxr: VOXR });
+    const ref = ('0x' + '33'.repeat(32)) as Hex;
+    const payload = '0x5453020177' as Hex;
+    const target = escrowEndpoint(ESCROW);
+    const ticket = mapTicket({ id: 9n, ticket: { inboxId: 1n, sender: MEMBER, replyTargetEndpoint: target, expectedReplyRef: ref, token: '0x0000000000000000000000000000000000000000', amount: 1n, createdAt: 100, deadline: 200, status: 0, lane: 1, guestReplyKey: '0x22', replyInboxIndex: 0, replyTimestamp: 0, replyFrom: '0x0000000000000000000000000000000000000000' } }, ib, { envelope: '0x00', replyPayload: '0x', localReply: { inboxIndex: 0, payload, timestamp: 150, from: MEMBER } });
+    const state = (from: Address, ts = 150, digest = digestOf(ref, hexToBytes(payload))): ChainState => ({ inboxes: [ib], tickets: [ticket], hub: { [target]: [{ from, blockNumber: 0, timestamp: ts, digest }] }, blockNumber: 0, loaded: true });
+    expect(verifyClaim(state(MEMBER), ticket).ok).toBe(true);
+    const stranger = verifyClaim(state('0x00000000000000000000000000000000000000ee'), ticket);
+    expect(stranger.ok).toBe(false);
+    expect(stranger.checks.find((c) => c.key === 'from')?.ok).toBe(false);
+    expect(verifyClaim(state(MEMBER, 250), ticket).checks.find((c) => c.key === 'time')?.ok).toBe(false);
+    expect(verifyClaim(state(MEMBER, 150, ('0x' + '00'.repeat(32)) as Hex), ticket).checks.find((c) => c.key === 'digest')?.ok).toBe(false);
   });
 
   it('guest and reply contexts round-trip a sealed message', () => {

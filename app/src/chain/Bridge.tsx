@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LAUNCHED } from '../config.ts';
+import { DEPLOYED } from '../config.ts';
 import { useWallet } from '../wallet/wallet.tsx';
 import { chainStore, onTxStatus, setSender, setWalletContext, startPolling, type TxStatus } from './escrow.ts';
 
@@ -9,23 +9,23 @@ export function ChainBridge() {
   const [status, setStatus] = useState<TxStatus | null>(null);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
-    if (!LAUNCHED) return;
+    if (!DEPLOYED) return;
     startPolling();
     return chainStore.subscribe(() => setErr(chainStore.error()));
   }, []);
   useEffect(() => {
-    if (!LAUNCHED) return;
+    if (!DEPLOYED) return;
     setSender(w.address);
     setWalletContext(w.walletClient && w.address ? { walletClient: w.walletClient, address: w.address, ...(w.chainId !== undefined ? { chainId: w.chainId } : {}), switchToXLayer: w.switchToXLayer } : null);
   }, [w.address, w.walletClient, w.chainId, w.switchToXLayer]);
   useEffect(() => {
-    if (!LAUNCHED) return;
+    if (!DEPLOYED) return;
     return onTxStatus((s) => {
       setStatus(s);
       if (s.kind === 'mined' || s.kind === 'error') window.setTimeout(() => setStatus((cur) => (cur === s ? null : cur)), 6000);
     });
   }, []);
-  if (!LAUNCHED) return null;
+  if (!DEPLOYED) return null;
   return (
     <>
       {status && (
