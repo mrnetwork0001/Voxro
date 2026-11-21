@@ -671,7 +671,7 @@ textarea.input { min-height: 120px; resize: vertical; font-family: var(--font-sa
 /* ---------- Info hints & page intros ---------- */
 .kicker-row { display: flex; align-items: center; gap: 6px; }
 .info-tip { position: relative; display: inline-flex; }
-.info-btn { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; border: 1px solid var(--signal-dim); border-radius: 50%; background: transparent; color: var(--signal); font: 600 10px/1 var(--font-mono); cursor: help; padding: 0; }
+.info-btn { display: inline-grid; place-items: center; width: 16px; height: 16px; flex: none; border: 1px solid var(--signal-dim); border-radius: 50%; background: transparent; color: var(--signal); font: 600 10px/1 var(--font-mono); cursor: pointer; padding: 0; }
 .info-btn:hover, .info-tip.open .info-btn { background: var(--signal-soft); border-color: var(--signal); }
 .info-pop { position: absolute; z-index: 70; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); width: max-content; max-width: min(300px, 80vw); padding: 10px 12px; background: #000; border: 1px solid var(--signal-dim); box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.9), 0 0 12px rgba(51, 255, 0, 0.08); color: var(--ink); font: 400 12.5px/1.5 var(--font-sans); letter-spacing: 0; text-transform: none; white-space: normal; opacity: 0; visibility: hidden; transition: opacity 120ms ease; pointer-events: none; }
 .info-tip:hover .info-pop, .info-tip.open .info-pop, .info-btn:focus-visible + .info-pop { opacity: 1; visibility: visible; }
@@ -747,3 +747,6 @@ textarea.input { min-height: 120px; resize: vertical; font-family: var(--font-sa
 .guide-btn svg { width: 18px; height: 18px; }
 .guide-btn:hover { color: var(--signal); border-color: var(--signal); }
 @media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card { transition: none; animation: none; } }
+/* the intro banner's ⓘ is decorative: no hand/help pointer on it */
+.page-intro .info-btn { cursor: default; }
+.intro-reopen .info-btn { cursor: inherit; }
