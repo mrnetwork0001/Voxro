@@ -307,7 +307,7 @@ export function Inbox(_: { arg: string }) {
               <select className="input" value={inbox.id} onChange={(e) => setInboxId(Number(e.target.value))}>
                 {owned.map((i) => (
                   <option key={i.id} value={i.id}>
-                    @{i.handle} · {i.name}
+                    @{i.handle} · {PRESET_NAMES[i.preset]}
                   </option>
                 ))}
               </select>
