@@ -12,13 +12,13 @@ import { useInboxState } from '../backend.ts';
 import { href, type AppRouteId } from '../router.ts';
 import { useWallet } from '../wallet/wallet.tsx';
 import mark from '../assets/shieldsuite-mark.png';
-import { IconCard, IconCircuits, IconDirectory, IconInbox, IconLogout, IconPanelClose, IconPanelOpen, IconProver, IconPulse, IconStudio, IconWallet, type Icon } from './icons.tsx';
+import { IconCard, IconCircuits, IconDirectory, IconInbox, IconLogout, IconPanelClose, IconPanelOpen, IconProver, IconPulse, IconStart, IconStudio, IconWallet, type Icon } from './icons.tsx';
 
-const ICONS: Record<AppRouteId, Icon> = { pulse: IconPulse, directory: IconDirectory, inbox: IconInbox, studio: IconStudio, card: IconCard, gallery: IconCircuits, prover: IconProver, receipt: IconProver };
+const ICONS: Record<AppRouteId, Icon> = { start: IconStart, pulse: IconPulse, directory: IconDirectory, inbox: IconInbox, studio: IconStudio, card: IconCard, gallery: IconCircuits, prover: IconProver, receipt: IconProver };
 const GROUPS: Array<{ label: MsgKey | ''; ids: AppRouteId[] }> = [
   { label: '', ids: ['pulse'] },
   { label: 'side.send', ids: ['directory'] },
-  { label: 'side.receive', ids: ['inbox', 'card'] },
+  { label: 'side.receive', ids: ['start', 'inbox', 'card'] },
   { label: 'side.build', ids: ['studio'] },
   { label: 'side.verify', ids: ['gallery', 'prover'] },
 ];

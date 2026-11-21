@@ -38,6 +38,13 @@ export const IconStudio: Icon = (p) => (
     <path d="M2 9h3M2 15h3M21 12h1" />
   </S>
 );
+/** Start: a new inbox (tray with a plus). */
+export const IconStart: Icon = (p) => (
+  <S {...p}>
+    <path d="M3 13l2.5-7h6.5M21 13v5a1 1 0 01-1 1H4a1 1 0 01-1-1v-5h5l1.5 2.5h5L16 13h5z" />
+    <path d="M18 3v6M15 6h6" />
+  </S>
+);
 /** Card: a contact card with a tape:// slot. */
 export const IconCard: Icon = (p) => (
   <S {...p}>

@@ -15,10 +15,11 @@ import { Landing } from './views/Landing.tsx';
 import { Prover } from './views/Prover.tsx';
 import { Pulse } from './views/Pulse.tsx';
 import { Receipt } from './views/Receipt.tsx';
+import { Start } from './views/Start.tsx';
 import { Studio } from './views/Studio.tsx';
 import { useWallet } from './wallet/wallet.tsx';
 
-const VIEWS = { pulse: Pulse, directory: Directory, inbox: Inbox, studio: Studio, card: Card, gallery: Gallery, prover: Prover, receipt: Receipt } as const;
+const VIEWS = { start: Start, pulse: Pulse, directory: Directory, inbox: Inbox, studio: Studio, card: Card, gallery: Gallery, prover: Prover, receipt: Receipt } as const;
 
 function WalletButton() {
   const { t } = useI18n();
