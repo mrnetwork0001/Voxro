@@ -1,6 +1,6 @@
 import { formatOkb } from '@voxro/sdk';
 import { formatUnits, parseUnits } from 'viem';
-import { TOKENS, type Token } from './sim/escrow.ts';
+import { TOKENS, type Token } from './model.ts';
 
 export function fmtAmount(token: Token, v: bigint, digits?: number): string {
   const s = formatUnits(v, TOKENS[token].decimals);
@@ -17,6 +17,7 @@ export function fmtDuration(seconds: number, lang: 'en' | 'zh'): string {
   const d = Math.floor(seconds / 86_400);
   const h = Math.floor((seconds % 86_400) / 3600);
   const m = Math.floor((seconds % 3600) / 60);
+  if (seconds > 0 && seconds < 60) return lang === 'zh' ? '不到 1 分' : '<1m';
   if (lang === 'zh') return d ? `${d}天${h ? ` ${h}小时` : ''}` : h ? `${h}小时${m ? ` ${m}分` : ''}` : `${m}分`;
   return d ? `${d}d${h ? ` ${h}h` : ''}` : h ? `${h}h${m ? ` ${m}m` : ''}` : `${m}m`;
 }

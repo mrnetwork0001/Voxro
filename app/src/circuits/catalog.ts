@@ -29,7 +29,7 @@ import {
   type ResolvedCircuit,
   type TransitionModel,
 } from '@voxro/sdk';
-import { SIM_CPU } from '../config.ts';
+import { CATALOG_CPU } from '../config.ts';
 
 export interface CatalogItem extends CatalogEntry {
   resolved: ResolvedCircuit;
@@ -39,11 +39,11 @@ let cache: CatalogItem[] | null = null;
 
 export function getCatalog(): CatalogItem[] {
   if (cache) return cache;
-  const entries = buildCatalog(SIM_CPU);
+  const entries = buildCatalog(CATALOG_CPU);
   const resolved = new Map<string, ResolvedCircuit>();
   cache = entries.map((e) => {
     const r = resolveCircuit({ nIn: e.circuit.nIn, nOut: e.circuit.nOut, elements: e.circuit.elements }, { resolve: (cpu, id) => resolved.get(refKey(cpu, id)) });
-    resolved.set(refKey(SIM_CPU, e.id), r);
+    resolved.set(refKey(CATALOG_CPU, e.id), r);
     return { ...e, resolved: r };
   });
   return cache;
