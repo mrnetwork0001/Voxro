@@ -1,0 +1,22 @@
+{
+  "name": "@voxro/services",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Voxro services: Telegram bot, agent MCP server and x402 gateway",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@voxro/sdk": "workspace:*",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "*",
+    "vitest": "*",
+    "@types/node": "^26.6.6"
+  }
+}
