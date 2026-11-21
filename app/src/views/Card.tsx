@@ -1,10 +1,12 @@
 import { PRESET_NAMES, XLAYER, chunkFile, deWebName, planPublish } from '@voxro/sdk';
 import { useMemo, useState } from 'react';
 import { explorerAddress } from '../chain/client.ts';
+import { profileLink } from '../router.ts';
 import { Addr, Button, Field, Note, Panel, Segmented, Stat, Toast, useToast } from '../components/ui.tsx';
 import { DEPLOYED } from '../config.ts';
 import { renderContactCard } from '../card/template.ts';
 import { fmtAmount, fmtDuration } from '../format.ts';
+import { H, Intro } from '../help.tsx';
 import { useI18n, type Lang } from '../i18n.tsx';
 import { priceLadder } from '../circuits/catalog.ts';
 import { backend, useInboxState } from '../backend.ts';
@@ -28,6 +30,7 @@ export function Card(_: { arg: string }) {
         <h2>{t('card.title')}</h2>
         <p className="lede small mt-s">{t('card.lede')}</p>
       </div>
+      <Intro page="card" />
       <DeploymentNote />
       {DEPLOYED && !w.address && <Note tone="warn">{t('card.connect')}</Note>}
       {DEPLOYED && w.address && state.loaded && !inbox && <Note>{t('chain.noOwnedInbox')}</Note>}
@@ -66,7 +69,7 @@ function CardEditor({ inbox, owned, onPick }: { inbox: InboxView; owned: InboxVi
       links,
       lang: cardLang,
       theme: cardTheme,
-      sendHref: `https://voxro.shieldsuite.xyz/#/directory/${inbox.handle}`,
+      sendHref: profileLink(inbox.handle),
       record: { answered: inbox.replies, expired: inbox.refunded, avgReply: inbox.avgReplySeconds === null ? '—' : fmtDuration(Math.round(inbox.avgReplySeconds), cardLang) },
     });
   }, [inbox, name, bio, x, tg, gh, cardLang, cardTheme, tapeName]);
@@ -105,7 +108,7 @@ function CardEditor({ inbox, owned, onPick }: { inbox: InboxView; owned: InboxVi
     <>
       <div className="grid side mt">
         <div className="stack">
-          <Panel kicker={t('c.handle')} title={`@${inbox.handle}`}>
+          <Panel kicker={t('c.handle')} info={<H k="c.handle" />} title={`@${inbox.handle}`}>
             <div className="stack">
               <select
                 className="input"
@@ -142,7 +145,7 @@ function CardEditor({ inbox, owned, onPick }: { inbox: InboxView; owned: InboxVi
             </div>
           </Panel>
 
-          <Panel kicker={t('card.bundle')} title={tapeName ?? '…'}>
+          <Panel kicker={t('card.bundle')} info={<H k="card.bundle" />} title={tapeName ?? '…'}>
             <div className="grid cols-3">
               <Stat label={t('card.size')} value={`${bundle.file.size.toLocaleString()} B`} />
               <Stat label={t('card.chunks')} value={bundle.file.chunks.length} sub={`CHUNK_MAX 24,000`} />
@@ -183,7 +186,7 @@ function CardEditor({ inbox, owned, onPick }: { inbox: InboxView; owned: InboxVi
             {published && tapeName && <Note tone="ok">{t('card.published')} · tape://{tapeName}</Note>}
           </Panel>
         </div>
-        <Panel kicker={t('card.preview')} title={`tape://${tapeName ?? '…'}`} className="flush">
+        <Panel kicker={t('card.preview')} info={<H k="card.preview" />} title={`tape://${tapeName ?? '…'}`} className="flush">
           <iframe className="frame" title="Contact card preview" sandbox="" srcDoc={html} />
         </Panel>
       </div>
