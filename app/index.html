@@ -6,6 +6,8 @@
     <meta name="color-scheme" content="dark" />
     <meta name="description" content="Voxro, a ShieldSuite product — attention escrow and hardware surge-pricing priority inbox on X Layer." />
     <link rel="icon" type="image/png" href="/src/assets/shieldsuite-mark.png" />
+    <!-- Telegram Mini App bridge, loaded only when opened from Telegram (its launch data is in the URL fragment) -->
+    <script>if (/tgWebApp/.test(location.hash) || sessionStorage.getItem('__telegram__initParams')) document.write('<script src="https://telegram.org/js/telegram-web-app.js"><\/script>');</script>
     <title>Voxro — Attention Escrow on X Layer</title>
   </head>
   <body>

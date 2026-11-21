@@ -4,7 +4,10 @@ import { App } from './App.tsx';
 import { I18nProvider } from './i18n.tsx';
 import './styles.css';
 import { ThemeProvider } from './theme.tsx';
+import { initTelegram } from './telegram.ts';
 import { WalletProvider } from './wallet/wallet.tsx';
+
+initTelegram();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
