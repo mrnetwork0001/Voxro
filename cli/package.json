@@ -1,0 +1,30 @@
+{
+  "name": "@voxro/cli",
+  "version": "0.1.0",
+  "description": "voxro: terminal verifier and Demo Day stage companion for Voxro on X Layer",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "voxro": "./dist/bin.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/bin.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/bin.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@voxro/sdk": "workspace:*",
+    "viem": "^2.57.14",
+    "@noble/hashes": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
