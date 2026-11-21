@@ -20,6 +20,7 @@ import {
   deWebHubAbi,
   domainBindingAbi,
   siteRegistryAbi,
+  tapeOutCommunityVipAbi,
   type PublishPlan,
   deriveKeyPair,
   digestOf,
@@ -67,6 +68,7 @@ export function tokenOf(addr: string): Token {
   const a = addr.toLowerCase();
   if (a === XLAYER.usdt0.toLowerCase()) return 'USDT0';
   if (a === XLAYER.usdt.toLowerCase()) return 'USDT';
+  if (a === TOKENS.FAB.address!.toLowerCase()) return 'FAB';
   return 'OKB';
 }
 
@@ -119,7 +121,9 @@ export function mapInbox(v: LensInbox, sender: Address, extra: { memberIds: Arra
     owner: v.recipient,
     preset,
     curve,
-    partnerCpu: ib.vipKind === 0 ? null : ib.vipSource,
+    partnerCpu: ib.vipKind === 1 ? ib.vipSource : null,
+    vipKind: ib.vipKind,
+    communityVip: ib.vipKind === 2 && !!CONFIG.communityVip && ib.vipSource.toLowerCase() === CONFIG.communityVip.toLowerCase(),
     token: tokenOf(ib.paymentToken),
     basePrice: ib.basePrice,
     slaSeconds: ib.slaSeconds,
@@ -358,6 +362,7 @@ export const onTxStatus = (cb: (s: TxStatus) => void) => {
 export const emit = (s: TxStatus) => txListeners.forEach((l) => l(s));
 
 export async function requireWallet(): Promise<WalletCtx> {
+  if (!DEPLOYED) throw new Error('Voxro contracts are not configured; refusing to send transactions');
   if (!wallet) throw new Error('Connect a wallet first');
   const id = await wallet.walletClient.getChainId();
   if (id !== XLAYER_CHAIN_ID) await wallet.switchToXLayer();
@@ -656,7 +661,7 @@ export function mailboxNetlist(): { hex: Hex; nIn: number; nOut: number; nand: n
 }
 
 export async function registerInbox(
-  p: { handle: string; preset: ControllerPreset; curve: CurveProfile; partnerCpu: Address | null; token: Token; basePrice: bigint; slaSeconds: number; mailbox?: MailboxPick; policyCircuitId?: bigint },
+  p: { handle: string; preset: ControllerPreset; curve: CurveProfile; partnerCpu: Address | null; community?: boolean; token: Token; basePrice: bigint; slaSeconds: number; mailbox?: MailboxPick; policyCircuitId?: bigint },
   onStep: (s: OnboardStep) => void,
 ): Promise<InboxView> {
   const w = await requireWallet();
@@ -711,8 +716,8 @@ export async function registerInbox(
     inboxCircuits: mailbox.circuits,
     inboxCircuitId: mailbox.tokenId,
     members: [] as Array<{ circuits: Address; tokenId: bigint }>,
-    vipKind: p.partnerCpu ? 1 : 0,
-    vipSource: p.partnerCpu ?? ('0x0000000000000000000000000000000000000000' as Address),
+    vipKind: p.community && CONFIG.communityVip ? 2 : p.partnerCpu ? 1 : 0,
+    vipSource: p.community && CONFIG.communityVip ? CONFIG.communityVip : (p.partnerCpu ?? ('0x0000000000000000000000000000000000000000' as Address)),
     paymentToken: TOKENS[p.token].address ?? ('0x0000000000000000000000000000000000000000' as Address),
     basePrice: p.basePrice,
     slaSeconds: p.slaSeconds,
@@ -758,6 +763,21 @@ export const setMembers = (inboxId: number, members: MailboxPick[]) =>
 
 /** Whether `sender` is on the inbox's allowlist (escrow public mapping). */
 export const isAllowlisted = (inboxId: number, who: Address) => publicClient.readContract({ ...escrow, functionName: 'allowlisted', args: [BigInt(inboxId), who] });
+
+/** VIP rule for an inbox: none, the TapeOut Community VIP adapter, or holders of a partner ERC-721 (processor). */
+export const setVipRule = (inboxId: number, rule: 'none' | 'community' | Address) =>
+  manage('setVipSource', (w) => {
+    const [kind, source] = rule === 'none' ? [0, ZERO] : rule === 'community' ? [2, CONFIG.communityVip ?? ZERO] : [1, rule];
+    if (rule === 'community' && !CONFIG.communityVip) throw new Error('TapeOut Community VIP is not deployed yet');
+    return w.walletClient.writeContract({ account: acct(w), chain: w.walletClient.chain, ...escrow, functionName: 'setVipSource', args: [BigInt(inboxId), kind, source as Address] });
+  });
+
+/** Which TapeOut memberships `who` holds (bit flags: 1 FabX rig · 2 TapeCode-Test1 · 4 BEM · 8 FAB). */
+export async function communityEligibility(who: Address): Promise<{ rig: boolean; tapecode: boolean; bem: boolean; fab: boolean } | null> {
+  if (!CONFIG.communityVip) return null;
+  const f = Number(await publicClient.readContract({ address: CONFIG.communityVip, abi: tapeOutCommunityVipAbi, functionName: 'eligibility', args: [who] }));
+  return { rig: (f & 1) !== 0, tapecode: (f & 2) !== 0, bem: (f & 4) !== 0, fab: (f & 8) !== 0 };
+}
 
 // ─── publish the TapeSend key for an inbox registered without one (e.g. the deploy script's flagship) ──
 export async function publishInboxKey(inbox: InboxView): Promise<void> {

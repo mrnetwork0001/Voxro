@@ -15,6 +15,8 @@ export interface RegisterParams {
   preset: ControllerPreset;
   curve: CurveProfile;
   partnerCpu: Address | null;
+  /** use the TapeOut Community VIP adapter */
+  community?: boolean;
   token: Token;
   basePrice: bigint;
   slaSeconds: number;
@@ -40,6 +42,8 @@ export const backend = {
   setAllowlist: chain.setAllowlist,
   setMembers: chain.setMembers,
   isAllowlisted: chain.isAllowlisted,
+  setVipRule: chain.setVipRule,
+  communityEligibility: chain.communityEligibility,
 };
 
 export const useInboxState: () => ChainState = chain.useChainState;

@@ -4,11 +4,13 @@
  */
 import { XLAYER, type Address, type ControllerInputs, type ControllerPreset, type CurveProfile, type Hex } from '@voxro/sdk';
 
-export type Token = 'USDT0' | 'USDT' | 'OKB';
+export type Token = 'USDT0' | 'USDT' | 'OKB' | 'FAB';
 export const TOKENS: Record<Token, { symbol: string; decimals: number; address: Address | null }> = {
   USDT0: { symbol: 'USD₮0', decimals: 6, address: XLAYER.usdt0 },
   USDT: { symbol: 'USDT', decimals: 6, address: XLAYER.usdt },
   OKB: { symbol: 'OKB', decimals: 18, address: null },
+  /** FabX mining token on X Layer (paired with BEM). */
+  FAB: { symbol: 'FAB', decimals: 8, address: '0x72F349B1Eee7833B26f8C81a8410775A4e231ed2' },
 };
 
 export type Lane = 'container' | 'guest';
@@ -33,6 +35,10 @@ export interface InboxView {
   preset: ControllerPreset;
   curve: CurveProfile;
   partnerCpu: Address | null;
+  /** 0 none · 1 ERC-721 holder (partnerCpu) · 2 adapter */
+  vipKind: number;
+  /** VIP source is the TapeOut Community VIP adapter. */
+  communityVip: boolean;
   token: Token;
   basePrice: bigint;
   slaSeconds: number;
@@ -112,7 +118,7 @@ export const findInbox = (s: ChainState, q: string): InboxView | undefined => {
 };
 
 export function settledByToken(s: ChainState): Record<Token, { recipient: bigint; protocol: bigint }> {
-  const out: Record<Token, { recipient: bigint; protocol: bigint }> = { USDT0: { recipient: 0n, protocol: 0n }, USDT: { recipient: 0n, protocol: 0n }, OKB: { recipient: 0n, protocol: 0n } };
+  const out: Record<Token, { recipient: bigint; protocol: bigint }> = { USDT0: { recipient: 0n, protocol: 0n }, USDT: { recipient: 0n, protocol: 0n }, OKB: { recipient: 0n, protocol: 0n }, FAB: { recipient: 0n, protocol: 0n } };
   for (const t of s.tickets) {
     if (t.status === 'Claimed' && t.payout) {
       out[t.token].recipient += t.payout.recipient;

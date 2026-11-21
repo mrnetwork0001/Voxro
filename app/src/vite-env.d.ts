@@ -7,9 +7,10 @@ interface ImportMetaEnv {
   readonly VITE_MAILBOX_CPU?: string;
   readonly VITE_TAPE_RELAY_URL?: string;
   readonly VITE_TAPE_RELAY_CONTAINER?: string;
+  readonly VITE_COMMUNITY_VIP?: string;
 }
 /** Contents of contracts/deployments/xlayer.json at build time ({} before the mainnet launch). */
-declare const __VOXRO_DEPLOYMENT__: { voxrCircuits?: string; escrow?: string; lens?: string; mailboxCpu?: string };
+declare const __VOXRO_DEPLOYMENT__: { voxrCircuits?: string; escrow?: string; lens?: string; mailboxCpu?: string; communityVip?: string };
 interface Window {
   ethereum?: import('./wallet/wallet.tsx').Eip1193Provider;
   okxwallet?: import('./wallet/wallet.tsx').Eip1193Provider;

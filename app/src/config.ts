@@ -11,6 +11,8 @@ export const CONFIG = Object.freeze({
   lens: addr(env.VITE_VOXRO_LENS) ?? addr(deployment.lens),
   /** Circuits address of a hub-compatible processor (Factory index ≤ 386) used for mailbox containers. */
   mailboxCpu: addr(env.VITE_MAILBOX_CPU) ?? addr(deployment.mailboxCpu) ?? ('0xAa13ae45b0B2D52f210Ad7Ef12997113a0ebAF21' as Address), // Factory #212 "LoteGate": hub-compatible, mintPrice 0
+  /** TapeOut Community VIP source (FabX rigs, TapeCode-Test1, BEM, FAB holders); null until deployed. */
+  communityVip: addr(env.VITE_COMMUNITY_VIP) ?? addr(deployment.communityVip),
   explorer: XLAYER.explorer,
   rpcUrls: XLAYER.rpcUrls,
 });
