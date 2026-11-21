@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# voxro-waitlist            list sign-ups, newest first
+# voxro-waitlist count      number of sign-ups
+# voxro-waitlist csv        export as CSV (time,email,x)
+# voxro-waitlist emails     just the emails, comma-separated (for BCC)
+# voxro-waitlist set-telegram   connect Telegram alerts (token is typed here, hidden)
+# voxro-waitlist test-telegram  send a test alert
+set -euo pipefail
+FILE=/var/lib/voxro-waitlist/waitlist.jsonl
+ENV=/etc/voxro-waitlist.env
+case "${1:-list}" in
+  list)  python3 - "$FILE" <<'PY'
+import json, sys
+rows = [json.loads(l) for l in open(sys.argv[1]) if l.strip()]
+print(f"{len(rows)} sign-ups\n")
+for i, r in reversed(list(enumerate(rows, 1))):
+    t = r["t"][:16].replace("T", " ")
+    print(f"{i:>4}  {t}  {r['email']:<38} {r.get('x') or ''}")
+PY
+    ;;
+  count) grep -c . "$FILE" || true ;;
+  csv)   python3 -c '
+import json,sys,csv
+w=csv.writer(sys.stdout); w.writerow(["time","email","x"])
+[w.writerow([r["t"],r["email"],r.get("x") or ""]) for r in (json.loads(l) for l in open(sys.argv[1]) if l.strip())]' "$FILE" ;;
+  emails) python3 -c '
+import json,sys; print(", ".join(json.loads(l)["email"] for l in open(sys.argv[1]) if l.strip()))' "$FILE" ;;
+  set-telegram)
+    read -rsp "Paste your Telegram bot token (hidden): " TOKEN; echo
+    [[ "$TOKEN" =~ ^[0-9]+:[A-Za-z0-9_-]{30,}$ ]] || { echo "That doesn't look like a bot token."; exit 1; }
+    NAME=$(curl -fsS "https://api.telegram.org/bot$TOKEN/getMe" | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["username"])') || { echo "Telegram rejected that token."; exit 1; }
+    echo "Bot found: @$NAME"
+    echo "Now open Telegram, find @$NAME and send it any message (e.g. hi). Waiting up to 2 minutes…"
+    CHAT=""
+    for _ in $(seq 1 40); do
+      CHAT=$(curl -fsS "https://api.telegram.org/bot$TOKEN/getUpdates" | python3 -c '
+import json,sys
+u=[x for x in json.load(sys.stdin).get("result",[]) if "message" in x]
+print(u[-1]["message"]["chat"]["id"] if u else "")') || true
+      [ -n "$CHAT" ] && break; sleep 3
+    done
+    [ -n "$CHAT" ] || { echo "No message received. Run this again and message the bot."; exit 1; }
+    umask 077; printf 'TELEGRAM_BOT_TOKEN=%s\nTELEGRAM_CHAT_ID=%s\n' "$TOKEN" "$CHAT" > "$ENV"; chmod 600 "$ENV"
+    echo "Saved. Alerts will go to this chat."; "$0" test-telegram ;;
+  test-telegram)
+    set -a; . "$ENV"; set +a
+    curl -fsS -o /dev/null -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d chat_id="$TELEGRAM_CHAT_ID" -d text="✅ Voxro waitlist alerts are on." && echo "Test alert sent." ;;
+  *) sed -n '2,7p' "$0" | sed 's/^# //' ;;
+esac
