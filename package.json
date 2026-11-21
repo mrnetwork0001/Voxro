@@ -1,0 +1,13 @@
+{
+  "name": "voxro",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Voxro (VOXR): attention-escrow and hardware surge-pricing priority inbox on X Layer DeWEB and TapeSend",
+  "packageManager": "pnpm@9.15.9",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+.DS_Store
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/**/dry-run/
+.env.rehearsal
+SUBMISSION_AND_DEMO_PLAYBOOK.md
