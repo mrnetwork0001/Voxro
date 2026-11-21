@@ -635,7 +635,7 @@ export async function openReply(t: TicketView): Promise<DecodedContent | null> {
 
 // ─── onboarding: mint/tape out → open container → publish key → registerInbox ───────────────
 export interface OnboardStep {
-  key: 'tapeout' | 'open' | 'key' | 'register';
+  key: 'tapeout' | 'open' | 'key' | 'register' | 'notify';
   status: 'idle' | 'running' | 'done' | 'skipped' | 'error';
   detail?: string;
   hash?: Hex;

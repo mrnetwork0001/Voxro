@@ -14,6 +14,7 @@ import { explorerTx } from '../chain/client.ts';
 import { TOKENS, type Token } from '../model.ts';
 import { mailboxNetlist } from '../chain/escrow.ts';
 import { DeploymentNote } from './DeploymentNote.tsx';
+import { enableNotifications } from '../chain/relay.ts';
 import { useWallet } from '../wallet/wallet.tsx';
 
 /** Live mint price + per-call protocol fee of the mailbox processor's transistors (for the 2-NAND mailbox circuit). */
@@ -45,6 +46,7 @@ export function Studio(_: { arg: string }) {
   const [mbToken, setMbToken] = useState('');
   const [steps, setSteps] = useState<OnboardStep[]>([]);
   const [registering, setRegistering] = useState(false);
+  const [withNotify, setWithNotify] = useState(true);
 
   const item = getController(preset);
   const proof = useMemo(() => proveItem(item), [item]);
@@ -80,15 +82,30 @@ export function Studio(_: { arg: string }) {
         { handle: handle.trim().replace(/^@/, ''), preset, curve, partnerCpu: partnerAddr, token, basePrice, slaSeconds: Math.max(1, Number(slaHours)) * 3600, ...(mailbox ? { mailbox } : {}) },
         (st) => setSteps((prev) => [...prev.filter((x) => x.key !== st.key), st]),
       );
-      setToast(`${t('studio.registered')} · @${ib.handle}`);
-      navigate('directory', ib.handle);
+      if (!withNotify) {
+        setToast(`${t('studio.registered')} · @${ib.handle}`);
+        navigate('directory', ib.handle);
+        return;
+      }
+      // optional 5th step: TapeRelay channel key record (the inbox is already registered either way)
+      const note = (status: OnboardStep['status'], detail?: string) => setSteps((prev) => [...prev.filter((x) => x.key !== 'notify'), { key: 'notify', status, ...(detail ? { detail } : {}) }]);
+      note('running');
+      try {
+        await enableNotifications(ib);
+        note('done', 'TapeRelay · TAP-14');
+        setToast(`${t('studio.registered')} · @${ib.handle} · ${t('onboard.notifyOn')}`);
+        navigate('directory', ib.handle);
+      } catch (e) {
+        note('error', e instanceof Error ? e.message.slice(0, 120) : String(e));
+        setToast(`${t('studio.registered')} · @${ib.handle} · ${t('onboard.notifyFailed')}`);
+      }
     } catch (e) {
       setToast(e instanceof Error ? e.message.slice(0, 200) : String(e));
     } finally {
       setRegistering(false);
     }
   };
-  const STEP_KEYS: OnboardStep['key'][] = ['tapeout', 'open', 'key', 'register'];
+  const STEP_KEYS: OnboardStep['key'][] = withNotify ? ['tapeout', 'open', 'key', 'register', 'notify'] : ['tapeout', 'open', 'key', 'register'];
 
   return (
     <>
@@ -183,6 +200,14 @@ export function Studio(_: { arg: string }) {
                   )}
                 </div>
               )}
+              {DEPLOYED && (
+                <label className="check" title={t('onboard.notifyHint')}>
+                  <input type="checkbox" checked={withNotify} onChange={(e) => setWithNotify(e.target.checked)} disabled={registering} />
+                  <span>
+                    {t('onboard.notify')} <span className="small muted">· {t('onboard.notifyHint')}</span>
+                  </span>
+                </label>
+              )}
               <div className="row">
                 <Button variant="signal" onClick={() => void register()} disabled={!DEPLOYED || !w.address || !handle.trim() || basePrice <= 0n || registering}>
                   {registering ? <span className="spin" /> : null} {!DEPLOYED ? t('c.notDeployed.short') : w.address ? t('onboard.go') : t('onboard.connect')}
@@ -201,6 +226,12 @@ export function Studio(_: { arg: string }) {
               <dd className="mono">{openerFee !== null ? formatOkb(openerFee) : '…'}</dd>
               <dt>{t('studio.cost.register')}</dt>
               <dd className="mono">gas only</dd>
+              {withNotify && (
+                <>
+                  <dt>{t('onboard.step.notify')}</dt>
+                  <dd className="mono">gas only</dd>
+                </>
+              )}
             </dl>
             <div className="small muted mt-s">{t('studio.cost.note')}</div>
           </Panel>
