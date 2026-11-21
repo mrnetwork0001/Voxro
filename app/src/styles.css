@@ -720,3 +720,30 @@ textarea.input { min-height: 120px; resize: vertical; font-family: var(--font-sa
 .wiz-share { display: flex; align-items: center; gap: 10px; justify-content: space-between; border: 1px solid var(--signal); border-radius: var(--radius-sm); padding: 8px 8px 8px 12px; background: color-mix(in srgb, var(--signal) 6%, transparent); }
 .wiz-share .mono { color: var(--signal); word-break: break-all; }
 @media (max-width: 640px) { .wiz-styles { grid-template-columns: 1fr; } .wiz-handle { font-size: 17px; } }
+
+/* ── Product tour ─────────────────────────────────────────── */
+.tour { position: fixed; inset: 0; z-index: 1000; }
+.tour-block { position: absolute; inset: 0; }
+.tour-dim { position: absolute; inset: 0; background: rgba(2, 5, 10, 0.72); }
+.tour-spot { position: fixed; border: 1px solid var(--signal); border-radius: 10px; box-shadow: 0 0 0 9999px rgba(2, 5, 10, 0.72), 0 0 24px color-mix(in srgb, var(--signal) 45%, transparent); pointer-events: none; transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease; }
+.tour-card { position: fixed; background: #000; border: 1px solid var(--signal); border-radius: var(--radius-sm); padding: 16px 16px 14px; box-shadow: 0 18px 50px rgba(0,0,0,.6); transition: top .25s ease, left .25s ease; animation: tour-in .2s ease; }
+@keyframes tour-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.tour-head { display: flex; justify-content: space-between; align-items: center; }
+.tour-count { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--signal); }
+.tour-x { appearance: none; background: none; border: 0; color: var(--ink-3); font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 4px; }
+.tour-x:hover { color: var(--ink); }
+.tour-card h3 { margin: 8px 0 6px; font-size: 17px; color: var(--ink); }
+.tour-card p { margin: 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.55; }
+.tour-dots { display: flex; gap: 5px; margin: 14px 0 12px; }
+.tour-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--rule-strong); }
+.tour-dots span.done { background: color-mix(in srgb, var(--signal) 45%, transparent); }
+.tour-dots span.on { background: var(--signal); width: 16px; border-radius: 3px; }
+.tour-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.sb-guide { appearance: none; display: flex; align-items: center; gap: 10px; width: 100%; background: transparent; border: 1px dashed var(--rule-strong); color: var(--ink-2); font-family: var(--font-mono); font-size: 12px; padding: 7px 10px; cursor: pointer; border-radius: var(--radius-sm); }
+.sb-guide svg { width: 16px; height: 16px; }
+.sb-guide:hover { color: var(--signal); border-color: var(--signal); }
+.sb-guide.icon { width: 40px; justify-content: center; padding: 7px 0; }
+.guide-btn { width: 40px; height: 40px; flex: none; border: 1px solid var(--rule-strong); border-radius: 10px; background: rgba(0,0,0,.5); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; margin-right: 8px; }
+.guide-btn svg { width: 18px; height: 18px; }
+.guide-btn:hover { color: var(--signal); border-color: var(--signal); }
+@media (prefers-reduced-motion: reduce) { .tour-spot, .tour-card { transition: none; animation: none; } }
