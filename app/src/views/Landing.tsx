@@ -3,7 +3,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { explorerAddress } from '../chain/client.ts';
 import { useTelemetry } from '../chain/telemetry.ts';
 import { Addr, Badge, Gauge, Ladder, Segmented, SurgeChart } from '../components/ui.tsx';
-import { DEPLOYED } from '../config.ts';
+import type { Address } from '@voxro/sdk';
+import { CONFIG, DEPLOYED } from '../config.ts';
+import { DEFAULT_RELAY } from '../chain/relay.ts';
 import { fmtAmount, fmtMoney } from '../format.ts';
 import { useI18n } from '../i18n.tsx';
 import { LANDING } from '../landing/copy.ts';
@@ -166,7 +168,8 @@ function ExampleGate() {
   );
 }
 
-const STACK_ADDRS = [XLAYER.factory, XLAYER.deWebHub, XLAYER.siteRegistry, XLAYER.domainBinding, XLAYER.circuitMarket, XLAYER.transistorDrops, XLAYER.usdt0, XLAYER.multicall3];
+// order matches LANDING[lang].stack.items
+const STACK_ADDRS = [XLAYER.factory, XLAYER.deWebHub, XLAYER.siteRegistry, XLAYER.domainBinding, XLAYER.circuitMarket, DEFAULT_RELAY.container as Address, XLAYER.usdt0, (CONFIG.escrow ?? XLAYER.factory) as Address];
 
 export function Landing() {
   const { lang, setLang } = useI18n();
@@ -535,7 +538,7 @@ export function Landing() {
             <a className="btn signal lg" href={launch}>
               {L.cta.launch}
             </a>
-            <a className="btn lg" href={href('studio')}>
+            <a className="btn lg" href={href('start')}>
               {L.cta.spec}
             </a>
           </div>
