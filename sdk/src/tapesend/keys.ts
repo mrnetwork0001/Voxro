@@ -154,3 +154,38 @@ export function randomKeyPair(random: (n: number) => Uint8Array): { secretKey: U
   const secretKey = random(32);
   return { secretKey, publicKey: x25519.getPublicKey(secretKey) };
 }
+
+// ─── Voxro guest reply keys: recoverable from the sender's wallet in any browser ─────────────
+
+/**
+ * Text the sender signs once per escrow to derive every Guest-lane reply key. The signature is the
+ * secret seed; it never leaves the browser and costs no gas. Deterministic (RFC 6979) wallets give the
+ * same signature on every device, so the keys can be re-derived anywhere the wallet is available.
+ */
+export function guestKeyText(p: { escrow: string; sender: string; chainId?: number | bigint }): string {
+  const chainId = p.chainId ?? XLAYER_CHAIN_ID;
+  return [
+    'Voxro reply keys',
+    '',
+    'Sign to create the keys that decrypt replies to your Voxro messages.',
+    'This signature never leaves your browser and costs no gas.',
+    '',
+    `Escrow: ${String(p.escrow).toLowerCase()}`,
+    `Account: ${String(p.sender).toLowerCase()}`,
+    `Chain ID: ${chainId.toString()}`,
+  ].join('\n');
+}
+
+/**
+ * Per-ticket Guest reply key pair: HKDF-SHA256(ikm = normalized r‖s of the guestKeyText signature,
+ * salt = "Voxro/guest/v1", info = escrow ‖ chainId ‖ keccak256(envelope)). The envelope is stored on
+ * chain by the escrow, so the key can be rebuilt from the chain plus one signature.
+ */
+export function deriveGuestKeyPair(p: { signature: string | Uint8Array; escrow: string; sender: string; envelope: Uint8Array; chainId?: number | bigint }): { secretKey: Uint8Array; publicKey: Uint8Array } {
+  const chainId = p.chainId ?? XLAYER_CHAIN_ID;
+  const signer = recoverAddress(personalMessageHash(guestKeyText({ escrow: p.escrow, sender: p.sender, chainId })), p.signature);
+  if (signer !== String(p.sender).toLowerCase()) throw new TapeSendError('signer-mismatch', 'the signature was not made by the sender over the Voxro reply-key text');
+  const info = concat(addressBytes(p.escrow), uint256(chainId), keccak_256(p.envelope));
+  const secretKey = hkdf(sha256, normalizedRS(p.signature), ascii('Voxro/guest/v1'), info, 32);
+  return { secretKey, publicKey: x25519.getPublicKey(secretKey) };
+}
