@@ -1,10 +1,12 @@
 import { ChainBridge } from './chain/Bridge.tsx';
 import { useTelemetry } from './chain/telemetry.ts';
 import { Badge, Button, Segmented } from './components/ui.tsx';
-import { LAUNCHED } from './config.ts';
+import { DEPLOYED } from './config.ts';
 import { useI18n, type MsgKey } from './i18n.tsx';
 import { ROUTES, href, useRoute } from './router.ts';
-import { useTheme } from './theme.tsx';
+import { Wordmark } from './components/Wordmark.tsx';
+import { Burger, Drawer, useDrawer } from './components/MobileNav.tsx';
+import { Sidebar, useMedia } from './components/Sidebar.tsx';
 import { Card } from './views/Card.tsx';
 import { Directory } from './views/Directory.tsx';
 import { Gallery } from './views/Gallery.tsx';
@@ -57,8 +59,9 @@ function WalletButton() {
 export function App() {
   const { id, arg } = useRoute();
   const { t, lang, setLang } = useI18n();
-  const { theme, toggle } = useTheme();
   const tele = useTelemetry();
+  const drawer = useDrawer();
+  const phone = useMedia('(max-width: 900px)');
   if (id === 'landing')
     return (
       <>
@@ -68,15 +71,12 @@ export function App() {
     );
   const View = VIEWS[id];
   return (
-    <div className="shell">
+    <div className="shell with-sidebar">
+      {!phone && <Sidebar active={id} />}
+      <div className="shell-main">
       <header className="masthead">
         <div className="masthead-inner">
-          <a className="wordmark" href="#/" title="Voxro home">
-            <svg className="mark" viewBox="0 0 32 32" aria-hidden="true">
-              <path d="M6 7h5l5 13 5-13h5L19 26h-6z" fill="var(--signal)" />
-            </svg>
-            VOXRO
-          </a>
+          <Wordmark />
           <nav className="nav" aria-label="Views">
             {ROUTES.map((r) => (
               <a key={r} href={href(r)} aria-current={r === id ? 'page' : undefined}>
@@ -84,13 +84,32 @@ export function App() {
               </a>
             ))}
           </nav>
-          <div className="spacer" />
-          <div className="ticker" title={tele.error ?? ''}>
-            <span className={`dot ${tele.error ? 'bad' : tele.data ? 'live' : ''}`} />
-            <span>X Layer · {tele.data ? `#${tele.data.block.toString()}` : tele.error ? 'RPC' : '…'}</span>
-            <span className="muted">· {LAUNCHED ? t('c.mainnet') : t('c.prelaunch')}</span>
-          </div>
+          <div className="masthead-right">
           <div className="controls">
+            <Segmented
+              className="lang-desktop"
+              value={lang}
+              options={[
+                { id: 'en', label: 'EN' },
+                { id: 'zh', label: '中文' },
+              ]}
+              onChange={setLang}
+            />
+            <WalletButton />
+          </div>
+          <Burger open={drawer.open} onToggle={drawer.toggle} />
+          </div>
+        </div>
+      </header>
+      <Drawer
+        open={drawer.open}
+        onClose={drawer.close}
+        footer={
+          <>
+            <div className="ticker">
+              <span className={`dot ${tele.error ? 'bad' : tele.data ? 'live' : ''}`} />
+              <span>X Layer {tele.data ? `#${tele.data.block.toString()}` : '…'} · {DEPLOYED ? t('c.mainnet') : t('c.notDeployed.short')}</span>
+            </div>
             <Segmented
               value={lang}
               options={[
@@ -99,23 +118,28 @@ export function App() {
               ]}
               onChange={setLang}
             />
-            <button className="btn ghost sm" onClick={toggle} aria-label="Toggle theme" title={theme}>
-              {theme === 'dark' ? '☀' : '☾'}
-            </button>
-            <WalletButton />
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      >
+        {ROUTES.map((r) => (
+          <a key={r} href={href(r)} aria-current={r === id ? 'page' : undefined} onClick={drawer.close}>
+            {t(`nav.${r}` as MsgKey)}
+          </a>
+        ))}
+      </Drawer>
       <main className="view">
         <View arg={arg} />
       </main>
       <ChainBridge />
       <footer className="footer">
         <div className="footer-inner">
-          <span>Voxro (VOXR) · {t('app.tag')}</span>
-          <span>X Layer TapeOut Accelerate · mrnetwork0001 · MIT · chainId 196</span>
+          <span>Voxro · {t('app.tag')}</span>
+          <span>
+            A <a href="https://shieldsuite.xyz" target="_blank" rel="noreferrer">ShieldSuite</a> product · built on X Layer
+          </span>
         </div>
       </footer>
+      </div>
     </div>
   );
 }
