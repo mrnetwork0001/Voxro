@@ -4,14 +4,9 @@ export type Theme = 'dark' | 'light';
 const KEY = 'voxro.theme';
 const Ctx = createContext<{ theme: Theme; toggle: () => void }>({ theme: 'dark', toggle: () => {} });
 
+/** Voxro ships dark-only, like the rest of the ShieldSuite studio. */
 function initial(): Theme {
-  try {
-    const saved = localStorage.getItem(KEY);
-    if (saved === 'dark' || saved === 'light') return saved;
-  } catch {
-    /* no storage */
-  }
-  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  return 'dark';
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

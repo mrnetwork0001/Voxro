@@ -1,7 +1,7 @@
 import { formatNetlist, type ControllerInputs } from '@voxro/sdk';
 import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { useI18n } from '../i18n.tsx';
-import type { CatalogItem, Rung, TableRow, TrafficPoint } from '../sim/catalog.ts';
+import type { CatalogItem, Rung, TableRow, TrafficPoint } from '../circuits/catalog.ts';
 
 export const Kicker = ({ children, signal }: { children: ReactNode; signal?: boolean }) => <div className={`kicker${signal ? ' signal' : ''}`}>{children}</div>;
 
@@ -52,9 +52,9 @@ export function Field({ label, hint, children }: { label: ReactNode; hint?: Reac
   );
 }
 
-export function Segmented<T extends string>({ value, options, onChange }: { value: T; options: Array<{ id: T; label: ReactNode }>; onChange: (v: T) => void }) {
+export function Segmented<T extends string>({ value, options, onChange, className }: { value: T; options: Array<{ id: T; label: ReactNode }>; onChange: (v: T) => void; className?: string }) {
   return (
-    <div className="seg" role="tablist">
+    <div className={`seg${className ? ` ${className}` : ''}`} role="tablist">
       {options.map((o) => (
         <button key={o.id} type="button" aria-pressed={o.id === value} onClick={() => onChange(o.id)}>
           {o.label}
