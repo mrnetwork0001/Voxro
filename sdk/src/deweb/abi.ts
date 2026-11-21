@@ -6,6 +6,8 @@ export const siteRegistryAbi = parseAbi([
   'function putFile(address container, string path, string contentType, bytes32 sha256Hash, bytes data)',
   'function appendChunk(address container, string path, uint256 expectIndex, bytes data)',
   'function setFallback(address container, string path)',
+  'function fileInfo(address container, string path) view returns (uint32 size, string contentType, bytes32 sha256Hash, uint40 updatedAt, uint256 chunkCount)',
+  'function read(address container, string path) view returns (bytes)',
 ]);
 
 export const domainBindingAbi = parseAbi([
