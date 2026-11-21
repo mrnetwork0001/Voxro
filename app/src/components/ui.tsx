@@ -5,13 +5,64 @@ import type { CatalogItem, Rung, TableRow, TrafficPoint } from '../circuits/cata
 
 export const Kicker = ({ children, signal }: { children: ReactNode; signal?: boolean }) => <div className={`kicker${signal ? ' signal' : ''}`}>{children}</div>;
 
-export function Panel({ title, kicker, right, children, className = '', signal }: { title?: ReactNode; kicker?: ReactNode; right?: ReactNode; children: ReactNode; className?: string; signal?: boolean }) {
+/** ⓘ hint: hover, focus or tap to read a plain-language explanation. */
+export function InfoTip({ children, label = 'What is this?' }: { children: ReactNode; label?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className={`info-tip${open ? ' open' : ''}`} onMouseLeave={() => setOpen(false)}>
+      <button type="button" className="info-btn" aria-label={label} aria-expanded={open} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); }} onBlur={() => setOpen(false)}>
+        i
+      </button>
+      <span className="info-pop" role="tooltip">
+        {children}
+      </span>
+    </span>
+  );
+}
+
+/** Dismissible "What is this page?" banner, remembered per page. */
+export function PageIntro({ id, title, children }: { id: string; title: ReactNode; children: ReactNode }) {
+  const key = `voxro.intro.${id}`;
+  const [hidden, setHidden] = useState(() => {
+    try {
+      return localStorage.getItem(key) === '1';
+    } catch {
+      return false;
+    }
+  });
+  if (hidden)
+    return (
+      <button type="button" className="intro-reopen" onClick={() => { try { localStorage.removeItem(key); } catch { /* ignore */ } setHidden(false); }}>
+        <span className="info-btn" aria-hidden="true">i</span> {title}
+      </button>
+    );
+  return (
+    <div className="page-intro" role="note">
+      <span className="info-btn" aria-hidden="true">i</span>
+      <div className="page-intro-body">
+        <div className="page-intro-title">{title}</div>
+        <div className="page-intro-text">{children}</div>
+      </div>
+      <button type="button" className="page-intro-close" aria-label="Dismiss" onClick={() => { try { localStorage.setItem(key, '1'); } catch { /* ignore */ } setHidden(true); }}>
+        ×
+      </button>
+    </div>
+  );
+}
+
+export function Panel({ title, kicker, right, children, className = '', signal, info }: { title?: ReactNode; kicker?: ReactNode; right?: ReactNode; children: ReactNode; className?: string; signal?: boolean; info?: ReactNode }) {
   return (
     <section className={`panel${signal ? ' signal' : ''} ${className}`}>
       {(title || kicker || right) && (
         <div className="panel-head">
           <div>
-            {kicker && <Kicker>{kicker}</Kicker>}
+            {kicker && (
+              <div className="kicker-row">
+                <Kicker>{kicker}</Kicker>
+                {info && <InfoTip>{info}</InfoTip>}
+              </div>
+            )}
+            {!kicker && info && <InfoTip>{info}</InfoTip>}
             {title && <h3>{title}</h3>}
           </div>
           {right}
@@ -22,10 +73,13 @@ export function Panel({ title, kicker, right, children, className = '', signal }
   );
 }
 
-export function Stat({ label, value, sub, tone, mono }: { label: ReactNode; value: ReactNode; sub?: ReactNode; tone?: 'signal' | 'ok' | 'warn'; mono?: boolean }) {
+export function Stat({ label, value, sub, tone, mono, info }: { label: ReactNode; value: ReactNode; sub?: ReactNode; tone?: 'signal' | 'ok' | 'warn'; mono?: boolean; info?: ReactNode }) {
   return (
     <div className={`stat${tone ? ` ${tone}` : ''}`}>
-      <div className="kicker">{label}</div>
+      <div className="kicker-row">
+        <div className="kicker">{label}</div>
+        {info && <InfoTip>{info}</InfoTip>}
+      </div>
       <div className={`value${mono ? ' mono' : ''}`}>{value}</div>
       {sub && <div className="sub">{sub}</div>}
     </div>
@@ -42,10 +96,13 @@ export function Button({ variant, size, children, ...rest }: ButtonHTMLAttribute
   );
 }
 
-export function Field({ label, hint, children }: { label: ReactNode; hint?: ReactNode; children: ReactNode }) {
+export function Field({ label, hint, children, info }: { label: ReactNode; hint?: ReactNode; children: ReactNode; info?: ReactNode }) {
   return (
     <div className="field">
-      <label>{label}</label>
+      <div className="kicker-row">
+        <label>{label}</label>
+        {info && <InfoTip>{info}</InfoTip>}
+      </div>
       {children}
       {hint && <div className="hint">{hint}</div>}
     </div>
