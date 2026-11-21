@@ -1,32 +1,55 @@
-import { PRESET_NAMES, XLAYER, chunkFile, deWebName, planPublish, type Address } from '@voxro/sdk';
+import { PRESET_NAMES, XLAYER, chunkFile, deWebName, planPublish } from '@voxro/sdk';
 import { useMemo, useState } from 'react';
 import { explorerAddress } from '../chain/client.ts';
-import { Addr, Button, Field, Note, Panel, Segmented, Stat } from '../components/ui.tsx';
-import { LAUNCHED, VOXR_CPU_INDEX } from '../config.ts';
+import { Addr, Button, Field, Note, Panel, Segmented, Stat, Toast, useToast } from '../components/ui.tsx';
+import { DEPLOYED } from '../config.ts';
 import { renderContactCard } from '../card/template.ts';
 import { fmtAmount, fmtDuration } from '../format.ts';
 import { useI18n, type Lang } from '../i18n.tsx';
-import { priceLadder } from '../sim/catalog.ts';
+import { priceLadder } from '../circuits/catalog.ts';
 import { backend, useInboxState } from '../backend.ts';
-import { TOKENS } from '../sim/escrow.ts';
+import { TOKENS, type InboxView } from '../model.ts';
 import { useWallet } from '../wallet/wallet.tsx';
+import { DeploymentNote } from './DeploymentNote.tsx';
 
+/** Contact cards are published into the inbox container, so only the wallet that holds the inbox can make one. */
 export function Card(_: { arg: string }) {
-  const { t, lang } = useI18n();
-  const sim = useInboxState();
+  const { t } = useI18n();
+  const state = useInboxState();
   const w = useWallet();
-  const [inboxId, setInboxId] = useState(sim.inboxes[0]?.id ?? 1);
-  const inbox = sim.inboxes.find((i) => i.id === inboxId) ?? sim.inboxes[0];
-  if (!inbox) return <Note tone="warn">{t('chain.noInboxes')}</Note>;
-  const [name, setName] = useState(inbox.name);
-  const [bio, setBio] = useState(inbox.bio);
+  const [inboxId, setInboxId] = useState<number | null>(null);
+  const me = w.address?.toLowerCase();
+  const owned = me ? state.inboxes.filter((i) => i.owner.toLowerCase() === me) : [];
+  const inbox = owned.find((i) => i.id === inboxId) ?? owned[0];
+  return (
+    <>
+      <div className="mb">
+        <div className="kicker">{t('nav.card')}</div>
+        <h2>{t('card.title')}</h2>
+        <p className="lede small mt-s">{t('card.lede')}</p>
+      </div>
+      <DeploymentNote />
+      {DEPLOYED && !w.address && <Note tone="warn">{t('card.connect')}</Note>}
+      {DEPLOYED && w.address && state.loaded && !inbox && <Note>{t('chain.noOwnedInbox')}</Note>}
+      {inbox && <CardEditor key={inbox.id} inbox={inbox} owned={owned} onPick={setInboxId} />}
+    </>
+  );
+}
+
+function CardEditor({ inbox, owned, onPick }: { inbox: InboxView; owned: InboxView[]; onPick: (id: number) => void }) {
+  const { t, lang } = useI18n();
+  const [name, setName] = useState(`@${inbox.handle}`);
+  const [bio, setBio] = useState('');
   const [x, setX] = useState('');
   const [tg, setTg] = useState('');
   const [gh, setGh] = useState('');
   const [cardLang, setCardLang] = useState<Lang>(lang);
   const [cardTheme, setCardTheme] = useState<'dark' | 'light'>('dark');
+  const [publishing, setPublishing] = useState<{ done: number; total: number } | null>(null);
+  const [published, setPublished] = useState(false);
+  const [toast, setToast] = useToast();
 
-  const tapeName = deWebName(inbox.containerTokenId, VOXR_CPU_INDEX);
+  const tapeName = inbox.containerCpuIndex === null ? null : deWebName(inbox.containerTokenId, inbox.containerCpuIndex);
   const html = useMemo(() => {
     const ladder = priceLadder(inbox.preset, inbox.basePrice, { allowlisted: false, holdsPartner: false }, inbox.curve).map((r) => ({ q: r.q, price: `${fmtAmount(inbox.token, r.price)} ${TOKENS[inbox.token].symbol}` }));
     const links = [x && { label: 'X', href: `https://x.com/${x.replace(/^@/, '')}` }, tg && { label: 'Telegram', href: `https://t.me/${tg.replace(/^@/, '')}` }, gh && { label: 'GitHub', href: `https://github.com/${gh.replace(/^@/, '')}` }].filter(Boolean) as Array<{ label: string; href: string }>;
@@ -37,21 +60,36 @@ export function Card(_: { arg: string }) {
       presetLabel: PRESET_NAMES[inbox.preset],
       priceLabel: `${fmtAmount(inbox.token, inbox.basePrice)} ${TOKENS[inbox.token].symbol}`,
       slaLabel: fmtDuration(inbox.slaSeconds, cardLang),
-      tapeName,
-      circuitLabel: `VOXR #${inbox.circuitId} · ${PRESET_NAMES[inbox.preset]} · container ${backend.containerOf(inbox).slice(0, 10)}…`,
+      tapeName: tapeName ?? `#${inbox.containerTokenId}`,
+      circuitLabel: `VOXR #${inbox.circuitId} · ${PRESET_NAMES[inbox.preset]} · container ${inbox.container.slice(0, 10)}…`,
       ladder,
       links,
       lang: cardLang,
       theme: cardTheme,
       sendHref: `https://voxro.shieldsuite.xyz/#/directory/${inbox.handle}`,
+      record: { answered: inbox.replies, expired: inbox.refunded, avgReply: inbox.avgReplySeconds === null ? '—' : fmtDuration(Math.round(inbox.avgReplySeconds), cardLang) },
     });
   }, [inbox, name, bio, x, tg, gh, cardLang, cardTheme, tapeName]);
 
   const bundle = useMemo(() => {
     const file = chunkFile({ path: '/index.html', data: new TextEncoder().encode(html) });
-    const plan = planPublish(backend.containerOf(inbox), [file], { fallback: '/index.html' });
+    const plan = planPublish(inbox.container, [file], { fallback: '/index.html' });
     return { file, plan };
   }, [html, inbox]);
+
+  const publish = async () => {
+    if (!tapeName) return;
+    setPublishing({ done: 0, total: bundle.plan.calls.length + 1 });
+    try {
+      await backend.publishCard(bundle.plan, tapeName, inbox, (done, total) => setPublishing({ done, total }));
+      setPublished(true);
+      setToast(`${t('card.published')} · tape://${tapeName}`);
+    } catch (e) {
+      setToast(e instanceof Error ? e.message.slice(0, 200) : String(e));
+    } finally {
+      setPublishing(null);
+    }
+  };
 
   const download = () => {
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -65,28 +103,16 @@ export function Card(_: { arg: string }) {
 
   return (
     <>
-      <div className="mb">
-        <div className="kicker">{t('nav.card')}</div>
-        <h2>{t('card.title')}</h2>
-        <p className="lede small mt-s">{t('card.lede')}</p>
-      </div>
-      <div className="grid side">
+      <div className="grid side mt">
         <div className="stack">
           <Panel kicker={t('c.handle')} title={`@${inbox.handle}`}>
             <div className="stack">
               <select
                 className="input"
                 value={inbox.id}
-                onChange={(e) => {
-                  const next = sim.inboxes.find((i) => i.id === Number(e.target.value));
-                  if (next) {
-                    setInboxId(next.id);
-                    setName(next.name);
-                    setBio(next.bio);
-                  }
-                }}
+                onChange={(e) => onPick(Number(e.target.value))}
               >
-                {sim.inboxes.map((i) => (
+                {owned.map((i) => (
                   <option key={i.id} value={i.id}>
                     @{i.handle}
                   </option>
@@ -116,7 +142,7 @@ export function Card(_: { arg: string }) {
             </div>
           </Panel>
 
-          <Panel kicker={t('card.bundle')} title={tapeName}>
+          <Panel kicker={t('card.bundle')} title={tapeName ?? '…'}>
             <div className="grid cols-3">
               <Stat label={t('card.size')} value={`${bundle.file.size.toLocaleString()} B`} />
               <Stat label={t('card.chunks')} value={bundle.file.chunks.length} sub={`CHUNK_MAX 24,000`} />
@@ -130,7 +156,7 @@ export function Card(_: { arg: string }) {
                 </li>
               ))}
               <li className="mono">
-                DomainBinding.bind("{tapeName}", container, 120) · monthlyFee 0
+                DomainBinding.bind("{tapeName ?? '…'}", container, 120)
               </li>
             </ol>
             <dl className="kv mt-s">
@@ -149,19 +175,19 @@ export function Card(_: { arg: string }) {
             </dl>
             <div className="row mt-s">
               <Button onClick={download}>{t('card.download')}</Button>
-              <Button variant="signal" disabled={!LAUNCHED || !w.address} title={LAUNCHED ? '' : t('card.publish.hint')}>
-                {t('card.publish')}
+              <Button variant="signal" onClick={() => void publish()} disabled={!tapeName || publishing !== null}>
+                {publishing ? <span className="spin" /> : null} {publishing ? `${t('card.publish')} · ${publishing.done}/${publishing.total}` : t('card.publish')}
               </Button>
             </div>
-            {!LAUNCHED && <div className="small muted mt-s">{t('card.publish.hint')}</div>}
+            <div className="small muted mt-s">{t('card.publish.hint')}</div>
+            {published && tapeName && <Note tone="ok">{t('card.published')} · tape://{tapeName}</Note>}
           </Panel>
         </div>
-        <Panel kicker={t('card.preview')} title={`tape://${tapeName}`} className="flush">
+        <Panel kicker={t('card.preview')} title={`tape://${tapeName ?? '…'}`} className="flush">
           <iframe className="frame" title="Contact card preview" sandbox="" srcDoc={html} />
         </Panel>
       </div>
-      {!LAUNCHED && <Note tone="warn">{t('c.simNote')}</Note>}
-      <span hidden>{(w.address ?? '') as Address}</span>
+      <Toast msg={toast} />
     </>
   );
 }

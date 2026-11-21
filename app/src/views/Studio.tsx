@@ -1,19 +1,31 @@
-import { CONTROLLER_PRESETS, CURVE_PROFILES, NAND_TOKEN_ID, PRESET_NAMES, SURGE_TABLES, XLAYER_FEES, circuitsAbi, formatOkb, mintValue, transistorsAbi, type Address, type ControllerPreset, type CurveProfile } from '@voxro/sdk';
+import { CONTROLLER_PRESETS, CURVE_PROFILES, PRESET_NAMES, SURGE_TABLES, XLAYER_FEES, circuitsAbi, formatOkb, mintValue, transistorsAbi, type Address, type ControllerPreset, type CurveProfile } from '@voxro/sdk';
 import { useMemo, useState } from 'react';
 import { publicClient } from '../chain/client.ts';
+import { useAsync } from '../chain/hooks.ts';
 import { useTelemetry } from '../chain/telemetry.ts';
 import { Addr, Badge, Button, Field, Ladder, Note, Panel, Segmented, Stat, Toast, TruthTable, Waveform, useToast } from '../components/ui.tsx';
-import { CONFIG, DEMO_SENDER, LAUNCHED, SIM_CPU } from '../config.ts';
+import { CONFIG, DEPLOYED } from '../config.ts';
 import { fmtAmount, parseAmount } from '../format.ts';
 import { useI18n } from '../i18n.tsx';
 import { navigate } from '../router.ts';
-import { DEFAULT_TRAFFIC, controllerTable, getController, priceLadder, proveItem, simulateTraffic } from '../sim/catalog.ts';
+import { DEFAULT_TRAFFIC, controllerTable, getController, priceLadder, proveItem, simulateTraffic } from '../circuits/catalog.ts';
 import { backend, type OnboardStep } from '../backend.ts';
 import { explorerTx } from '../chain/client.ts';
-import { TOKENS, type Token } from '../sim/escrow.ts';
+import { TOKENS, type Token } from '../model.ts';
+import { mailboxNetlist } from '../chain/escrow.ts';
+import { DeploymentNote } from './DeploymentNote.tsx';
 import { useWallet } from '../wallet/wallet.tsx';
 
-const DEFAULT_MINT_PRICE = 10_000_000_000_000n; // 0.00001 OKB per transistor (VOXR launch parameter)
+/** Live mint price + per-call protocol fee of the mailbox processor's transistors (for the 2-NAND mailbox circuit). */
+async function readMailboxMint(): Promise<{ mintPrice: bigint; protocolFee: bigint; tapeoutFee: bigint }> {
+  const transistors = (await publicClient.readContract({ address: CONFIG.mailboxCpu, abi: circuitsAbi, functionName: 'transistors' })) as Address;
+  const [mintPrice, protocolFee, tapeoutFee] = await Promise.all([
+    publicClient.readContract({ address: transistors, abi: transistorsAbi, functionName: 'mintPrice' }),
+    publicClient.readContract({ address: transistors, abi: transistorsAbi, functionName: 'protocolFee' }),
+    publicClient.readContract({ address: CONFIG.mailboxCpu, abi: circuitsAbi, functionName: 'TAPEOUT_FEE' }),
+  ]);
+  return { mintPrice, protocolFee, tapeoutFee };
+}
 
 export function Studio(_: { arg: string }) {
   const { t, lang } = useI18n();
@@ -23,14 +35,10 @@ export function Studio(_: { arg: string }) {
   const [curve, setCurve] = useState<CurveProfile>('balanced');
   const [partner, setPartner] = useState('');
   const [handle, setHandle] = useState('');
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
   const [token, setToken] = useState<Token>('USDT0');
   const [price, setPrice] = useState('10');
   const [slaHours, setSlaHours] = useState('48');
   const [showAll, setShowAll] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [txs, setTxs] = useState<string[]>([]);
   const [toast, setToast] = useToast();
   const [mailboxMode, setMailboxMode] = useState<'new' | 'existing'>('new');
   const [mbCircuits, setMbCircuits] = useState('');
@@ -53,20 +61,23 @@ export function Studio(_: { arg: string }) {
   const holder = priceLadder(preset, basePrice, { allowlisted: false, holdsPartner: true }, curve);
   const traffic = useMemo(() => simulateTraffic(preset, basePrice, DEFAULT_TRAFFIC, curve), [preset, basePrice, curve]);
   const effCurve: CurveProfile = preset === 'configurable' ? curve : preset;
-  const mintPrice = tele.data?.voxr?.mintPrice ?? DEFAULT_MINT_PRICE;
-  const protocolFee = tele.data?.voxr?.protocolFee ?? XLAYER_FEES.mintProtocolFeePerCall;
-  const mintCost = mintValue(BigInt(item.circuit.burn.nand), mintPrice, protocolFee);
-  const tapeoutFee = tele.data?.tapeoutFee ?? XLAYER_FEES.tapeoutFee;
+  const mailboxMint = useAsync(readMailboxMint, []);
+  const mailboxNand = BigInt(mailboxNetlist().nand);
+  const mbMintCost = mailboxMint.data ? mintValue(mailboxNand, mailboxMint.data.mintPrice, mailboxMint.data.protocolFee) : null;
+  const mbTapeoutFee = mailboxMint.data?.tapeoutFee ?? XLAYER_FEES.tapeoutFee;
+  const openerFee = tele.data?.openerFee ?? null;
+  const newMailboxCost = mbMintCost !== null && openerFee !== null ? mbMintCost + mbTapeoutFee + openerFee : null;
   const partnerAddr = /^0x[0-9a-fA-F]{40}$/.test(partner) ? (partner as Address) : null;
 
   const register = async () => {
-    if (backend.mode === 'chain' && !w.address) return setToast(t('onboard.connect'));
+    if (!w.address) return setToast(t('onboard.connect'));
     setRegistering(true);
     setSteps([]);
     try {
-      const mailbox = backend.mode === 'chain' && mailboxMode === 'existing' && /^0x[0-9a-fA-F]{40}$/.test(mbCircuits) && mbToken ? { circuits: mbCircuits as Address, tokenId: BigInt(mbToken) } : undefined;
+      const mailbox = mailboxMode === 'existing' && /^0x[0-9a-fA-F]{40}$/.test(mbCircuits) && /^\d+$/.test(mbToken) ? { circuits: mbCircuits as Address, tokenId: BigInt(mbToken) } : undefined;
+      if (mailboxMode === 'existing' && !mailbox) throw new Error(t('onboard.mailbox.invalid'));
       const ib = await backend.registerInbox(
-        { handle, name: name || `@${handle}`, bio, owner: w.address ?? DEMO_SENDER, preset, curve, partnerCpu: partnerAddr, token, basePrice, slaSeconds: Math.max(1, Number(slaHours)) * 3600, ...(mailbox ? { mailbox } : {}) },
+        { handle: handle.trim().replace(/^@/, ''), preset, curve, partnerCpu: partnerAddr, token, basePrice, slaSeconds: Math.max(1, Number(slaHours)) * 3600, ...(mailbox ? { mailbox } : {}) },
         (st) => setSteps((prev) => [...prev.filter((x) => x.key !== st.key), st]),
       );
       setToast(`${t('studio.registered')} · @${ib.handle}`);
@@ -79,26 +90,6 @@ export function Studio(_: { arg: string }) {
   };
   const STEP_KEYS: OnboardStep['key'][] = ['tapeout', 'open', 'key', 'register'];
 
-  const tapeout = async () => {
-    if (!w.walletClient || !w.address || !CONFIG.voxrCpu || !tele.data?.voxr) return;
-    setBusy(true);
-    try {
-      if (w.chainId !== 196) await w.switchToXLayer();
-      const tr = tele.data.voxr.transistors;
-      const h1 = await w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, address: tr, abi: transistorsAbi, functionName: 'mint', args: [NAND_TOKEN_ID, BigInt(item.circuit.burn.nand)], value: mintCost });
-      setTxs((x) => [...x, h1]);
-      await publicClient.waitForTransactionReceipt({ hash: h1 });
-      const h2 = await w.walletClient.writeContract({ account: w.address, chain: w.walletClient.chain, address: CONFIG.voxrCpu, abi: circuitsAbi, functionName: 'tapeout', args: [item.circuit.hex, item.circuit.nIn, item.circuit.nOut], value: tapeoutFee });
-      setTxs((x) => [...x, h2]);
-      await publicClient.waitForTransactionReceipt({ hash: h2 });
-      setToast('tapeout() mined');
-    } catch (e) {
-      setToast(e instanceof Error ? e.message.slice(0, 160) : String(e));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <>
       <div className="mb">
@@ -106,7 +97,8 @@ export function Studio(_: { arg: string }) {
         <h2>{t('studio.title')}</h2>
         <p className="lede small mt-s">{t('studio.lede')}</p>
       </div>
-      <div className="grid side">
+      <DeploymentNote />
+      <div className="grid side mt">
         <div className="stack">
           <Panel kicker={t('studio.policy')} title={PRESET_NAMES[preset]}>
             <div className="stack">
@@ -134,9 +126,6 @@ export function Studio(_: { arg: string }) {
                 <Field label={t('c.handle')}>
                   <input className="input" placeholder="yourname" value={handle} onChange={(e) => setHandle(e.target.value)} />
                 </Field>
-                <Field label={t('studio.name')}>
-                  <input className="input" placeholder="Display name" value={name} onChange={(e) => setName(e.target.value)} />
-                </Field>
                 <Field label={t('c.token')}>
                   <select className="input" value={token} onChange={(e) => setToken(e.target.value as Token)}>
                     {(Object.keys(TOKENS) as Token[]).map((k) => (
@@ -152,11 +141,8 @@ export function Studio(_: { arg: string }) {
                 <Field label={`${t('c.sla')} (${t('c.hours')})`}>
                   <input className="input" inputMode="numeric" value={slaHours} onChange={(e) => setSlaHours(e.target.value)} />
                 </Field>
-                <Field label={t('card.bio')}>
-                  <input className="input" value={bio} onChange={(e) => setBio(e.target.value)} />
-                </Field>
               </div>
-              {LAUNCHED && (
+              {DEPLOYED && (
                 <div className="stack" style={{ borderTop: '1px solid var(--rule)', paddingTop: 12 }}>
                   <div className="kicker">{t('onboard.title')}</div>
                   <Note>{t('onboard.why')}</Note>
@@ -198,33 +184,25 @@ export function Studio(_: { arg: string }) {
                 </div>
               )}
               <div className="row">
-                <Button variant="signal" onClick={() => void register()} disabled={!handle.trim() || basePrice <= 0n || registering || (LAUNCHED && !w.address)}>
-                  {registering ? <span className="spin" /> : null} {LAUNCHED ? t('onboard.go') : t('studio.register')}
-                </Button>
-                <Button onClick={() => void tapeout()} disabled={!LAUNCHED || !w.address || busy} title={LAUNCHED ? '' : t('studio.tapeout.hint')}>
-                  {busy ? <span className="spin" /> : null} {t('studio.tapeout')}
+                <Button variant="signal" onClick={() => void register()} disabled={!DEPLOYED || !w.address || !handle.trim() || basePrice <= 0n || registering}>
+                  {registering ? <span className="spin" /> : null} {!DEPLOYED ? t('c.notDeployed.short') : w.address ? t('onboard.go') : t('onboard.connect')}
                 </Button>
               </div>
-              {!LAUNCHED && <div className="small muted">{t('studio.tapeout.hint')}</div>}
-              {txs.map((h) => (
-                <div key={h} className="mono small">
-                  tx <Addr value={h} />
-                </div>
-              ))}
             </div>
           </Panel>
 
-          <Panel kicker={t('studio.cost')} title={formatOkb(mintCost + tapeoutFee)}>
+          <Panel kicker={t('studio.cost')} title={mailboxMode === 'existing' ? t('studio.cost.existing') : newMailboxCost !== null ? `${formatOkb(newMailboxCost)} + gas` : '…'}>
             <dl className="kv">
-              <dt>{t('studio.cost.tapeout')}</dt>
-              <dd className="mono">{formatOkb(tapeoutFee)}</dd>
               <dt>{t('studio.cost.mint')}</dt>
-              <dd className="mono">
-                {formatOkb(BigInt(item.circuit.burn.nand) * mintPrice)} ({item.circuit.burn.nand} × {formatOkb(mintPrice)})
-              </dd>
-              <dt>{t('studio.cost.protocol')}</dt>
-              <dd className="mono">{formatOkb(protocolFee)}</dd>
+              <dd className="mono">{mbMintCost !== null ? `${formatOkb(mbMintCost)} (${mailboxNand.toString()} NAND)` : '…'}</dd>
+              <dt>{t('studio.cost.tapeout')}</dt>
+              <dd className="mono">{formatOkb(mbTapeoutFee)}</dd>
+              <dt>{t('studio.cost.open')}</dt>
+              <dd className="mono">{openerFee !== null ? formatOkb(openerFee) : '…'}</dd>
+              <dt>{t('studio.cost.register')}</dt>
+              <dd className="mono">gas only</dd>
             </dl>
+            <div className="small muted mt-s">{t('studio.cost.note')}</div>
           </Panel>
         </div>
 
@@ -237,7 +215,7 @@ export function Studio(_: { arg: string }) {
               <Stat label={t('studio.bytes')} value={item.circuit.bytes.length} sub={<Addr value={item.circuit.hex} />} />
             </div>
             <div className="small muted mt-s">
-              REF → {SIM_CPU === CONFIG.voxrCpu ? 'VOXR' : 'VOXR (placeholder until createCPU)'} #1 SaturatingQueue3 · #2 SurgeCurveDecoder · #3 VipPassGate
+              REF → VOXR #1 SaturatingQueue3 · #2 SurgeCurveDecoder · #3 VipPassGate
             </div>
             <div className="mt-s">
               <div className="kicker">{t('studio.prover')}</div>
@@ -267,7 +245,6 @@ export function Studio(_: { arg: string }) {
           </Panel>
         </div>
       </div>
-      {!LAUNCHED && <Note tone="warn">{t('c.simNote')}</Note>}
       <Toast msg={toast} />
     </>
   );

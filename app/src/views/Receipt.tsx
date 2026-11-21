@@ -4,9 +4,9 @@ import { Addr, Badge, Button, Note, Panel } from '../components/ui.tsx';
 import { fmtMoney, fmtTime } from '../format.ts';
 import { useI18n } from '../i18n.tsx';
 import { href } from '../router.ts';
-import { buildReceipt, type Receipt as ReceiptData } from '../sim/receipt.ts';
+import { buildReceipt, type Receipt as ReceiptData } from '../receipt.ts';
 import { backend, useInboxState } from '../backend.ts';
-import { LAUNCHED } from '../config.ts';
+import { DeploymentNote } from './DeploymentNote.tsx';
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
@@ -54,8 +54,8 @@ export function receiptHtml(r: ReceiptData, svg: string): string {
 
 export function ReceiptPanel({ ticketId, compact }: { ticketId: number; compact?: boolean }) {
   const { t } = useI18n();
-  const sim = useInboxState();
-  const r = buildReceipt(sim, ticketId, backend.verifyClaim);
+  const state = useInboxState();
+  const r = state.loaded ? buildReceipt(state, ticketId, backend.verifyClaim) : null;
   const labels = { from: t('inbox.check.from'), time: t('inbox.check.time'), digest: t('inbox.check.digest') };
   const svg = useMemo(() => (r ? receiptSvg(r, labels) : ''), [r, labels.from, labels.time, labels.digest]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!r) return <Note tone="warn">{t('receipt.notFound')}</Note>;
@@ -142,7 +142,7 @@ export function Receipt({ arg }: { arg: string }) {
         <h2>{t('receipt.title')}</h2>
         <p className="lede small mt-s">{t('receipt.lede')}</p>
       </div>
-      {LAUNCHED ? <Note tone="ok">{t('chain.liveNote')}</Note> : <Note tone="warn">{t('receipt.sim')}</Note>}
+      <DeploymentNote />
       <div className="mt">{Number.isInteger(id) && id > 0 ? <ReceiptPanel ticketId={id} /> : <Note tone="warn">{t('receipt.notFound')}</Note>}</div>
       <div className="mt">
         <a className="btn ghost sm" href={href('inbox')}>

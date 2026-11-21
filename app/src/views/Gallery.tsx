@@ -3,9 +3,11 @@ import { useMemo, useState } from 'react';
 import { explorerAddress } from '../chain/client.ts';
 import { useTelemetry } from '../chain/telemetry.ts';
 import { Addr, Badge, Bits, NetlistView, Panel, Stat } from '../components/ui.tsx';
-import { CONFIG, LAUNCHED, SIM_CPU, VOXR_CPU_INDEX } from '../config.ts';
+import { CATALOG_CPU, CONFIG } from '../config.ts';
+import { useAsync } from '../chain/hooks.ts';
+import { cpuIndexOf } from '../chain/escrow.ts';
 import { useI18n } from '../i18n.tsx';
-import { getCatalog, proveItem } from '../sim/catalog.ts';
+import { getCatalog, proveItem } from '../circuits/catalog.ts';
 
 const CELL_IN: Record<string, string[]> = {
   SaturatingQueue3: ['active', 'dir'],
@@ -23,6 +25,8 @@ export function Gallery(_: { arg: string }) {
   const { t } = useI18n();
   const tele = useTelemetry();
   const catalog = getCatalog();
+  const voxrIdx = useAsync(() => (CONFIG.voxrCpu ? cpuIndexOf(CONFIG.voxrCpu) : Promise.resolve(null)), []);
+  const voxrIndex = voxrIdx.data ?? null;
   const [sel, setSel] = useState(0);
   const [state, setState] = useState<Bit[]>([]);
   const [inputs, setInputs] = useState<Bit[]>([]);
@@ -36,8 +40,8 @@ export function Gallery(_: { arg: string }) {
   const outLabels = item.kind === 'controller' ? CTRL_OUT : (CELL_OUT[item.name] ?? []);
   const refs = item.circuit.elements.filter((e) => e.op === OP_REF);
   const datasheet = useMemo(
-    () => renderDatasheetSvg({ name: item.name, cpu: SIM_CPU, id: item.id, nIn: c.nIn, nOut: c.nOut, nState: c.nState, gateCount: c.gateCount, burn: item.circuit.burn, proven: { total: proof.total, ok: proof.ok, elapsedMs: proof.elapsedMs }, label: deWebName(item.id, VOXR_CPU_INDEX) }),
-    [item, c, proof],
+    () => renderDatasheetSvg({ name: item.name, cpu: CATALOG_CPU, id: item.id, nIn: c.nIn, nOut: c.nOut, nState: c.nState, gateCount: c.gateCount, burn: item.circuit.burn, proven: { total: proof.total, ok: proof.ok, elapsedMs: proof.elapsedMs }, label: voxrIndex === null ? `VOXR #${item.id.toString()}` : deWebName(item.id, voxrIndex) }),
+    [item, c, proof, voxrIndex],
   );
   const datasheetUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(datasheet)}`;
 
@@ -89,12 +93,12 @@ export function Gallery(_: { arg: string }) {
         </Panel>
 
         <div className="stack">
-          <Panel kicker={`#${item.id.toString()} · ${shortName(item.id, VOXR_CPU_INDEX)}`} title={item.name} right={<Badge tone={proof.ok ? 'ok' : 'bad'}>{proof.total} transitions ✓</Badge>}>
+          <Panel kicker={`#${item.id.toString()}${voxrIndex === null ? '' : ` · ${shortName(item.id, voxrIndex)}`}`} title={item.name} right={<Badge tone={proof.ok ? 'ok' : 'bad'}>{proof.total} transitions ✓</Badge>}>
             <div className="grid cols-4">
               <Stat label="nIn / nOut / nState" value={`${c.nIn} / ${c.nOut} / ${c.nState}`} />
               <Stat label="gateCount" value={c.gateCount} sub="incl. REF" />
               <Stat label={t('studio.burn')} value={`${item.circuit.burn.nand}N ${item.circuit.burn.latch}L`} />
-              <Stat label={t('gal.onchain')} value={LAUNCHED && CONFIG.voxrCpu ? <Addr value={CONFIG.voxrCpu} link={explorerAddress(CONFIG.voxrCpu)} /> : `#${item.id.toString()}`} sub={LAUNCHED ? 'VOXR' : <Badge tone="warn">{t('gal.onchain.pre')}</Badge>} />
+              <Stat label={t('gal.onchain')} value={CONFIG.voxrCpu ? <Addr value={CONFIG.voxrCpu} link={explorerAddress(CONFIG.voxrCpu)} /> : `#${item.id.toString()}`} sub={CONFIG.voxrCpu ? 'VOXR' : <Badge tone="warn">{t('c.notDeployed.short')}</Badge>} />
             </div>
             {refs.length > 0 && (
               <div className="small mt-s">

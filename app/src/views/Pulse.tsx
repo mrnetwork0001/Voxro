@@ -2,26 +2,27 @@ import { SURGE_TABLES, XLAYER, catalogBurn, formatOkb } from '@voxro/sdk';
 import { useMemo } from 'react';
 import { explorerAddress } from '../chain/client.ts';
 import { useTelemetry } from '../chain/telemetry.ts';
-import { Addr, Badge, Kicker, Note, Panel, Stat, SurgeChart } from '../components/ui.tsx';
-import { CONFIG, LAUNCHED } from '../config.ts';
+import { Addr, Badge, Kicker, Panel, Stat, SurgeChart } from '../components/ui.tsx';
+import { CONFIG, DEPLOYED } from '../config.ts';
 import { fmtMoney } from '../format.ts';
 import { useI18n } from '../i18n.tsx';
 import { href } from '../router.ts';
-import { getCatalog, proveAll } from '../sim/catalog.ts';
+import { getCatalog, proveAll } from '../circuits/catalog.ts';
 import { useInboxState } from '../backend.ts';
-import { settledByToken } from '../sim/escrow.ts';
+import { settledByToken } from '../model.ts';
+import { DeploymentNote } from './DeploymentNote.tsx';
 
 export function Pulse(_: { arg: string }) {
   const { t } = useI18n();
   const tele = useTelemetry();
-  const sim = useInboxState();
+  const state = useInboxState();
   const catalog = getCatalog();
   const burn = useMemo(() => catalogBurn(catalog), [catalog]);
   const proof = useMemo(() => proveAll(), []);
-  const settled = settledByToken(sim);
+  const settled = settledByToken(state);
   const d = tele.data;
-  const pending = sim.tickets.filter((x) => x.status === 'Pending').length;
-  const activeInboxes = sim.inboxes.filter((i) => i.active);
+  const pending = state.tickets.filter((x) => x.status === 'Pending').length;
+  const activeInboxes = state.inboxes.filter((i) => i.active);
   const surgeIndex = activeInboxes.length ? activeInboxes.reduce((a, i) => a + i.latch, 0) / activeInboxes.length : 0;
 
   return (
@@ -40,7 +41,7 @@ export function Pulse(_: { arg: string }) {
         </div>
       </section>
 
-      {!LAUNCHED ? <Note tone="warn">{t('c.simNote')}</Note> : <Note tone="ok">{t('chain.liveNote')}</Note>}
+      <DeploymentNote />
 
       <div className="grid cols-4 mt">
         <Stat label={t('c.block')} value={d ? `#${d.block.toString()}` : tele.error ? '—' : '…'} sub={tele.error ? <span className="bad">{tele.error.slice(0, 80)}</span> : 'X Layer · chainId 196'} tone={d ? 'ok' : undefined} />
@@ -52,7 +53,7 @@ export function Pulse(_: { arg: string }) {
         <Stat label={t('pulse.hub')} value={<Addr value={XLAYER.deWebHub} link={explorerAddress(XLAYER.deWebHub)} />} sub="DeWebHub · TAP-10 v2" mono />
         <Stat
           label={t('pulse.voxr')}
-          value={d?.voxr ? `${d.voxr.symbol} · ${d.voxr.nextId.toString()} ids` : <Badge tone="warn">{t('c.prelaunch')}</Badge>}
+          value={d?.voxr ? `${d.voxr.symbol} · ${d.voxr.nextId.toString()} ids` : <Badge tone="warn">{t('c.notDeployed.short')}</Badge>}
           sub={d?.voxr ? <Addr value={CONFIG.voxrCpu!} link={explorerAddress(CONFIG.voxrCpu!)} /> : t('pulse.voxr.pre')}
           tone={d?.voxr ? 'signal' : undefined}
         />
@@ -118,9 +119,9 @@ export function Pulse(_: { arg: string }) {
             <div>{t('pulse.how.3')}</div>
           </div>
         </Panel>
-        <Panel kicker={LAUNCHED ? t('c.live') : t('c.sim')} title={t('pulse.network')}>
+        <Panel kicker={DEPLOYED ? t('c.live') : t('c.notDeployed.short')} title={t('pulse.network')}>
           <div className="grid cols-2">
-            <Stat label={t('pulse.inboxes')} value={sim.inboxes.filter((i) => i.active).length} />
+            <Stat label={t('pulse.inboxes')} value={state.inboxes.filter((i) => i.active).length} />
             <Stat label={t('pulse.pendingTickets')} value={pending} />
             <Stat label={t('pulse.surgeIndex')} value={`${surgeIndex.toFixed(2)} / 7`} sub={t('pulse.surgeIndex.sub')} tone={surgeIndex >= 4 ? 'warn' : undefined} />
             <Stat label={t('pulse.settled')} value={fmtMoney('USDT0', settled.USDT0.recipient + settled.USDT0.protocol)} sub={`${fmtMoney('USDT', settled.USDT.recipient + settled.USDT.protocol)} · ${fmtMoney('OKB', settled.OKB.recipient + settled.OKB.protocol)}`} />
