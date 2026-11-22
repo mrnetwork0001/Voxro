@@ -171,6 +171,29 @@ function ExampleGate() {
 // order matches LANDING[lang].stack.items
 const STACK_ADDRS = [XLAYER.factory, XLAYER.deWebHub, XLAYER.siteRegistry, XLAYER.domainBinding, XLAYER.circuitMarket, DEFAULT_RELAY.container as Address, XLAYER.usdt0, (CONFIG.escrow ?? XLAYER.factory) as Address];
 
+/** One answer open at a time: opening a question closes the previous one, clicking it again closes it. */
+function Faq({ items }: { items: Array<{ q: string; a: string }> }) {
+  const [open, setOpen] = useState<number | null>(null);
+  return items.map((f, i) => {
+    const on = open === i;
+    return (
+      // state lives in data-open, not className: the scroll reveal adds its own classes to this element
+      <div className="lp-faq-item" data-open={on} key={i}>
+        <h3>
+          <button type="button" id={`faq-q-${i}`} aria-expanded={on} aria-controls={`faq-a-${i}`} onClick={() => setOpen(on ? null : i)}>
+            {f.q}
+          </button>
+        </h3>
+        <div className="lp-faq-body" id={`faq-a-${i}`} role="region" aria-labelledby={`faq-q-${i}`}>
+          <div>
+            <p>{f.a}</p>
+          </div>
+        </div>
+      </div>
+    );
+  });
+}
+
 export function Landing() {
   const { lang, setLang } = useI18n();
   const tele = useTelemetry();
@@ -522,12 +545,7 @@ export function Landing() {
             <SectionTag path="faq" label={L.faq.kicker} />
             <h2 className="lp-h2">{L.faq.title}</h2>
           </div>
-          {L.faq.items.map((f, i) => (
-            <details key={f.q} open={i === 0}>
-              <summary>{f.q}</summary>
-              <p>{f.a}</p>
-            </details>
-          ))}
+          <Faq items={L.faq.items} />
         </section>
 
         <section className="lp-cta" id="launch">

@@ -314,13 +314,19 @@ textarea.input { min-height: 120px; resize: vertical; font-family: var(--font-sa
 .lp-diagram .box { border: 1px dashed var(--rule-strong); border-radius: 12px; padding: 16px; display: grid; gap: 10px; }
 .lp-diagram .box .cell { border: 1px solid var(--rule); border-radius: 9px; padding: 10px 12px; font-family: var(--font-mono); font-size: 12.5px; display: flex; justify-content: space-between; gap: 10px; background: var(--paper); }
 .lp-diagram .box .cell b { color: var(--signal); font-weight: 600; }
-.lp-faq details { border: 1px solid var(--rule); border-radius: 12px; padding: 18px 20px; background: var(--paper-2); margin-bottom: 10px; }
-.lp-faq details[open] { border-color: var(--rule-strong); }
-.lp-faq summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 20px; font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
-.lp-faq summary::-webkit-details-marker { display: none; }
-.lp-faq summary::after { content: '+'; font-family: var(--font-mono); color: var(--ink-3); flex: none; }
-.lp-faq details[open] summary::after { content: '–'; color: var(--signal); }
-.lp-faq details p { margin-top: 12px; color: var(--ink-2); max-width: 80ch; font-size: 15px; line-height: 1.6; }
+.lp-faq-item { border: 1px solid var(--rule); background: var(--paper-2); margin-bottom: 10px; }
+.lp-faq-item[data-open="true"] { border-color: var(--rule-strong); }
+.lp-faq-item h3 { font: inherit; letter-spacing: inherit; }
+.lp-faq-item button { width: 100%; padding: 18px 20px; border: 0; background: none; text-align: left; cursor: pointer; display: flex; justify-content: space-between; gap: 20px; font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+.lp-faq-item button:hover { color: var(--signal); }
+.lp-faq-item button:focus-visible { outline: 2px solid var(--signal); outline-offset: -2px; }
+.lp-faq-item button::after { content: '+'; font-family: var(--font-mono); color: var(--ink-3); flex: none; }
+.lp-faq-item[data-open="true"] button::after { content: '–'; color: var(--signal); }
+.lp-faq-body { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 0.28s ease, visibility 0s 0.28s; }
+.lp-faq-item[data-open="true"] .lp-faq-body { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows 0.28s ease; }
+.lp-faq-body > div { overflow: hidden; min-height: 0; }
+.lp-faq-body p { margin: 0; padding: 0 20px 18px; color: var(--ink-2); max-width: 80ch; font-size: 15px; line-height: 1.6; }
+@media (prefers-reduced-motion: reduce) { .lp-faq-body, .lp-faq-item[data-open="true"] .lp-faq-body { transition: none; } }
 .lp-cta { margin: 112px 0 96px; padding: 64px 48px; border: 1px solid var(--rule-strong); border-radius: 22px; background: radial-gradient(700px 300px at 85% 0%, var(--signal-soft), transparent 70%), var(--paper-2); }
 .lp-cta h2 { font-size: clamp(32px, 4.4vw, 58px); letter-spacing: -0.04em; line-height: 1.02; font-weight: 800; max-width: 18ch; }
 .lp-widget { border: 1px solid var(--rule-strong); border-radius: 18px; background: var(--paper-2); padding: 22px 24px; display: grid; gap: 16px; box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8), var(--shadow); }
@@ -400,8 +406,8 @@ textarea.input { min-height: 120px; resize: vertical; font-family: var(--font-sa
 .lp-card .n { border-radius: 0; background: transparent; border: 0; width: auto; height: auto; font-size: 34px; font-weight: 700; color: rgba(255, 255, 255, 0.08); margin-bottom: 8px; }
 .lp-chip, .lp-diagram .box .cell { border-radius: 0; background: #000; }
 .lp-diagram .box { border-radius: 0; border-color: var(--signal-dim); }
-.lp-faq details { border-radius: 0; background: #000; }
-.lp-faq details[open] { border-color: var(--signal-dim); }
+.lp-faq-item { border-radius: 0; background: #000; }
+.lp-faq-item[data-open="true"] { border-color: var(--signal-dim); }
 .lp-log { border-radius: 0; background: #050806; border-color: var(--signal-dim); color: #8fdc7a; }
 .lp-log div:first-child { color: var(--signal); }
 .lp-cta { border-radius: 0; background: radial-gradient(700px 300px at 50% 0%, rgba(51, 255, 0, 0.07), transparent 70%), #000; text-align: center; }

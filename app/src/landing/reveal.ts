@@ -57,10 +57,10 @@ export function useLandingReveal() {
       // anything else directly in the section (diagrams, tables, notes, FAQ rows)
       Array.from(section.children).forEach((c, i) => {
         if (c === head || c.matches(GROUPS)) return;
-        if (c.classList.contains('lp-faq') || c.tagName === 'DETAILS') return;
+        if (c.classList.contains('lp-faq') || c.classList.contains('lp-faq-item')) return;
         mark(c, bodyFx, 120 + i * 60);
       });
-      section.querySelectorAll('details').forEach((d, i) => mark(d, bodyFx, Math.min(i, 8) * 70));
+      section.querySelectorAll('.lp-faq-item').forEach((d, i) => mark(d, bodyFx, Math.min(i, 8) * 70));
     });
     const cta = root.querySelector('.lp-cta');
     if (cta) mark(cta, 'zoom');
