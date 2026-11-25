@@ -439,7 +439,7 @@ export const Live: React.FC = () => {
       <Fade t0={s.from + 0.2} style={{ left: 110, top: 70 }}>
         <Kicker>X Layer mainnet · {FIRST.utc.slice(0, 10)} · {onchain.txs.length} transactions in {LAUNCH_SECONDS} seconds</Kicker>
       </Fade>
-      <Browser name="scan_register" url={`oklink.com/x-layer/tx/${REG.hash.slice(0, 14)}…`} x={110} y={140} w={1000} enter={s.from + 0.1}
+      <Browser name="scan_register" url={`web3.okx.com/explorer/x-layer/tx/${REG.hash.slice(0, 14)}…`} x={110} y={140} w={1000} enter={s.from + 0.1}
         cuts={[{ t: s.from, from: 0.5 }]} cams={[{ t: s.from, r: { x: 140, y: 160, w: 1100, h: 520 }, z: 1.3 }, { t: end("live"), r: { x: 140, y: 230, w: 1000, h: 420 }, z: 1.45 }]} />
       {items.map(([a, title, sub], i) => (
         <Card key={title} t0={a} x={1170} y={150 + i * 175} w={640} hot={i === 3}>

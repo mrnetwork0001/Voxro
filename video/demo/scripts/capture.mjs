@@ -287,9 +287,9 @@ CLIPS.receipt = async () => {
 /** Explorer pages for the deploy (VOXR processor, escrow, inbox registration). */
 CLIPS.explorer = async () => {
   for (const [clip, url] of [
-    ["scan_cpu", "https://www.oklink.com/x-layer/tx/0x65b253cf685cb85c862a5128d84859241005a1d77d3691dfe74738b0059009e5"],
-    ["scan_register", "https://www.oklink.com/x-layer/tx/0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1"],
-    ["scan_claim", "https://www.oklink.com/x-layer/tx/0x424a42b645ed36d0a1a0e58ff65b32df069d8ec715ef94648345f5bc6b032b5d"],
+    ["scan_cpu", "https://web3.okx.com/explorer/x-layer/tx/0x65b253cf685cb85c862a5128d84859241005a1d77d3691dfe74738b0059009e5"],
+    ["scan_register", "https://web3.okx.com/explorer/x-layer/tx/0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1"],
+    ["scan_claim", "https://web3.okx.com/explorer/x-layer/tx/0x424a42b645ed36d0a1a0e58ff65b32df069d8ec715ef94648345f5bc6b032b5d"],
   ]) {
     if (process.env.SCAN && !process.env.SCAN.split(",").includes(clip)) continue;
     await b.goto(url, 9000);

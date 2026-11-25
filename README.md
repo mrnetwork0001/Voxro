@@ -174,9 +174,9 @@ The mailbox circuit sits on a hub-compatible processor (Factory index 212) becau
 
 ### Verified end to end
 
-- **Mainnet launch, 2026-11-21, 13:12:30 to 13:13:11 UTC:** 20 transactions in 41 seconds, blocks 76,497,714 to 76,497,755. The VOXR processor was created, the 8-circuit catalog taped out, `VoxroEscrow` and `VoxroLens` were deployed, and @voxro was registered as inbox #1 ([registerInbox transaction](https://www.oklink.com/x-layer/tx/0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1)).
+- **Mainnet launch, 2026-11-21, 13:12:30 to 13:13:11 UTC:** 20 transactions in 41 seconds, blocks 76,497,714 to 76,497,755. The VOXR processor was created, the 8-circuit catalog taped out, `VoxroEscrow` and `VoxroLens` were deployed, and @voxro was registered as inbox #1 ([registerInbox transaction](https://web3.okx.com/explorer/x-layer/tx/0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1)).
 - **The full paid loop** (send, decrypt, reply through the real DeWebHub, permissionless claim, Lens receipt with all three checks) runs in `contracts/test/Fork.t.sol` and in the CLI against an Anvil fork of X Layer ([`cli/README.md`](./cli/README.md), run of 2026-11-02).
-- **First paid ticket settled on mainnet, 2026-11-25:** a sender locked 10 USD₮0 to @voxro at 18:19:40 UTC ([lock](https://www.oklink.com/x-layer/tx/0x3f521d0dadf9e7f14e43ace91fba1a933c7b80d36a186ab87a64ca5c515d6e1d)), the recipient replied through DeWebHub at 18:24:07 ([reply](https://www.oklink.com/x-layer/tx/0x82498fec779594ccc7e360d0d58aa55eb32a8f32fbf8a25da313db7eb4539d65)) and claimed 9.50 USD₮0 ten seconds later ([claim](https://www.oklink.com/x-layer/tx/0x424a42b645ed36d0a1a0e58ff65b32df069d8ec715ef94648345f5bc6b032b5d)); the sender then decrypted the reply on a phone. Receipt: [#/receipt/1](https://voxro.shieldsuite.xyz/#/receipt/1). This was a smoke test by the team: both wallets are ours.
+- **First paid ticket settled on mainnet, 2026-11-25:** a sender locked 10 USD₮0 to @voxro at 18:19:40 UTC ([lock](https://web3.okx.com/explorer/x-layer/tx/0x3f521d0dadf9e7f14e43ace91fba1a933c7b80d36a186ab87a64ca5c515d6e1d)), the recipient replied through DeWebHub at 18:24:07 ([reply](https://web3.okx.com/explorer/x-layer/tx/0x82498fec779594ccc7e360d0d58aa55eb32a8f32fbf8a25da313db7eb4539d65)) and claimed 9.50 USD₮0 ten seconds later ([claim](https://web3.okx.com/explorer/x-layer/tx/0x424a42b645ed36d0a1a0e58ff65b32df069d8ec715ef94648345f5bc6b032b5d)); the sender then decrypted the reply on a phone. Receipt: [#/receipt/1](https://voxro.shieldsuite.xyz/#/receipt/1). This was a smoke test by the team: both wallets are ours.
 
 ## Safety model
 
@@ -262,12 +262,12 @@ forge test --no-match-contract Fork   19 tests passed, 0 failed, 0 skipped (19 t
 
 | Contract | Address |
 | --- | --- |
-| VOXR processor (Circuits) | [`0xd47C…e581`](https://www.oklink.com/x-layer/address/0xd47C1A47d809438d66fd472cd2A30392ace4e581), Factory index 438 |
-| VOXR transistors | [`0x32D7…8848`](https://www.oklink.com/x-layer/address/0x32D7B2566D1Ef037621a97bc854D5bCA963e8848) |
-| VoxroEscrow | [`0xd463…73D5`](https://www.oklink.com/x-layer/address/0xd463a83b572AC72C8bE328069d61d2B19Cdf73D5) |
-| VoxroLens | [`0xc994…5640`](https://www.oklink.com/x-layer/address/0xc994Cd83C3eA571d38Ed7EbDa8f30c05D06F5640) |
-| TapeOutCommunityVip | [`0x49b7…D7E9`](https://www.oklink.com/x-layer/address/0x49b7c42C250ab1921E1e744aa72Dfd6D38FFD7E9) |
-| DeWebHub (TapeSend, upstream) | [`0xe61A…25ee`](https://www.oklink.com/x-layer/address/0xe61A9C7213a6Aa616C246a2B569e555B417b25ee) |
+| VOXR processor (Circuits) | [`0xd47C…e581`](https://web3.okx.com/explorer/x-layer/address/0xd47C1A47d809438d66fd472cd2A30392ace4e581), Factory index 438 |
+| VOXR transistors | [`0x32D7…8848`](https://web3.okx.com/explorer/x-layer/address/0x32D7B2566D1Ef037621a97bc854D5bCA963e8848) |
+| VoxroEscrow | [`0xd463…73D5`](https://web3.okx.com/explorer/x-layer/address/0xd463a83b572AC72C8bE328069d61d2B19Cdf73D5) |
+| VoxroLens | [`0xc994…5640`](https://web3.okx.com/explorer/x-layer/address/0xc994Cd83C3eA571d38Ed7EbDa8f30c05D06F5640) |
+| TapeOutCommunityVip | [`0x49b7…D7E9`](https://web3.okx.com/explorer/x-layer/address/0x49b7c42C250ab1921E1e744aa72Dfd6D38FFD7E9) |
+| DeWebHub (TapeSend, upstream) | [`0xe61A…25ee`](https://web3.okx.com/explorer/x-layer/address/0xe61A9C7213a6Aa616C246a2B569e555B417b25ee) |
 
 ## Repository map
 
