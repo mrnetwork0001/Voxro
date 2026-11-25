@@ -30,7 +30,7 @@ Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.x
 | **Receipt** | A verifiable receipt for any ticket from `VoxroLens.receipt()`: the ticket, the DeWebHub reply entry and the three claim checks. | `#/receipt/<ticketId>` |
 | **Public profile link** | `voxro.shieldsuite.xyz/#/@handle` opens the Directory on that inbox, ready for an X, Telegram or GitHub bio. | `#/@voxro` |
 | **Telegram bot** | [@VoxrolayerBOT](https://t.me/VoxrolayerBOT): `/price @h`, `/watch @h` alerts (new paid message, 6 hours left, claimed, refunded, declined) and a Mini App that signs with OKX Wallet through OKX Connect. It reads public chain data only. | `services/src/telegram.ts` |
-| **AI agents** | An MCP (Model Context Protocol) server with `voxro_list_inboxes`, `voxro_get_inbox`, `voxro_send_message`, `voxro_check_reply` and `voxro_refund`, for agents with their own X Layer wallet. An x402 gateway that lets agents pay over HTTP is built and tested on a fork, and not yet public. | `services/src/mcp.ts`, `services/src/gateway.ts` |
+| **AI agents** | An MCP (Model Context Protocol) server with `voxro_list_inboxes`, `voxro_get_inbox`, `voxro_send_message`, `voxro_check_reply` and `voxro_refund`, for agents with their own X Layer wallet. An x402 gateway lets agents pay over HTTP with USD₮0: `GET /api/agent`, then `POST /api/agent/send/@handle` answers 402 with the payment terms. The hosted MCP endpoint is `POST /mcp`. | [`/api/agent`](https://voxro.shieldsuite.xyz/api/agent), `services/src/mcp.ts`, `services/src/gateway.ts` |
 | **CLI** | `voxro catalog`, `prove`, `quote`, `send`, `stress`, `inbox --decrypt`, `reply`, `refund`, `receipt`, `deweb plan`. | [`cli/README.md`](./cli/README.md) |
 
 The app is bilingual (English and 简体中文), has dark (Obsidian) and light (Paper) themes, connects OKX Wallet through the injected provider or an OKX Connect deep link, and ships as one relative-path bundle with no CDN, web fonts or analytics, so the same build can be served from a DeWEB container.
@@ -205,7 +205,7 @@ The contracts are immutable, so these are handled in the app and stated here pla
 | Real | Simulated or not live yet |
 | --- | --- |
 | VOXR processor, 8 taped-out circuits, `VoxroEscrow`, `VoxroLens` and `TapeOutCommunityVip` on X Layer mainnet, all exact-match verified on Sourcify (2026-11-21) | No paid ticket has been settled on mainnet yet |
-| Live quotes, queue depth and price ladders read from the circuits | The x402 payment gateway for agents is built and fork-tested, not yet public |
+| Live quotes, queue depth and price ladders read from the circuits | The x402 gateway is live, but no agent payment has gone through it on mainnet yet |
 | The 512-transition replay in the Prover, against the chain via Multicall3; reply entries in claim checks and receipts are read from DeWebHub storage | The Studio's traffic waveform is a scripted burst, labelled on the page |
 | TAP-10 v2 encryption, byte-identical to the vendored `@tapekit/send` under fixed randomness | The CLI's end-to-end run was on an Anvil fork of X Layer, not mainnet |
 | The Telegram bot and its alerts | The demo film's settlement scene is a labelled animation (see `video/demo/README.md`) |
