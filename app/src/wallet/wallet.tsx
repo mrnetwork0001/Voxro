@@ -1,9 +1,11 @@
 import type { Address } from '@voxro/sdk';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createWalletClient, custom, type WalletClient } from 'viem';
 import { xlayer } from '../chain/client.ts';
 import { inTelegram } from '../telegram.ts';
 import { okxConnectProvider } from './okxConnect.ts';
+
+const XLAYER_ID = 196;
 
 export interface Eip1193Provider {
   request(args: { method: string; params?: unknown[] | Record<string, unknown> }): Promise<unknown>;
@@ -113,6 +115,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       provider.removeListener?.('chainChanged', onChain);
     };
   }, [provider, readChain]);
+
+  // Voxro only runs on X Layer: whenever a connected wallet is on another network (on connect, on load,
+  // or after the user changes it), ask the wallet to switch, once per account + network so a rejected
+  // prompt doesn't loop. Writes also re-check in requireWallet().
+  const asked = useRef<string>('');
+  useEffect(() => {
+    if (!provider || !address || chainId === undefined || chainId === XLAYER_ID) return;
+    const key = `${address.toLowerCase()}:${chainId}`;
+    if (asked.current === key) return;
+    asked.current = key;
+    switchToXLayer().catch(() => {});
+  }, [provider, address, chainId, switchToXLayer]);
 
   const walletClient = useMemo(
     () => (provider && address ? createWalletClient({ account: address, chain: xlayer, transport: custom(provider) }) : undefined),

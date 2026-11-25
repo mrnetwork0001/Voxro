@@ -415,8 +415,10 @@ export const emit = (s: TxStatus) => txListeners.forEach((l) => l(s));
 export async function requireWallet(): Promise<WalletCtx> {
   if (!DEPLOYED) throw new Error('Voxro contracts are not configured; refusing to send transactions');
   if (!wallet) throw new Error('Connect a wallet first');
-  const id = await wallet.walletClient.getChainId();
-  if (id !== XLAYER_CHAIN_ID) await wallet.switchToXLayer();
+  if ((await wallet.walletClient.getChainId()) !== XLAYER_CHAIN_ID) {
+    await wallet.switchToXLayer().catch(() => {});
+    if ((await wallet.walletClient.getChainId()) !== XLAYER_CHAIN_ID) throw new Error('Switch your wallet to X Layer (chain 196) to continue');
+  }
   return wallet;
 }
 
