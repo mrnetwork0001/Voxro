@@ -254,14 +254,20 @@ async function ticketRoute(res: ServerResponse, id: number, token: string) {
   if (!expect || !token || !sameToken(token, expect)) return send(res, 404, { error: 'Unknown ticket or token' });
   const r = await readReply(gw, id);
   const p = paid[String(id)]!;
-  return send(res, 200, { ticketId: id, status: r.status, amount: r.amount, deadline: new Date(r.deadline * 1000).toISOString(), ...(r.reply ? { reply: r.reply } : {}), ...(p.forwarded ? { refundForwardedTx: p.forwarded } : {}) });
+  return send(res, 200, { ticketId: id, status: r.status, amount: r.amount, deadline: new Date(r.deadline * 1000).toISOString(), ...(r.reply ? { reply: r.reply } : {}), ...(p.forwarded && p.forwarded.startsWith('0x') ? { refundForwardedTx: p.forwarded } : p.forwarded?.startsWith('owed:') ? { refund: 'forwarding to you now' } : {}) });
 }
 
 // ─── keeper: refund expired x402 tickets and forward refunds to the paying agent ────────────
 const keeper = () => exclusive(keeperRun);
 async function keeperRun() {
   for (const key of Object.keys(owed)) {
-    await settleOwed(key).catch((e) => console.error(`owed ${key}`, (e as Error).message.split('\n')[0]));
+    const sent = await settleOwed(key).catch((e) => (console.error(`owed ${key}`, (e as Error).message.split('\n')[0]), null));
+    // a refund paid on a retry: put its transaction on the ticket too
+    const m = key.match(/^refund:(\d+)$/);
+    if (sent && m && paid[m[1]!]?.forwarded === `owed:${m[1]}`) {
+      paid[m[1]!]!.forwarded = sent;
+      save();
+    }
   }
   if (!Object.values(paid).some((p) => !p.forwarded)) return;
   const now = await chainNow();
@@ -283,7 +289,8 @@ async function keeperRun() {
       if (amount > 0n) {
         // hand it to the debt ledger: recorded before broadcast, never forwarded twice
         p.forwarded = `owed:${id}`;
-        await payBack(`refund:${id}`, p.payer, amount, `refund of ticket ${id}`);
+        const sent = await payBack(`refund:${id}`, p.payer, amount, `refund of ticket ${id}`);
+        if (sent) p.forwarded = sent; // the agent's status shows the real transfer, not the ledger key
         save();
         console.log(`refund for #${id} to ${p.payer} queued/sent`);
       }

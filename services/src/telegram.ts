@@ -236,7 +236,7 @@ function alertText(t: Ticket, ib: Inbox, prev: string | undefined, from: string,
   const amt = money(t.token, t.amount);
   if (t.status === 'Pending' && !prev) return `💰 <b>New paid message</b> to @${esc(ib.handle)}: <b>${amt}</b> from ${t.sender.toLowerCase() === GATEWAY ? 'an AI agent (paid over x402)' : esc(from)}.\nReply within ${hours(t.deadline - now)} to earn ${money(t.token, (t.amount * 9500n) / 10_000n)}. The message is encrypted and opens only in your browser.`;
   if (t.status === 'Claimed') return `✅ <b>Bounty claimed</b>: ${money(t.token, (t.amount * 9500n) / 10_000n)} paid to @${esc(ib.handle)} for replying.`;
-  if (t.status === 'Refunded') return `↩️ A ${amt} message to @${esc(ib.handle)} wasn’t answered in time, so the sender got 100% back.`;
+  if (t.status === 'Refunded') return `↩️ A ${amt} message to @${esc(ib.handle)} wasn’t answered in time, so ${t.sender.toLowerCase() === GATEWAY ? 'the AI agent' : 'the sender'} got 100% back.`;
   if (t.status === 'Declined') return `🚫 @${esc(ib.handle)} declined a ${amt} message; the sender was refunded in full.`;
   return null;
 }
