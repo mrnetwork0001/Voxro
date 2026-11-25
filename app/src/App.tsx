@@ -42,6 +42,11 @@ function WalletButton() {
   }
   return (
     <span className="row" style={{ gap: 6 }}>
+      {/* phones: a compact chip; the full wallet panel lives in the menu */}
+      <span className="wallet-chip" title={w.address}>
+        <span className="wallet-dot" style={{ background: `linear-gradient(135deg, #${w.address.slice(2, 8)}, #${w.address.slice(-6)})` }} />
+        {w.address.slice(0, 6)}…{w.address.slice(-4)}
+      </span>
       {w.chainId !== 196 ? (
         <Button size="sm" variant="signal" onClick={() => void w.switchToXLayer()}>
           {t('c.switch')}
@@ -56,6 +61,29 @@ function WalletButton() {
         {t('c.disconnect')}
       </button>
     </span>
+  );
+}
+
+/** The wallet block at the foot of the phone menu: who is connected, on which network, and how to leave. */
+function WalletPanel() {
+  const { t } = useI18n();
+  const w = useWallet();
+  if (!w.address) return <WalletButton />;
+  return (
+    <div className="wallet-panel">
+      <span className="wallet-dot lg" style={{ background: `linear-gradient(135deg, #${w.address.slice(2, 8)}, #${w.address.slice(-6)})` }} />
+      <div className="wallet-panel-main">
+        <button type="button" className="mono wallet-addr" title={w.address} onClick={() => void navigator.clipboard?.writeText(w.address!).catch(() => {})}>
+          {w.address.slice(0, 8)}…{w.address.slice(-6)}
+        </button>
+        {w.chainId !== 196 ? (
+          <button type="button" className="copy" onClick={() => void w.switchToXLayer()}>{t('c.switch')}</button>
+        ) : (
+          <span className="small ok">● X Layer</span>
+        )}
+      </div>
+      <button type="button" className="btn ghost sm" onClick={w.disconnect}>{t('c.disconnect')}</button>
+    </div>
   );
 }
 
@@ -116,6 +144,7 @@ export function App() {
         onClose={drawer.close}
         footer={
           <>
+            <WalletPanel />
             <div className="ticker">
               <span className={`dot ${tele.error ? 'bad' : tele.data ? 'live' : ''}`} />
               <span>X Layer {tele.data ? `#${tele.data.block.toString()}` : '…'} · {DEPLOYED ? t('c.mainnet') : t('c.notDeployed.short')}</span>
