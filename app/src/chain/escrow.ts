@@ -34,6 +34,7 @@ import {
   openPayload,
   deriveGuestKeyPair,
   guestKeyText,
+  isDeterministic,
   seal,
   splitBounty,
   transistorsAbi,
@@ -130,6 +131,7 @@ export function mapInbox(v: LensInbox, sender: Address, extra: { memberIds: Arra
     latch: v.queueDepth,
     active: ib.active,
     circuitId: Number(ib.policyCircuitId),
+    standardPolicy: ib.policyCpu.toLowerCase() === (extra.voxr ?? VOXR).toLowerCase() && Number(ib.policyCircuitId) >= 4 && Number(ib.policyCircuitId) <= 8,
     containerTokenId: Number(ib.inboxCircuitId),
     containerCpuIndex: extra.containerCpuIndex ?? null,
     publicKey: extra.publicKey,
@@ -220,6 +222,13 @@ const lsSet = (k: string, v: unknown) => {
     /* ignore */
   }
 };
+const lsDel = (k: string) => {
+  try {
+    localStorage.removeItem(k);
+  } catch {
+    /* ignore */
+  }
+};
 
 // ─── store ───────────────────────────────────────────────────────────────────────────────────
 const empty: ChainState = { inboxes: [], tickets: [], hub: {}, blockNumber: 0, loaded: false };
@@ -257,11 +266,17 @@ export function refresh(): Promise<void> {
   if (inflight) return inflight;
   inflight = (async () => {
     try {
-      const [dir, block] = await Promise.all([
-        publicClient.readContract({ ...lens, functionName: 'directory', args: [0n, 200n, sender] }),
-        publicClient.getBlockNumber(),
-      ]);
-      const views = (dir as unknown as LensInbox[]).filter((v) => v.inbox.inboxCircuits !== '0x0000000000000000000000000000000000000000');
+      const [count, block] = await Promise.all([publicClient.readContract({ ...escrow, functionName: 'inboxCount' }), publicClient.getBlockNumber()]);
+      // One getInbox per id, in small pages, failures skipped: one hostile inbox (a VIP source or policy circuit
+      // that reverts) or a long directory must not take the whole page down. Newest first, at most 200.
+      const ids = Array.from({ length: Math.min(Number(count), 200) }, (_, k) => BigInt(Number(count) - k));
+      const views: LensInbox[] = [];
+      for (let i = 0; i < ids.length; i += 20) {
+        const page = await publicClient.multicall({ allowFailure: true, contracts: ids.slice(i, i + 20).map((id) => ({ ...lens, functionName: 'getInbox' as const, args: [id, sender] as const })) });
+        for (const r of page) if (r.status === 'success') views.push(r.result as unknown as LensInbox);
+      }
+      views.sort((a, b) => Number(a.id - b.id));
+      for (let i = views.length - 1; i >= 0; i--) if (views[i]!.inbox.inboxCircuits === ZERO) views.splice(i, 1);
       // member ids + primary key per inbox
       const memberIds = await publicClient.multicall({ allowFailure: false, contracts: views.map((v) => ({ ...escrow, functionName: 'memberIdsOf' as const, args: [v.id] as const })) });
       const keys = await publicClient.multicall({
@@ -315,6 +330,18 @@ export function refresh(): Promise<void> {
         }
         return t;
       });
+      // Replace the locally assembled reply entries with what DeWebHub actually stores, so the claim checks and
+      // receipts are verified against chain storage rather than against our own copy of the payload.
+      const wanted = tickets.filter((t) => t.reply).map((t) => [t.replyTargetEndpoint, t.reply!.inboxIndex] as const);
+      if (wanted.length) {
+        const live = await publicClient.multicall({ allowFailure: true, contracts: wanted.map(([ep, i]) => ({ ...hub, functionName: 'inboxAt' as const, args: [ep, BigInt(i)] as const })) });
+        live.forEach((r, k) => {
+          const [ep, i] = wanted[k]!;
+          if (r.status !== 'success') return;
+          const e = r.result as { from: Address; blockNumber: number | bigint; timestamp: number | bigint; digest: Hex };
+          (hubMap[ep] ??= [])[i] = { from: e.from, blockNumber: Number(e.blockNumber), timestamp: Number(e.timestamp), digest: e.digest };
+        });
+      }
       state = { inboxes, tickets, hub: hubMap, blockNumber: Number(block), loaded: true };
       lastError = null;
       void recoverMissingReplies();
@@ -326,6 +353,30 @@ export function refresh(): Promise<void> {
     }
   })();
   return inflight;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/**
+ * Re-reads until the store has caught up with a mined transaction: waits out any refresh that started
+ * before it, then refreshes until the RPC node serving reads is at `block` and `ready()` holds.
+ * Public RPCs behind a load balancer can lag the node that returned the receipt by a block or two.
+ */
+export async function syncAfter(block: bigint, ready: () => boolean = () => true, tries = 10): Promise<boolean> {
+  for (let i = 0; i < tries; i++) {
+    if (inflight) await inflight.catch(() => {});
+    await refresh();
+    if (BigInt(state.blockNumber) >= block && ready()) return true;
+    await sleep(1500);
+  }
+  return false;
+}
+
+/** Thrown when a transaction succeeded but the public RPC hasn't shown its result yet: never retry the payment. */
+export class SentPendingError extends Error {
+  constructor(message: string, readonly hash: Hex) {
+    super(message);
+    this.name = 'SentPendingError';
+  }
 }
 
 let pollId: number | undefined;
@@ -380,7 +431,14 @@ export async function tx(label: string, send: () => Promise<Hex>) {
     throw new Error(`${label}: ${msg}`);
   }
   emit({ kind: 'pending', label, hash, link: explorerTx(hash) });
-  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  let receipt: Awaited<ReturnType<typeof publicClient.waitForTransactionReceipt>>;
+  try {
+    receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 180_000 });
+  } catch (e) {
+    const msg = `sent, but no receipt yet (${describeError(e)}). Check the explorer before trying again.`;
+    emit({ kind: 'error', label, hash, link: explorerTx(hash), error: msg });
+    throw new SentPendingError(`${label}: ${msg}`, hash);
+  }
   if (receipt.status !== 'success') {
     emit({ kind: 'error', label, hash, link: explorerTx(hash), error: 'reverted' });
     throw new Error(`${label}: transaction reverted`);
@@ -433,6 +491,11 @@ export async function recipientKey(circuits: Address, tokenId: bigint, container
   const text = keyDerivationText(params, 'voxro');
   emit({ kind: 'info', label: 'Sign the Voxro key derivation message' });
   const signature = await w.walletClient.signMessage({ account: w.walletClient.account ?? w.address, message: text });
+  // The key is re-derived from this signature on every device, so the wallet must sign deterministically
+  // (RFC 6979). Ask once more and compare before trusting it; MPC wallets can differ per call.
+  emit({ kind: 'info', label: 'Sign the same message once more, to check your wallet signs it the same way' });
+  const again = await w.walletClient.signMessage({ account: w.walletClient.account ?? w.address, message: text });
+  if (!isDeterministic(signature, again)) throw new Error('This wallet gives a different signature each time, so it could never re-derive your inbox key. Use OKX Wallet with a seed phrase or a hardware wallet for this inbox.');
   const kp = deriveKeyPair({ ...params, signature, app: 'voxro' });
   keyCache.set(cacheKey, kp);
   return kp;
@@ -509,10 +572,15 @@ async function recoverMissingReplies() {
   let found = false;
   for (const t of targets) {
     const count = Number(await publicClient.readContract({ ...hub, functionName: 'inboxCount', args: [t.replyTargetEndpoint] }).catch(() => 0n));
-    if (recoverChecked.get(t.id) === count) continue;
-    recoverChecked.set(t.id, count);
+    if (!count || recoverChecked.get(t.id) === count) continue;
     const inbox = state.inboxes.find((i) => i.id === t.inboxId)!;
-    const r = await recoverReply(t, inbox).catch(() => undefined);
+    let r: LocalReply | undefined;
+    try {
+      r = await recoverReply(t, inbox);
+      recoverChecked.set(t.id, count); // only a scan that finished counts as checked
+    } catch {
+      continue; // transient RPC error: try again on the next refresh
+    }
     if (r) {
       lsSet(replyStore(t.id), r);
       found = true;
@@ -523,7 +591,7 @@ async function recoverMissingReplies() {
 
 // ─── writes ──────────────────────────────────────────────────────────────────────────────────
 /** Guest Express lane: seal to every member key, then `sendGuestPriority` (approve first for ERC-20 inboxes). */
-export async function lock(p: { inboxId: number; subject: string; body: string }): Promise<TicketView> {
+export async function lock(p: { inboxId: number; subject: string; body: string; expectedPrice?: bigint }): Promise<TicketView> {
   const w = await requireWallet();
   const inbox = state.inboxes.find((i) => i.id === p.inboxId);
   if (!inbox || !inbox.memberIds?.length) throw new Error('inbox not loaded');
@@ -534,11 +602,20 @@ export async function lock(p: { inboxId: number; subject: string; body: string }
   const envelope = seal({ ...guestContext(inbox.container), content, recipients: keys });
   const guest = deriveGuestKeyPair({ signature: await guestSignature(w), escrow: ESCROW, sender: w.address, envelope, chainId: XLAYER_CHAIN_ID });
   const q = await publicClient.readContract({ ...escrow, functionName: 'quoteSend', args: [BigInt(inbox.id), w.address] });
-  if (!q.canSend) throw new Error('Paused for cold senders (Q would reach 7)');
+  if (!inbox.active) throw new Error('This inbox is paused by its owner and is not taking new messages');
+  if (!q.canSend) throw new Error('This inbox is full right now (its queue is at the limit): try again after it answers some messages');
+  if (p.expectedPrice != null && q.price > p.expectedPrice) throw new PriceChangedError(q.price);
   const tokenAddr = TOKENS[inbox.token].address;
   if (tokenAddr) {
+    // Approve exactly this quote. A larger leftover allowance would let a price raised just before the
+    // send (by the owner or another sender) be pulled without you seeing it.
     const allowance = await publicClient.readContract({ address: tokenAddr, abi: erc20Abi, functionName: 'allowance', args: [w.address, ESCROW] });
-    if (allowance < q.price) await tx(`Approve ${TOKENS[inbox.token].symbol}`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: tokenAddr, abi: erc20Abi, functionName: 'approve', args: [ESCROW, q.price] }));
+    if (allowance !== q.price) {
+      const approve = (v: bigint) => tx(`Approve ${TOKENS[inbox.token].symbol}`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: tokenAddr, abi: erc20Abi, functionName: 'approve', args: [ESCROW, v] }));
+      // tokens in the USDT style refuse non-zero → non-zero approvals: reset to 0 first when needed
+      if (allowance > 0n) await approve(q.price).catch(async (e) => (e instanceof SentPendingError ? Promise.reject(e) : (await approve(0n), approve(q.price))));
+      else await approve(q.price);
+    }
   }
   const receipt = await tx('sendGuestPriority', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'sendGuestPriority', args: [BigInt(inbox.id), bytesToHex(guest.publicKey), bytesToHex(envelope)], value: tokenAddr ? 0n : q.price }));
   let ticketId = 0;
@@ -551,16 +628,26 @@ export async function lock(p: { inboxId: number; subject: string; body: string }
     }
   }
   if (ticketId) lsSet(guestKeyStore(ticketId), bytesToHex(guest.secretKey));
-  await refresh();
+  await syncAfter(receipt.blockNumber, () => state.tickets.some((x) => x.id === ticketId));
   const t = state.tickets.find((x) => x.id === ticketId);
-  if (!t) throw new Error('ticket not found after lock');
+  if (!t) throw new SentPendingError(`Paid and sent as ticket #${ticketId}. It will appear in your Outbox in a moment; do not send it again.`, receipt.transactionHash);
   return t;
+}
+
+/** The live quote moved above what the sender saw: show the new price and ask again. */
+export class PriceChangedError extends Error {
+  constructor(readonly price: bigint) {
+    super('The price went up since you opened this inbox. Check the new quote and send again.');
+    this.name = 'PriceChangedError';
+  }
 }
 
 export async function openEnvelope(t: TicketView, inbox: InboxView): Promise<DecodedContent> {
   const w = await requireWallet();
   const me = await myMember(inbox, w.address);
   const kp = await recipientKey(me.circuits, me.tokenId, me.container);
+  const published = await publicClient.readContract({ ...hub, functionName: 'keyFor', args: [me.circuits, me.tokenId] }).catch(() => null);
+  if (published?.usable && published.key.toLowerCase() !== bytesToHex(kp.publicKey).toLowerCase()) throw new Error('The key derived from your signature is not the key published for this inbox, so this message cannot be opened from this wallet');
   const content = openPayload({ ...guestContext(inbox.container), payload: hexToBytes(t.envelope), secretKey: kp.secretKey }).content;
   return decodeContent(content);
 }
@@ -571,24 +658,43 @@ export async function reply(ticketId: number, body: string): Promise<TicketView>
   const inbox = t && state.inboxes.find((i) => i.id === t.inboxId);
   if (!t || !inbox) throw new Error('ticket not loaded');
   if (t.lane !== 'guest') throw new Error('This ticket was sent over the Container lane: reply from your TapeSend client to its replyTargetEndpoint');
+  const left = t.deadline - Math.floor(Date.now() / 1000);
+  if (left < MIN_REPLY_SECONDS) throw new Error('Less than 3 minutes are left in the reply window: a reply now could land after the deadline, when the sender can already refund. Decline instead, or let it expire.');
   const me = await myMember(inbox, w.address);
   const content = encodeContent({ body, ts: Math.floor(Date.now() / 1000) });
   const payload = seal({ ...replyContext(me.container, t.expectedReplyRef), content, recipients: [hexToBytes(t.senderKey.publicKey)] });
-  await tx('DeWebHub.send (reply)', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...hub, functionName: 'send', args: [me.circuits, me.tokenId, t.replyTargetEndpoint, t.expectedReplyRef, bytesToHex(payload)] }));
-  const count = await publicClient.readContract({ ...hub, functionName: 'inboxCount', args: [t.replyTargetEndpoint] });
-  // find our entry (last few) and verify the digest before remembering it
+  const receipt = await tx('DeWebHub.send (reply)', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...hub, functionName: 'send', args: [me.circuits, me.tokenId, t.replyTargetEndpoint, t.expectedReplyRef, bytesToHex(payload)] }));
+  // our entry's index comes from this receipt's own Sent event, not from re-reading a possibly lagging node
   let found: LocalReply | undefined;
-  for (let i = Number(count) - 1; i >= Math.max(0, Number(count) - 5); i--) {
-    const e = await publicClient.readContract({ ...hub, functionName: 'inboxAt', args: [t.replyTargetEndpoint, BigInt(i)] });
-    if (e.digest === digestOf(t.expectedReplyRef, payload)) {
-      found = { inboxIndex: i, payload: bytesToHex(payload), timestamp: Number(e.timestamp), from: e.from as Address };
-      break;
+  const block = await publicClient.getBlock({ blockNumber: receipt.blockNumber });
+  for (const log of receipt.logs) {
+    if (log.address.toLowerCase() !== HUB.toLowerCase()) continue;
+    try {
+      const ev = decodeEventLog({ abi: deWebHubAbi, data: log.data, topics: log.topics, eventName: 'Sent' });
+      if ((ev.args.ref as Hex) === t.expectedReplyRef) found = { inboxIndex: Number(ev.args.inboxIndex), payload: bytesToHex(payload), timestamp: Number(block.timestamp), from: me.container };
+    } catch {
+      /* other log */
     }
   }
-  if (!found) throw new Error('reply sent but its DeWebHub entry was not found');
+  if (!found) throw new Error('reply sent but its DeWebHub entry was not found in the receipt');
   lsSet(replyStore(ticketId), found);
-  await refresh();
+  await syncAfter(receipt.blockNumber, () => Boolean(state.tickets.find((x) => x.id === ticketId)?.reply));
   return state.tickets.find((x) => x.id === ticketId)!;
+}
+
+/** Replies with this little time left are refused: the claim needs its own transaction before the deadline passes. */
+export const MIN_REPLY_SECONDS = 180;
+/** Under this much time left the Inbox warns the recipient to answer now. */
+export const SOON_SECONDS = 3600;
+
+/**
+ * Reply and claim in one go. The claim is a second transaction from the same wallet; it is started
+ * the moment the reply is mined, because after the deadline anyone may refund the ticket even if the
+ * reply was on time. If the claim fails, the reply is remembered and Claim can be pressed again.
+ */
+export async function answer(ticketId: number, body: string): Promise<TicketView> {
+  await reply(ticketId, body);
+  return claim(ticketId);
 }
 
 export async function claim(ticketId: number): Promise<TicketView> {
@@ -601,22 +707,24 @@ export async function claim(ticketId: number): Promise<TicketView> {
     if (!local) throw new Error('No reply to this ticket was found on DeWebHub from this inbox');
     lsSet(replyStore(ticketId), local);
   }
-  await tx('claimBounty', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'claimBounty', args: [BigInt(ticketId), BigInt(local.inboxIndex), local.payload] }));
-  await refresh();
+  const r = await tx('claimBounty', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'claimBounty', args: [BigInt(ticketId), BigInt(local.inboxIndex), local.payload] }));
+  await settled(r, ticketId);
   return state.tickets.find((x) => x.id === ticketId)!;
 }
 
+const settled = (r: { blockNumber: bigint }, ticketId: number) => syncAfter(r.blockNumber, () => state.tickets.find((x) => x.id === ticketId)?.status !== 'Pending');
+
 export async function refundExpired(ticketId: number): Promise<TicketView> {
   const w = await requireWallet();
-  await tx('refundExpired', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'refundExpired', args: [BigInt(ticketId)] }));
-  await refresh();
+  const r = await tx('refundExpired', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'refundExpired', args: [BigInt(ticketId)] }));
+  await settled(r, ticketId);
   return state.tickets.find((x) => x.id === ticketId)!;
 }
 
 export async function decline(ticketId: number): Promise<TicketView> {
   const w = await requireWallet();
-  await tx('declineTicket', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'declineTicket', args: [BigInt(ticketId)] }));
-  await refresh();
+  const r = await tx('declineTicket', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...escrow, functionName: 'declineTicket', args: [BigInt(ticketId)] }));
+  await settled(r, ticketId);
   return state.tickets.find((x) => x.id === ticketId)!;
 }
 
@@ -665,9 +773,42 @@ export async function registerInbox(
   onStep: (s: OnboardStep) => void,
 ): Promise<InboxView> {
   const w = await requireWallet();
-  const step = (key: OnboardStep['key'], status: OnboardStep['status'], detail?: string, hash?: Hex) => onStep({ key, status, ...(detail ? { detail } : {}), ...(hash ? { hash } : {}) });
-  // 1. a mailbox circuit on a hub-compatible processor (its ERC-6551 container receives TapeSend replies)
+  let current: OnboardStep['key'] = 'tapeout';
+  const step = (key: OnboardStep['key'], status: OnboardStep['status'], detail?: string, hash?: Hex) => {
+    current = key;
+    onStep({ key, status, ...(detail ? { detail } : {}), ...(hash ? { hash } : {}) });
+  };
+  try {
+    return await registerSteps(p, w, step);
+  } catch (e) {
+    // stop the spinner of whichever step failed, with the reason
+    onStep({ key: current, status: 'error', detail: e instanceof Error ? e.message : String(e) });
+    throw e;
+  }
+}
+
+const mailboxStore = (who: Address) => `voxro.mailbox.${ESCROW.toLowerCase()}.${who.toLowerCase()}`;
+const MAILBOX_TRANSFER = getAbiItem({ abi: parseAbi(['event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)']), name: 'Transfer' });
+
+async function registerSteps(
+  p: Parameters<typeof registerInbox>[0],
+  w: WalletCtx,
+  step: (key: OnboardStep['key'], status: OnboardStep['status'], detail?: string, hash?: Hex) => void,
+): Promise<InboxView> {
+  // 0. the handle must be free before anything is paid for
+  const taken = await publicClient.readContract({ ...escrow, functionName: 'handleToInbox', args: [handleToBytes32(p.handle)] });
+  if (taken !== 0n) throw new Error(`@${p.handle} is already taken (inbox #${taken}). Pick another handle; nothing was charged.`);
+  // 1. a mailbox circuit on a hub-compatible processor (its ERC-6551 container receives TapeSend replies).
+  //    A mailbox minted by an earlier, failed attempt is reused, so a retry never pays for a second one.
   let mailbox = p.mailbox;
+  if (!mailbox) {
+    const saved = lsGet<{ circuits: Address; tokenId: string }>(mailboxStore(w.address));
+    if (saved) {
+      const owner = await publicClient.readContract({ address: saved.circuits, abi: circuitsAbi, functionName: 'ownerOf', args: [BigInt(saved.tokenId)] }).catch(() => ZERO);
+      const used = state.inboxes.some((i) => i.container && i.memberIds?.some((m) => m.circuits.toLowerCase() === saved.circuits.toLowerCase() && m.tokenId === BigInt(saved.tokenId)));
+      if (owner.toLowerCase() === w.address.toLowerCase() && !used) mailbox = { circuits: saved.circuits, tokenId: BigInt(saved.tokenId) };
+    }
+  }
   if (!mailbox) {
     step('tapeout', 'running', 'minting 2 NAND + taping out a buffer on the mailbox processor');
     const nl = mailboxNetlist();
@@ -681,8 +822,21 @@ export async function registerInbox(
     const need = BigInt(nl.nand);
     if (have < need) await tx(`Mint ${need - have} NAND`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: transistors, abi: transistorsAbi, functionName: 'mint', args: [0n, need - have], value: mintValue(need - have, mintPrice, pf) }));
     const r = await tx('tapeout (mailbox)', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: MAILBOX_CPU, abi: circuitsAbi, functionName: 'tapeout', args: [nl.hex, nl.nIn, nl.nOut], value: fee }));
-    const id = await publicClient.readContract({ address: MAILBOX_CPU, abi: circuitsAbi, functionName: 'nextId' });
+    // the id comes from this receipt's mint (Transfer from 0x0 to us), never from nextId(), which another
+    // person taping out on the same shared processor at the same moment could have moved
+    let id: bigint | null = null;
+    for (const log of r.logs) {
+      if (log.address.toLowerCase() !== MAILBOX_CPU.toLowerCase()) continue;
+      try {
+        const ev = decodeEventLog({ abi: [MAILBOX_TRANSFER], data: log.data, topics: log.topics });
+        if (ev.args.from === ZERO && ev.args.to.toLowerCase() === w.address.toLowerCase()) id = ev.args.tokenId;
+      } catch {
+        /* other log */
+      }
+    }
+    if (id == null) throw new Error('taped out, but the new circuit id was not in the receipt');
     mailbox = { circuits: MAILBOX_CPU, tokenId: id };
+    lsSet(mailboxStore(w.address), { circuits: MAILBOX_CPU, tokenId: id.toString() });
     step('tapeout', 'done', `mailbox circuit #${id}`, r.transactionHash);
   } else {
     const owner = await publicClient.readContract({ address: mailbox.circuits, abi: circuitsAbi, functionName: 'ownerOf', args: [mailbox.tokenId] });
@@ -690,8 +844,8 @@ export async function registerInbox(
     step('tapeout', 'skipped', `using #${mailbox.tokenId} on ${mailbox.circuits.slice(0, 10)}…`);
   }
   // 2. container opened?
-  const kv = await publicClient.readContract({ ...hub, functionName: 'keyFor', args: [mailbox.circuits, mailbox.tokenId] });
-  if (kv.container === '0x0000000000000000000000000000000000000000') throw new Error('DeWebHub does not recognise this processor (pinned codehash); pick a circuit on a processor with Factory index ≤ 386');
+  const kv = await publicClient.readContract({ ...hub, functionName: 'keyFor', args: [mailbox.circuits, mailbox.tokenId] }).catch(() => ({ container: ZERO, opened: false, usable: false, key: '0x' as Hex }));
+  if (kv.container === ZERO) throw new Error('DeWebHub does not recognise this processor (pinned codehash); pick a circuit on a processor with Factory index ≤ 386');
   if (!kv.opened) {
     step('open', 'running');
     const feeOpen = await publicClient.readContract({ address: XLAYER.opener, abi: openerAbi, functionName: 'FEE' });
@@ -734,9 +888,10 @@ export async function registerInbox(
     }
   }
   step('register', 'done', `inbox #${inboxId}`, r.transactionHash);
-  await refresh();
+  lsDel(mailboxStore(w.address));
+  await syncAfter(r.blockNumber, () => state.inboxes.some((i) => i.id === inboxId));
   const ib = state.inboxes.find((i) => i.id === inboxId);
-  if (!ib) throw new Error('inbox not found after registration');
+  if (!ib) throw new SentPendingError(`@${p.handle} is registered as inbox #${inboxId}. It will appear in a moment; do not register it again.`, r.transactionHash);
   return ib;
 }
 

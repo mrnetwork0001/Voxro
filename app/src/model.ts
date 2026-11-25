@@ -47,6 +47,9 @@ export interface InboxView {
   active: boolean;
   /** Policy circuit id on VOXR. */
   circuitId: number;
+  /** True when the pricing circuit is one of Voxro's own taped-out controllers (VOXR #4–#8). Anything else
+   *  is a custom circuit the owner chose: it can be swapped while tickets are pending, so senders are warned. */
+  standardPolicy: boolean;
   /** Token id of the inbox (mailbox) circuit. */
   containerTokenId: number;
   /** Factory index of the processor that holds the inbox circuit (the <cpu> in its tape:// name); null until resolved. */

@@ -12,6 +12,10 @@ import { TOKENS, type InboxView, type TicketView } from '../model.ts';
 import { useWallet } from '../wallet/wallet.tsx';
 import { DeploymentNote } from './DeploymentNote.tsx';
 import { notifyRecipient } from '../chain/relay.ts';
+import { PriceChangedError, SentPendingError, refresh } from '../chain/escrow.ts';
+
+/** Keeps a sealed Guest envelope under the escrow's 16,000-byte cap even in 3-byte scripts (CJK), with room for 16 recipients. */
+const BODY_MAX = 4000;
 
 /** Explains the TapeOut Community VIP rule and, for the connected wallet, which membership qualifies it. */
 function CommunityVipNote({ vipNow }: { vipNow: boolean }) {
@@ -82,7 +86,7 @@ export function Directory({ arg }: { arg: string }) {
     if (!w.address) return setToast(t('c.connect'));
     setSending(true);
     try {
-      const ticket = await backend.lock({ inboxId: inbox.id, subject, body });
+      const ticket = await backend.lock({ inboxId: inbox.id, subject, body, expectedPrice: quote?.price });
       setLast(ticket);
       setNotified('pending');
       // best effort: settlement never depends on the relay
@@ -93,7 +97,13 @@ export function Directory({ arg }: { arg: string }) {
       setBody('');
       setToast(`${t('dir.sent')} · #${ticket.id} · ${fmtMoney(ticket.token, ticket.amount)}`);
     } catch (e) {
-      setToast(e instanceof Error ? e.message.slice(0, 200) : String(e));
+      if (e instanceof SentPendingError) {
+        // the stake is already locked: clear the form so it can't be sent (and paid) twice
+        setSubject('');
+        setBody('');
+      }
+      if (e instanceof PriceChangedError) void refresh();
+      setToast(e instanceof PriceChangedError ? `${t('dir.priceUp')} ${fmtMoney(inbox.token, e.price)}` : e instanceof Error ? e.message.slice(0, 200) : String(e));
     } finally {
       setSending(false);
     }
@@ -166,7 +176,7 @@ export function Directory({ arg }: { arg: string }) {
                 <Panel kicker={t('dir.compose')} info={<H k="dir.compose" />} title={`@${inbox.handle}`} right={<Badge tone="signal">{PRESET_NAMES[inbox.preset]}</Badge>}>
                   <p className="sub">{inbox.bio}</p>
                   <div className="small mt-s" style={{ color: 'var(--ink-2)' }}>
-                    <span className="kicker">Onchain reply record</span> · {recordOf(inbox, t, lang)}
+                    <span className="kicker">{t('dir.record.kicker')}</span> · {recordOf(inbox, t, lang)}
                   </div>
                   <div className="grid cols-3 mt-s">
                     <Stat label={t('dir.quote')} info={<H k="dir.quote" />} value={<span className={`tier-${quote.tier}`}>{fmtMoney(inbox.token, quote.price)}</span>} sub={`${TIER_MULT[quote.tier]}${quote.vip ? ` · ${t('c.discount')}` : ''}${quote.allowlisted ? ` · ${t('c.allowlisted')}` : ''}`} tone="signal" />
@@ -176,6 +186,8 @@ export function Directory({ arg }: { arg: string }) {
                   <p className="small muted mt-s">{t('dir.quote.sub')}</p>
                   {!quote.canSend && <Note tone="warn">{t('dir.pausedMsg')}</Note>}
                   {noKey && <Note tone="warn">{t('dir.noKey')}</Note>}
+                  {!inbox.active && <Note tone="warn">{t('dir.inactive')}</Note>}
+                  {!inbox.standardPolicy && <Note tone="warn">{t('dir.customPolicy')}</Note>}
                   {inbox.communityVip && <CommunityVipNote vipNow={quote.vip} />}
                   <div className="stack mt">
                     <div className="small muted">
@@ -185,7 +197,8 @@ export function Directory({ arg }: { arg: string }) {
                       <input className="input" value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={200} placeholder="Partnership: X Layer × …" />
                     </Field>
                     <Field label={t('dir.body')}>
-                      <textarea className="input" value={body} onChange={(e) => setBody(e.target.value)} placeholder="…" />
+                      <textarea className="input" value={body} onChange={(e) => setBody(e.target.value)} maxLength={BODY_MAX} placeholder="…" />
+                      <div className="small muted">{body.length} / {BODY_MAX}</div>
                     </Field>
                     <div className="small muted">{t('chain.vipAuto')}</div>
                     <div className="row">
@@ -201,14 +214,14 @@ export function Directory({ arg }: { arg: string }) {
                   <Ladder rungs={ladder} current={inbox.latch} symbol={TOKENS[inbox.token].symbol} fmt={(v) => fmtAmount(inbox.token, v)} />
                   {(quote.vip || quote.allowlisted) && (
                     <div className="mt-s">
-                      <div className="kicker">{t('dir.nextQuote')} (cold sender)</div>
+                      <div className="kicker">{t('dir.nextQuote')} ({t('dir.coldSender.short')})</div>
                       <Ladder rungs={coldLadder} current={inbox.latch} symbol={TOKENS[inbox.token].symbol} fmt={(v) => fmtAmount(inbox.token, v)} />
                     </div>
                   )}
                 </Panel>
 
                 {last && last.inboxId === inbox.id && (
-                  <Panel signal kicker={t('dir.sent')} info={<H k="dir.sent" />} title={`Ticket #${last.id}`} right={<a className="btn sm" href={href('inbox')}>{t('nav.inbox')}</a>}>
+                  <Panel signal kicker={t('dir.sent')} info={<H k="dir.sent" />} title={`${t('c.ticket')} #${last.id}`} right={<a className="btn sm" href={href('inbox')}>{t('nav.inbox')}</a>}>
                     <dl className="kv">
                       <dt>{t('c.lane')}</dt>
                       <dd>{t('c.lane.guest')}</dd>

@@ -27,6 +27,8 @@ const gw = privateKeyToAccount(KEY);
 const PORT = Number(process.env.GATEWAY_PORT ?? 4791);
 const DIR = process.env.GATEWAY_DATA_DIR ?? '/var/lib/voxro-gateway';
 const USDT0 = XLAYER.usdt0;
+/** Enough OKB for settle + lock + a refund at X Layer's ~0.02 gwei (each well under 0.0005 OKB). */
+const MIN_GAS = 2_000_000_000_000_000n; // 0.002 OKB
 const NETWORK = 'eip155:196';
 const DOMAIN = { name: 'USD₮0', version: '1', chainId: 196, verifyingContract: USDT0 } as const;
 const TYPES = {
@@ -55,10 +57,63 @@ interface Paid {
 mkdirSync(DIR, { recursive: true, mode: 0o700 });
 const FILE = `${DIR}/tickets.json`;
 const paid: Record<string, Paid> = existsSync(FILE) ? JSON.parse(readFileSync(FILE, 'utf8')) : {};
+/** Money the gateway owes back to a payer (a failed lock, an overpayment); retried by the keeper until sent. */
+interface Owed {
+  payer: Address;
+  amount: string;
+  reason: string;
+  tx?: string; // broadcast, waiting for a receipt
+}
+const OWED_FILE = `${DIR}/owed.json`;
+const owed: Record<string, Owed> = existsSync(OWED_FILE) ? JSON.parse(readFileSync(OWED_FILE, 'utf8')) : {};
 const save = () => {
   writeFileSync(`${FILE}.tmp`, JSON.stringify(paid, null, 1), { mode: 0o600 });
   renameSync(`${FILE}.tmp`, FILE);
+  writeFileSync(`${OWED_FILE}.tmp`, JSON.stringify(owed, null, 1), { mode: 0o600 });
+  renameSync(`${OWED_FILE}.tmp`, OWED_FILE);
 };
+
+/**
+ * Every transaction from the gateway wallet runs one at a time. Concurrent requests would otherwise pick
+ * the same nonce, and a failed refund could be lost between them.
+ */
+let queue: Promise<unknown> = Promise.resolve();
+function exclusive<T>(fn: () => Promise<T>): Promise<T> {
+  const run = queue.then(fn, fn);
+  queue = run.catch(() => {});
+  return run;
+}
+
+/** Records a debt first, then tries to pay it; the keeper retries anything left unpaid. */
+async function payBack(key: string, payer: Address, amount: bigint, reason: string): Promise<string | null> {
+  if (amount <= 0n) return null;
+  owed[key] = { payer, amount: amount.toString(), reason };
+  save();
+  return settleOwed(key).catch(() => null);
+}
+async function settleOwed(key: string): Promise<string | null> {
+  const o = owed[key];
+  if (!o) return null;
+  if (o.tx) {
+    // broadcast earlier: only its receipt decides whether to send again
+    const r = await client.getTransactionReceipt({ hash: o.tx as Hex }).catch(() => null);
+    if (!r) return null; // still pending, or not indexed yet
+    if (r.status === 'success') {
+      delete owed[key];
+      save();
+      return o.tx;
+    }
+    delete o.tx;
+  }
+  const tx = await wallet(gw).writeContract({ address: USDT0, abi: erc20Abi, functionName: 'transfer', args: [o.payer, BigInt(o.amount)] });
+  o.tx = tx;
+  save(); // persisted before waiting, so a crash here can never send it twice
+  const r = await client.waitForTransactionReceipt({ hash: tx });
+  if (r.status === 'success') delete owed[key];
+  else delete o.tx;
+  save();
+  return r.status === 'success' ? tx : null;
+}
 
 // ─── http helpers ───────────────────────────────────────────────────────────────────────────
 const hits = new Map<string, number[]>();
@@ -144,7 +199,9 @@ async function sendRoute(req: IncomingMessage, res: ServerResponse, handle: stri
   } catch {
     return send(res, 400, { error: 'Body must be JSON: {"subject": "...", "body": "..."}' });
   }
-  if (!msg.body || typeof msg.body !== 'string' || msg.body.length > 8000) return send(res, 400, { error: 'body is required (max 8000 characters)' });
+  if (!msg.body || typeof msg.body !== 'string') return send(res, 400, { error: 'body is required' });
+  // the sealed envelope must fit the escrow's 16,000-byte cap: checked before any payment is taken
+  if (Buffer.byteLength(msg.body, 'utf8') + Buffer.byteLength(String(msg.subject ?? ''), 'utf8') > 12_000) return send(res, 400, { error: 'subject + body must be at most 12,000 bytes (about 4,000 characters in Chinese or Japanese)' });
   const price = ib.quote.price;
   const resource = `${ORIGIN}/api/agent/send/${ib.handle}`;
   const header = req.headers['x-payment'];
@@ -157,6 +214,14 @@ async function sendRoute(req: IncomingMessage, res: ServerResponse, handle: stri
   } catch {
     return send(res, 400, { error: 'X-PAYMENT must be base64-encoded JSON' });
   }
+  return exclusive(() => paidSend(res, xp, ib, msg, price, resource));
+}
+
+async function paidSend(res: ServerResponse, xp: XPayment, ib: NonNullable<Awaited<ReturnType<typeof inboxByHandle>>>, msg: { subject?: string; body?: string }, price: bigint, resource: string) {
+  // Settling, locking and any refund each need gas: refuse before taking money if the gateway can't pay for them.
+  if ((await client.getBalance({ address: gw.address })) < MIN_GAS) {
+    return send(res, 503, { error: 'The Voxro gateway is out of gas right now; no payment was taken. Please retry later or use the Voxro MCP server with your own wallet.' });
+  }
   let settled: { payer: Address; tx: Hex };
   try {
     settled = await settle(xp, price);
@@ -164,13 +229,13 @@ async function sendRoute(req: IncomingMessage, res: ServerResponse, handle: stri
     return send(res, 402, { x402Version: 1, error: (e as Error).message.split('\n')[0], accepts: [requirements(resource, price, ib.handle)] });
   }
   try {
-    const r = await sendPaid(gw, { handle: ib.handle, subject: String(msg.subject ?? '').slice(0, 200), body: msg.body, maxPrice: BigInt(xp.payload.authorization.value) });
+    const r = await sendPaid(gw, { handle: ib.handle, subject: String(msg.subject ?? '').slice(0, 200), body: msg.body!, maxPrice: BigInt(xp.payload.authorization.value) });
     const access = randomBytes(18).toString('base64url');
     paid[String(r.ticketId)] = { payer: settled.payer, token: USDT0, amount: r.priceRaw, access };
     save();
     // anything paid above the live price goes straight back
     const extra = BigInt(xp.payload.authorization.value) - BigInt(r.priceRaw);
-    if (extra > 0n) await wallet(gw).writeContract({ address: USDT0, abi: erc20Abi, functionName: 'transfer', args: [settled.payer, extra] }).catch(() => {});
+    if (extra > 0n) await payBack(`over:${settled.tx}`, settled.payer, extra, `overpayment on ticket ${r.ticketId}`);
     return send(
       res,
       200,
@@ -179,8 +244,8 @@ async function sendRoute(req: IncomingMessage, res: ServerResponse, handle: stri
     );
   } catch (e) {
     // the lock failed after payment: return the money
-    const back = await wallet(gw).writeContract({ address: USDT0, abi: erc20Abi, functionName: 'transfer', args: [settled.payer, BigInt(xp.payload.authorization.value)] }).catch(() => null);
-    return send(res, 409, { error: `Could not lock the message: ${(e as Error).message.split('\n')[0]}`, refunded: Boolean(back), refundTx: back });
+    const back = await payBack(`lockfail:${settled.tx}`, settled.payer, BigInt(xp.payload.authorization.value), 'lock failed after payment');
+    return send(res, 409, { error: `Could not lock the message: ${(e as Error).message.split('\n')[0]}`, refunded: Boolean(back), refundTx: back, ...(back ? {} : { note: 'Your refund is recorded and will be sent automatically.' }) });
   }
 }
 
@@ -193,30 +258,39 @@ async function ticketRoute(res: ServerResponse, id: number, token: string) {
 }
 
 // ─── keeper: refund expired x402 tickets and forward refunds to the paying agent ────────────
-async function keeper() {
+const keeper = () => exclusive(keeperRun);
+async function keeperRun() {
+  for (const key of Object.keys(owed)) {
+    await settleOwed(key).catch((e) => console.error(`owed ${key}`, (e as Error).message.split('\n')[0]));
+  }
   if (!Object.values(paid).some((p) => !p.forwarded)) return;
   const now = await chainNow();
   for (const [id, p] of Object.entries(paid)) {
     if (p.forwarded) continue;
-    const t = await readTicket(Number(id));
-    let amount = 0n;
-    if (t.status === 'Pending' && t.deadline < now) {
-      await refund(gw, Number(id));
-      amount = t.amount;
-    } else if (t.status === 'Declined') amount = t.amount;
-    else if (t.status === 'Refunded') amount = t.amount - (t.amount * 10n) / 10_000n; // a third-party keeper took its 0.1% tip
-    else if (t.status === 'Claimed') {
-      p.forwarded = 'answered';
-      continue;
-    }
-    if (amount > 0n) {
-      const tx = await wallet(gw).writeContract({ address: t.token, abi: erc20Abi, functionName: 'transfer', args: [p.payer, amount] });
-      await client.waitForTransactionReceipt({ hash: tx });
-      p.forwarded = tx;
-      console.log(`forwarded refund for #${id} to ${p.payer}: ${tx}`);
+    try {
+      const t = await readTicket(Number(id));
+      let amount = 0n;
+      if (t.status === 'Pending' && t.deadline < now) {
+        await refund(gw, Number(id));
+        amount = t.amount; // the gateway called refundExpired itself, so no keeper tip was taken
+      } else if (t.status === 'Declined') amount = t.amount;
+      else if (t.status === 'Refunded') amount = t.amount - (t.amount * 10n) / 10_000n; // a third-party keeper took its 0.1% tip
+      else if (t.status === 'Claimed') {
+        p.forwarded = 'answered';
+        save();
+        continue;
+      }
+      if (amount > 0n) {
+        // hand it to the debt ledger: recorded before broadcast, never forwarded twice
+        p.forwarded = `owed:${id}`;
+        await payBack(`refund:${id}`, p.payer, amount, `refund of ticket ${id}`);
+        save();
+        console.log(`refund for #${id} to ${p.payer} queued/sent`);
+      }
+    } catch (e) {
+      console.error(`keeper #${id}`, (e as Error).message.split('\n')[0]); // one bad ticket must not block the rest
     }
   }
-  save();
 }
 
 // ─── server ─────────────────────────────────────────────────────────────────────────────────
@@ -243,7 +317,12 @@ createServer(async (req, res) => {
     if (limited(req)) return send(res, 429, { error: 'Too many requests' });
     if (p === '/mcp') {
       if (req.method !== 'POST') return send(res, 405, { error: 'POST JSON-RPC to /mcp' });
-      const input = JSON.parse((await body(req)) || 'null');
+      let input: unknown;
+      try {
+        input = JSON.parse((await body(req)) || 'null');
+      } catch {
+        return send(res, 200, { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } });
+      }
       const batch = Array.isArray(input) ? input : [input];
       const out = (await Promise.all(batch.map((m) => handleRpc(m, { gateway: ORIGIN })))).filter(Boolean);
       if (!out.length) {

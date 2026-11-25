@@ -9,7 +9,7 @@ import { existsSync } from "./exists";
 
 const SCENES: Record<string, React.FC> = {
   open: S.Open, problem: S.Problem, evidence: S.Evidence, turn: S.Turn, stack: S.Stack, send: S.Send,
-  surge: S.Surge, settle: S.Settle, proof: S.Proof, live: S.Live, unique: S.Unique, close: S.Close,
+  surge: S.Surge, settle: S.Settle, proof: S.Proof, live: S.Live, reach: S.Reach, unique: S.Unique, close: S.Close,
 };
 const XF = 0.4;
 const VOX = at("turn", "voxro");
@@ -57,6 +57,10 @@ function effects(): Fx[] {
     { f: "chime", at: w("proof", "zero"), vol: 0.35 },
     { f: "whoosh", at: from("live") - 0.35, vol: 0.25 },
     ...[["voxr"], ["eight"], ["escrow,"], ["inbox."]].map((x) => ({ f: "pop", at: w("live", x) - 0.05, vol: 0.32 })),
+    { f: "whoosh", at: from("reach") - 0.35, vol: 0.25 },
+    { f: "ping", at: w("reach", "telegram,"), vol: 0.35 },
+    { f: "pop", at: w("reach", ["agents", "a"]), vol: 0.3 },
+    { f: "lock", at: w("reach", ["x402.", "x"]) + 1.05, vol: 0.3 },
     { f: "whoosh", at: from("unique") - 0.35, vol: 0.25 },
     ...[["server"], ["plaintext."], ["fee"], ["change"]].map((x) => ({ f: "relay", at: w("unique", x) - 0.25, vol: 0.4 })),
     { f: "whoosh", at: from("close") - 0.35, vol: 0.25 },

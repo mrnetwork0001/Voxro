@@ -15,6 +15,7 @@ import { RelayPanel } from './RelayPanel.tsx';
 import { useWallet } from '../wallet/wallet.tsx';
 import { href } from '../router.ts';
 import { ProfileLink } from '../components/ProfileLink.tsx';
+import { MIN_REPLY_SECONDS, SOON_SECONDS } from '../chain/escrow.ts';
 
 type Tab = 'inbox' | 'outbox';
 
@@ -77,7 +78,7 @@ function InboxTicket({ ticket, inbox, now }: { ticket: TicketView; inbox: InboxV
             {busy ? <span className="spin" /> : null} {t('inbox.decrypt')}
           </Button>
           <span className="mono small muted">
-            {(ticket.envelope.length - 2) / 2} B sealed
+            {(ticket.envelope.length - 2) / 2} B {t('inbox.sealed')}
           </span>
           {err && <span className="bad small">{err}</span>}
         </div>
@@ -91,20 +92,22 @@ function InboxTicket({ ticket, inbox, now }: { ticket: TicketView; inbox: InboxV
       {ticket.status === 'Pending' && !ticket.reply && ticket.lane === 'container' && <Note>{t('inbox.containerReply')}</Note>}
       {ticket.status === 'Pending' && !ticket.reply && ticket.lane === 'guest' && (
         <div className="stack">
-          <textarea className="input" style={{ minHeight: 70 }} placeholder={t('inbox.reply')} value={text} onChange={(e) => setText(e.target.value)} />
+          {remaining > 0 && remaining < SOON_SECONDS && <Note tone="warn">{t('inbox.soon')}</Note>}
+          <textarea className="input" style={{ minHeight: 70 }} placeholder={t('inbox.reply')} value={text} maxLength={4000} onChange={(e) => setText(e.target.value)} />
           <div className="row">
             <Button
               variant="signal"
               size="sm"
-              disabled={text.trim().length === 0 || remaining <= 0 || busy}
+              disabled={text.trim().length === 0 || remaining < MIN_REPLY_SECONDS || busy}
               onClick={() =>
                 void run(async () => {
-                  await backend.reply(ticket.id, text);
+                  // reply and claim in one flow: the claim follows the moment the reply is mined
+                  await backend.answer(ticket.id, text);
                   setText('');
                 })
               }
             >
-              {busy ? <span className="spin" /> : null} {t('inbox.tap1')}
+              {busy ? <span className="spin" /> : null} {t('inbox.answer')}
             </Button>
             <span className="small muted">DeWebHub.send(to = replyTarget, ref = expectedReplyRef, payload)</span>
             <Button size="sm" variant="ghost" disabled={busy} onClick={() => void run(() => backend.decline(ticket.id))}>
@@ -128,7 +131,7 @@ function InboxTicket({ ticket, inbox, now }: { ticket: TicketView; inbox: InboxV
                 <Addr value={ticket.reply.digest} />
               </dd>
               <dt>payload</dt>
-              <dd className="mono">{(ticket.reply.payload.length - 2) / 2} B sealed to the sender key</dd>
+              <dd className="mono">{(ticket.reply.payload.length - 2) / 2} B {t('inbox.sealedToSender')}</dd>
             </dl>
           </div>
           <div>
@@ -151,7 +154,7 @@ function InboxTicket({ ticket, inbox, now }: { ticket: TicketView; inbox: InboxV
               >
                 {busy ? <span className="spin" /> : null} {t('inbox.tap2')}
               </Button>
-              <span className="small muted">permissionless · steps LATCH dir = 0</span>
+              <span className="small muted">{t('inbox.claimNow')}</span>
             </div>
           ) : (
             ticket.payout && (

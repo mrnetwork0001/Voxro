@@ -109,9 +109,15 @@ async function guestSend(f: Flags, id: bigint, subject: string, body: string): P
   const token = ib.paymentToken as Address;
   if (token !== '0x0000000000000000000000000000000000000000') {
     const allowance = await pc.readContract({ address: token, abi: erc20Abi, functionName: 'allowance', args: [sender, escrow] });
-    if (allowance < q.price) {
-      const h = await wc.writeContract({ address: token, abi: erc20Abi, functionName: 'approve', args: [escrow, q.price * 10n] });
-      await pc.waitForTransactionReceipt({ hash: h });
+    // exactly this quote: a leftover allowance would let a price raised before the send be pulled unseen
+    if (allowance !== q.price) {
+      const approve = async (v: bigint) => {
+        const h = await wc.writeContract({ address: token, abi: erc20Abi, functionName: 'approve', args: [escrow, v] });
+        const r = await pc.waitForTransactionReceipt({ hash: h });
+        if (r.status !== 'success') throw new CliError(`approve reverted: ${h}`);
+      };
+      if (allowance > 0n) await approve(q.price).catch(async () => (await approve(0n), approve(q.price)));
+      else await approve(q.price);
     }
   }
   const hash = await wc.writeContract({

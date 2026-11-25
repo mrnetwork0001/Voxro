@@ -7,14 +7,23 @@ export const ROUTES: AppRouteId[] = ['pulse', 'directory', 'start', 'inbox', 'ca
 /** Routes that exist but are not in the masthead. */
 const HIDDEN: AppRouteId[] = ['receipt'];
 
+/** A malformed escape in a pasted link (e.g. `#/@%`) must not blank the whole app. */
+const decode = (v: string) => {
+  try {
+    return decodeURIComponent(v);
+  } catch {
+    return v;
+  }
+};
+
 function parse(): { id: RouteId; arg: string } {
   const raw = location.hash.replace(/^#\/?/, '');
   const [head = '', ...rest] = raw.split('/');
   if (head === '') return { id: 'landing', arg: '' };
   // public profile link: #/@handle opens the Directory with that inbox selected
-  if (head.startsWith('@') && head.length > 1) return { id: 'directory', arg: decodeURIComponent(head.slice(1)) };
+  if (head.startsWith('@') && head.length > 1) return { id: 'directory', arg: decode(head.slice(1)) };
   const id: RouteId = (ROUTES as string[]).includes(head) || (HIDDEN as string[]).includes(head) ? (head as AppRouteId) : 'pulse';
-  return { id, arg: decodeURIComponent(rest.join('/')) };
+  return { id, arg: decode(rest.join('/')) };
 }
 
 export const href = (id: RouteId, arg?: string) => (id === 'landing' ? '#/' : `#/${id}${arg ? `/${encodeURIComponent(arg)}` : ''}`);

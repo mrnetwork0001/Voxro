@@ -102,7 +102,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Recipient wallet | OKX Wallet | Register and configure its inbox, reply, claim, decline | Move another inbox's stakes or change a taped-out circuit |
 | Inbox X25519 key | Derived in the browser from a wallet signature, never stored | Decrypt messages to that inbox | Sign transactions |
-| Sender wallet | OKX Wallet | Lock a stake, refund its own expired ticket (no keeper tip) | Reclaim a stake before the deadline, or after a valid reply |
+| Sender wallet | OKX Wallet | Lock a stake, refund its own expired ticket (no keeper tip) | Reclaim a stake before the deadline, or after the reply has been claimed |
 | Guest reply secret | Sender's browser | Decrypt the reply to a Guest Express message | Touch funds |
 | Agent key | The agent's own process (`VOXRO_AGENT_KEY`) | Send and refund for that agent | Leave the agent's machine: the MCP server signs locally |
 | Deployer keystore | Foundry keystore | Nothing after deployment | Pause, upgrade or drain: the escrow has no owner and the treasury is immutable |
@@ -183,12 +183,22 @@ The mailbox circuit sits on a hub-compatible processor (Factory index 212) becau
 - **No owner, no upgrades.** `VoxroEscrow` has no admin role. The treasury address is immutable, and `withdrawProtocolFees()` can be called by anyone but only pays the treasury.
 - **The recipient is whoever owns the inbox circuit NFT.** `recipientOf()` is `ownerOf(inboxCircuitId)`, so an inbox and its future payouts transfer like any ERC-721.
 - **Hard limits in the contract:** reply window between `MIN_SLA` (1 hour) and `MAX_SLA` (14 days); at most `MAX_MEMBERS` (16) team containers; envelopes at most `MAX_ENVELOPE` (16,000 bytes) and must start with the TAP-10 v2 header; policy circuits must have exactly 6 inputs, 7 outputs and 3 state bits (`BadPolicyPins`).
-- **Price protection.** The price is computed by the circuit inside the lock transaction and collected exactly: ERC-20 tokens are pulled with `transferFrom` (capped by the sender's approval), and native OKB must match to the wei or the call reverts with `BadValue`.
+- **Price protection.** The price is computed by the circuit inside the lock transaction. Native OKB must match it to the wei or the call reverts with `BadValue`. ERC-20 tokens are pulled with `transferFrom`, so the cap is the sender's approval: the app and CLI approve exactly the quote just before sending and stop with a new quote if it rose, so a price raised in between cannot be pulled unseen.
 - **No double claims.** A reply entry can settle one ticket only (`ReplyConsumed`), and a TapeSend message can be locked once (`MessageAlreadyLocked`). All money paths are `nonReentrant`.
-- **Kill switches.** The recipient can stop new messages with `setActive(false)` (`NotActive`), and the circuit itself refuses sends when its rule says so (`Paused`). Existing tickets can always be claimed or refunded.
+- **Kill switches.** The recipient can stop new messages with `setActive(false)` (`NotActive`), and the circuit itself refuses sends when its rule says so (`Paused`). Pausing never blocks settling existing tickets.
 - **Plaintext never leaves the browser.** Messages and replies are TAP-10 v2 sealed client-side; the chain stores ciphertext only.
 - **Helpers hold no money keys.** The Telegram bot reads public chain data. The MCP server signs only with a key the agent supplies in its own environment.
 - **Tests (2026-11-25):** Foundry 19 passed, 0 failed (13 escrow unit and fuzz tests including a 10,000-run conservation fuzz, plus 6 Community VIP tests). TypeScript 70 passed, 6 skipped (the skipped suites need a live fork or network).
+
+## Known limits (audit, 2026-11-25)
+
+The contracts are immutable, so these are handled in the app and stated here plainly:
+
+- **Settlement runs through the inbox's current circuit.** Claims and refunds step the queue with the policy circuit set now, and the owner can change it with `setPolicy`. A deliberately broken circuit could hold refunds until it is switched back. The Directory warns on any inbox not priced by Voxro's own controllers (VOXR #4 to #8), and the Prover checks any circuit before you pay.
+- **Claim before the deadline passes.** A reply only pays once `claimBounty` is mined. After the deadline anyone can call `refundExpired`, even if the reply was on time. The app claims in the same flow as the reply, warns in the last hour and stops replies in the last 3 minutes.
+- **A third-party keeper takes 0.1% of a refund** it triggers. A sender who refunds their own ticket gets 100%.
+- **Any non-empty reply settles a ticket.** The escrow checks that the reply exists and is bound to the ticket, not what it says; reputation (answered and refunded counts) is public on every inbox.
+- **The queue saturates at 7.** With more than 7 tickets pending, settling some can lower the price while others are still waiting.
 
 ## What's real and what's simulated
 
@@ -196,7 +206,7 @@ The mailbox circuit sits on a hub-compatible processor (Factory index 212) becau
 | --- | --- |
 | VOXR processor, 8 taped-out circuits, `VoxroEscrow`, `VoxroLens` and `TapeOutCommunityVip` on X Layer mainnet, all exact-match verified on Sourcify (2026-11-21) | No paid ticket has been settled on mainnet yet |
 | Live quotes, queue depth and price ladders read from the circuits | The x402 payment gateway for agents is built and fork-tested, not yet public |
-| The 512-transition replay in the Prover, against the chain via Multicall3 | The Studio's traffic waveform is a scripted burst, labelled on the page |
+| The 512-transition replay in the Prover, against the chain via Multicall3; reply entries in claim checks and receipts are read from DeWebHub storage | The Studio's traffic waveform is a scripted burst, labelled on the page |
 | TAP-10 v2 encryption, byte-identical to the vendored `@tapekit/send` under fixed randomness | The CLI's end-to-end run was on an Anvil fork of X Layer, not mainnet |
 | The Telegram bot and its alerts | The demo film's settlement scene is a labelled animation (see `video/demo/README.md`) |
 

@@ -1,5 +1,5 @@
 {
- "total": 153.03699999999998,
+ "total": 165.03699999999998,
  "scenes": [
   {
    "id": "open",
@@ -1727,128 +1727,306 @@
    ]
   },
   {
-   "id": "unique",
+   "id": "reach",
    "from": 132.03699999999998,
+   "dur": 12,
+   "lines": [
+    {
+     "text": "Watch your inbox from Telegram, and get an alert the moment a paid message lands.",
+     "file": "audio/vo/reach_0.mp3",
+     "start": 132.337,
+     "end": 137.074,
+     "words": [
+      {
+       "word": "Watch",
+       "start": 132.337,
+       "end": 132.639
+      },
+      {
+       "word": "your",
+       "start": 132.674,
+       "end": 132.801
+      },
+      {
+       "word": "inbox",
+       "start": 132.871,
+       "end": 133.289
+      },
+      {
+       "word": "from",
+       "start": 133.335,
+       "end": 133.475
+      },
+      {
+       "word": "Telegram,",
+       "start": 133.533,
+       "end": 134.102
+      },
+      {
+       "word": "and",
+       "start": 134.125,
+       "end": 134.253
+      },
+      {
+       "word": "get",
+       "start": 134.299,
+       "end": 134.438
+      },
+      {
+       "word": "an",
+       "start": 134.485,
+       "end": 134.543
+      },
+      {
+       "word": "alert",
+       "start": 134.578,
+       "end": 134.972
+      },
+      {
+       "word": "the",
+       "start": 135.031,
+       "end": 135.112
+      },
+      {
+       "word": "moment",
+       "start": 135.181,
+       "end": 135.437
+      },
+      {
+       "word": "a",
+       "start": 135.483,
+       "end": 135.507
+      },
+      {
+       "word": "paid",
+       "start": 135.565,
+       "end": 135.808
+      },
+      {
+       "word": "message",
+       "start": 135.866,
+       "end": 136.215
+      },
+      {
+       "word": "lands.",
+       "start": 136.261,
+       "end": 137.074
+      }
+     ]
+    },
+    {
+     "text": "AI agents can reach you too, over MCP or x402.",
+     "file": "audio/vo/reach_1.mp3",
+     "start": 137.47400000000002,
+     "end": 142.164,
+     "words": [
+      {
+       "word": "A",
+       "start": 137.474,
+       "end": 137.66
+      },
+      {
+       "word": "I",
+       "start": 137.753,
+       "end": 137.787
+      },
+      {
+       "word": "agents",
+       "start": 137.915,
+       "end": 138.229
+      },
+      {
+       "word": "can",
+       "start": 138.275,
+       "end": 138.38
+      },
+      {
+       "word": "reach",
+       "start": 138.449,
+       "end": 138.635
+      },
+      {
+       "word": "you",
+       "start": 138.67,
+       "end": 138.751
+      },
+      {
+       "word": "too,",
+       "start": 138.821,
+       "end": 139.227
+      },
+      {
+       "word": "over",
+       "start": 139.413,
+       "end": 139.633
+      },
+      {
+       "word": "M",
+       "start": 139.703,
+       "end": 139.842
+      },
+      {
+       "word": "C",
+       "start": 139.924,
+       "end": 139.993
+      },
+      {
+       "word": "P",
+       "start": 140.156,
+       "end": 140.284
+      },
+      {
+       "word": "or",
+       "start": 140.539,
+       "end": 140.713
+      },
+      {
+       "word": "x",
+       "start": 140.876,
+       "end": 140.957
+      },
+      {
+       "word": "four",
+       "start": 141.015,
+       "end": 141.212
+      },
+      {
+       "word": "oh",
+       "start": 141.294,
+       "end": 141.433
+      },
+      {
+       "word": "two.",
+       "start": 141.479,
+       "end": 142.164
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "unique",
+   "from": 144.03699999999998,
    "dur": 12,
    "lines": [
     {
      "text": "No server to trust. No plaintext. No fee unless someone replies.",
      "file": "audio/vo/unique_0.mp3",
-     "start": 132.337,
-     "end": 137.167,
+     "start": 144.337,
+     "end": 149.167,
      "words": [
       {
        "word": "No",
-       "start": 132.337,
-       "end": 132.534
+       "start": 144.337,
+       "end": 144.534
       },
       {
        "word": "server",
-       "start": 132.604,
-       "end": 132.883
+       "start": 144.604,
+       "end": 144.883
       },
       {
        "word": "to",
-       "start": 132.929,
-       "end": 132.987
+       "start": 144.929,
+       "end": 144.987
       },
       {
        "word": "trust.",
-       "start": 133.045,
-       "end": 133.579
+       "start": 145.045,
+       "end": 145.579
       },
       {
        "word": "No",
-       "start": 133.719,
-       "end": 133.846
+       "start": 145.719,
+       "end": 145.846
       },
       {
        "word": "plaintext.",
-       "start": 133.916,
-       "end": 134.671
+       "start": 145.916,
+       "end": 146.671
       },
       {
        "word": "No",
-       "start": 135.205,
-       "end": 135.367
+       "start": 147.205,
+       "end": 147.367
       },
       {
        "word": "fee",
-       "start": 135.448,
-       "end": 135.669
+       "start": 147.448,
+       "end": 147.669
       },
       {
        "word": "unless",
-       "start": 135.716,
-       "end": 135.948
+       "start": 147.716,
+       "end": 147.948
       },
       {
        "word": "someone",
-       "start": 135.971,
-       "end": 136.226
+       "start": 147.971,
+       "end": 148.226
       },
       {
        "word": "replies.",
-       "start": 136.261,
-       "end": 137.167
+       "start": 148.261,
+       "end": 149.167
       }
      ]
     },
     {
      "text": "And no way to change the rules after you've paid.",
      "file": "audio/vo/unique_1.mp3",
-     "start": 137.517,
-     "end": 140.211,
+     "start": 149.517,
+     "end": 152.211,
      "words": [
       {
        "word": "And",
-       "start": 137.517,
-       "end": 137.68
+       "start": 149.517,
+       "end": 149.68
       },
       {
        "word": "no",
-       "start": 137.749,
-       "end": 137.842
+       "start": 149.749,
+       "end": 149.842
       },
       {
        "word": "way",
-       "start": 137.9,
-       "end": 138.028
+       "start": 149.9,
+       "end": 150.028
       },
       {
        "word": "to",
-       "start": 138.086,
-       "end": 138.144
+       "start": 150.086,
+       "end": 150.144
       },
       {
        "word": "change",
-       "start": 138.202,
-       "end": 138.469
+       "start": 150.202,
+       "end": 150.469
       },
       {
        "word": "the",
-       "start": 138.515,
-       "end": 138.585
+       "start": 150.515,
+       "end": 150.585
       },
       {
        "word": "rules",
-       "start": 138.643,
-       "end": 138.957
+       "start": 150.643,
+       "end": 150.957
       },
       {
        "word": "after",
-       "start": 139.026,
-       "end": 139.258
+       "start": 151.026,
+       "end": 151.258
       },
       {
        "word": "you've",
-       "start": 139.293,
-       "end": 139.467
+       "start": 151.293,
+       "end": 151.467
       },
       {
        "word": "paid.",
-       "start": 139.491,
-       "end": 140.211
+       "start": 151.491,
+       "end": 152.211
       }
      ]
     }
@@ -1856,87 +2034,87 @@
   },
   {
    "id": "close",
-   "from": 144.03699999999998,
+   "from": 156.03699999999998,
    "dur": 9,
    "lines": [
     {
      "text": "Voxro. Your inbox, priced by a circuit.",
      "file": "audio/vo/close_0.mp3",
-     "start": 144.337,
-     "end": 147.82,
+     "start": 156.337,
+     "end": 159.82,
      "words": [
       {
        "word": "Vox-roh.",
-       "start": 144.337,
-       "end": 145.185
+       "start": 156.337,
+       "end": 157.185
       },
       {
        "word": "Your",
-       "start": 145.417,
-       "end": 145.591
+       "start": 157.417,
+       "end": 157.591
       },
       {
        "word": "inbox,",
-       "start": 145.672,
-       "end": 146.171
+       "start": 157.672,
+       "end": 158.171
       },
       {
        "word": "priced",
-       "start": 146.206,
-       "end": 146.566
+       "start": 158.206,
+       "end": 158.566
       },
       {
        "word": "by",
-       "start": 146.624,
-       "end": 146.763
+       "start": 158.624,
+       "end": 158.763
       },
       {
        "word": "a",
-       "start": 146.833,
-       "end": 146.856
+       "start": 158.833,
+       "end": 158.856
       },
       {
        "word": "circuit.",
-       "start": 146.926,
-       "end": 147.82
+       "start": 158.926,
+       "end": 159.82
       }
      ]
     },
     {
      "text": "Built on X Layer, for TapeOut.",
      "file": "audio/vo/close_1.mp3",
-     "start": 148.22,
-     "end": 150.403,
+     "start": 160.22,
+     "end": 162.403,
      "words": [
       {
        "word": "Built",
-       "start": 148.22,
-       "end": 148.522
+       "start": 160.22,
+       "end": 160.522
       },
       {
        "word": "on",
-       "start": 148.58,
-       "end": 148.684
+       "start": 160.58,
+       "end": 160.684
       },
       {
        "word": "X",
-       "start": 148.766,
-       "end": 148.928
+       "start": 160.766,
+       "end": 160.928
       },
       {
        "word": "Layer,",
-       "start": 149.009,
-       "end": 149.346
+       "start": 161.009,
+       "end": 161.346
       },
       {
        "word": "for",
-       "start": 149.381,
-       "end": 149.52
+       "start": 161.381,
+       "end": 161.52
       },
       {
        "word": "TapeOut.",
-       "start": 149.567,
-       "end": 150.403
+       "start": 161.567,
+       "end": 162.403
       }
      ]
     }

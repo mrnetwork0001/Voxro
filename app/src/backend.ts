@@ -30,6 +30,7 @@ export const backend = {
   lock: chain.lock,
   openEnvelope: chain.openEnvelope,
   reply: chain.reply,
+  answer: chain.answer,
   claim: chain.claim,
   refundExpired: chain.refundExpired,
   decline: chain.decline,

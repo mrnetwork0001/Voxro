@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Img, staticFile } from "remotion";
+import { AbsoluteFill, Img, staticFile, getStaticFiles, Freeze as RFreeze, OffthreadVideo as RVideo } from "remotion";
 import { C, mono, sans, serif } from "./theme";
 import { at, end, lineAt, lineEnd, mix, pop, ramp, rnd, sc, useT, win, inOut } from "./lib";
 import { Dark, Msg, Shield, TapeOut, XLayer } from "./ui";
@@ -511,6 +511,54 @@ export const Close: React.FC = () => {
         <span style={{ display: "flex", alignItems: "center", gap: 10 }}><Img src={staticFile("brand/okx.svg")} style={{ height: 80, margin: "-22px 0", filter: "invert(1)" }} />OKX Wallet</span>
       </div>
       <AbsoluteFill style={{ background: "#000", opacity: ramp(t, s.from + s.dur - 1.0, s.from + s.dur) }} />
+    </Dark>
+  );
+};
+
+// ─── 10b. reach: Telegram for people, MCP and x402 for agents ───────────────────────────────
+const TG = "footage/telegram.mp4";
+const hasTg = () => getStaticFiles().some((f) => f.name === TG);
+export const Reach: React.FC = () => {
+  const t = useT();
+  const s = sc("reach");
+  const tgAt = at("reach", "telegram,"), ag = at("reach", ["agents", "a"]), mcp = at("reach", ["mcp", "m"]), x4 = at("reach", ["x402.", "x"]);
+  const tools = ["voxro_list_inboxes", "voxro_get_inbox", "voxro_send_message", "voxro_check_reply", "voxro_refund"];
+  const phoneIn = pop(t, s.from + 0.2, 14, 150);
+  const frame = Math.max(0, Math.round((t - s.from - 0.3) * 30));
+  return (
+    <Dark>
+      {/* the phone: the owner's own recording of @VoxrolayerBOT */}
+      <div style={{ position: "absolute", left: 170, top: 90, width: 430, height: 900, borderRadius: 56, background: "#000", border: "10px solid #1d2433", boxShadow: `0 60px 120px rgba(0,0,0,0.6), 0 0 80px ${C.green}18`, overflow: "hidden", opacity: Math.min(1, phoneIn), transform: `translateY(${(1 - phoneIn) * 60}px) rotate(${(1 - phoneIn) * -3}deg)` }}>
+        {hasTg() ? (
+          <RFreeze frame={frame}><RVideo src={staticFile(TG)} muted style={{ width: "100%", height: "100%", objectFit: "cover" }} /></RFreeze>
+        ) : (
+          <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 18, background: "#17212b" }}>
+            <div style={{ fontFamily: sans, fontWeight: 700, fontSize: 34, color: C.ink }}>@VoxrolayerBOT</div>
+            <Mono size={20}>screen recording pending</Mono>
+          </AbsoluteFill>
+        )}
+      </div>
+      <Fade t0={tgAt} style={{ left: 640, top: 120 }}>
+        <Kicker>Telegram · @VoxrolayerBOT</Kicker>
+        <div style={{ fontFamily: sans, fontWeight: 700, fontSize: 52, color: C.ink, letterSpacing: "-0.035em", marginTop: 12, lineHeight: 1.08 }}>Alerts the moment a<br />paid message <span style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 400, color: C.green }}>lands.</span></div>
+        <Mono size={21} style={{ marginTop: 14 }}>/price · /watch · /me · Mini App with OKX Connect</Mono>
+      </Fade>
+      <Card t0={ag} x={640} y={420} w={560}>
+        <Kicker style={{ fontSize: 18 }}>MCP server · for AI agents</Kicker>
+        <div style={{ marginTop: 12 }}>
+          {tools.map((n, i) => <div key={n} style={{ fontFamily: mono, fontSize: 22, color: C.ink, opacity: ramp(t, mcp + i * 0.12, mcp + i * 0.12 + 0.3), marginTop: 6 }}><span style={{ color: C.green }}>›</span> {n}</div>)}
+        </div>
+      </Card>
+      <Card t0={x4 - 0.2} x={1240} y={420} w={560} hot>
+        <Kicker style={{ fontSize: 18 }}>x402 · pay over HTTP</Kicker>
+        <div style={{ fontFamily: mono, fontSize: 21, color: C.ink, marginTop: 12, lineHeight: 1.6 }}>
+          <div style={{ opacity: ramp(t, x4, x4 + 0.3) }}>POST /api/agent/send/@voxro</div>
+          <div style={{ opacity: ramp(t, x4 + 0.35, x4 + 0.65), color: "#ffb347" }}>← 402 · 10 USD₮0 · eip155:196</div>
+          <div style={{ opacity: ramp(t, x4 + 0.7, x4 + 1.0) }}>X-PAYMENT: EIP-3009 signature</div>
+          <div style={{ opacity: ramp(t, x4 + 1.05, x4 + 1.35), color: C.green }}>← 200 · ticketId · held in escrow</div>
+        </div>
+      </Card>
+      <Fade t0={x4 + 1.4} style={{ left: 640, top: 760 }}><Mono size={21}>No reply in time: the agent gets 100% back.</Mono></Fade>
     </Dark>
   );
 };

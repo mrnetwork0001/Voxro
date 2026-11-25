@@ -188,6 +188,21 @@
    ]
   },
   {
+   "id": "reach",
+   "min": 12,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "Watch your inbox from Telegram, and get an alert the moment a paid message lands."
+    },
+    {
+     "text": "AI agents can reach you too, over MCP or x402.",
+     "say": "A I agents can reach you too, over M C P or x four oh two.",
+     "gap": 0.4
+    }
+   ]
+  },
+  {
    "id": "unique",
    "min": 12,
    "tail": 0.6,

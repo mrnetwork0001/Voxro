@@ -18,6 +18,7 @@ import { Intro } from '../help.tsx';
 import { useI18n } from '../i18n.tsx';
 import { TOKENS, type Token } from '../model.ts';
 import { href, profileLink, telegramAlerts } from '../router.ts';
+import { SentPendingError } from '../chain/escrow.ts';
 import { useWallet } from '../wallet/wallet.tsx';
 import { TIER_MULT } from '../circuits/catalog.ts';
 import { DeploymentNote } from './DeploymentNote.tsx';
@@ -109,6 +110,12 @@ export function Start(_: { arg: string }) {
       setCreated(ib.handle);
       setStep('done');
     } catch (e) {
+      // registered on chain but the RPC hasn't caught up: it is done, never send the user round again
+      if (e instanceof SentPendingError && /is registered as inbox/.test(e.message)) {
+        setCreated(name);
+        setStep('done');
+        return;
+      }
       setError(e instanceof Error ? e.message.slice(0, 220) : String(e));
     }
   };
