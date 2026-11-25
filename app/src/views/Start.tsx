@@ -28,7 +28,8 @@ const ORDER: Step[] = ['name', 'price', 'extras', 'review', 'run', 'done'];
 const HANDLE_RE = /^[a-z0-9_]{3,24}$/;
 const STYLES: CurveProfile[] = ['balanced', 'gentle', 'steep', 'fortress'];
 const PRICE_CHIPS: Record<Token, string[]> = { USDT0: ['5', '10', '25', '50'], USDT: ['5', '10', '25', '50'], OKB: ['0.01', '0.05', '0.1', '0.5'], FAB: ['5', '20', '50', '100'] };
-const HOURS = [24, 48, 72, 168];
+/** Reply windows on offer (the escrow allows 1 h to 14 days). */
+const HOURS = [1, 24, 48, 72, 168];
 
 async function readSetupCost() {
   const transistors = (await publicClient.readContract({ address: CONFIG.mailboxCpu, abi: circuitsAbi, functionName: 'transistors' })) as Address;

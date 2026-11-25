@@ -92,7 +92,7 @@ function InboxTicket({ ticket, inbox, now }: { ticket: TicketView; inbox: InboxV
       {ticket.status === 'Pending' && !ticket.reply && ticket.lane === 'container' && <Note>{t('inbox.containerReply')}</Note>}
       {ticket.status === 'Pending' && !ticket.reply && ticket.lane === 'guest' && (
         <div className="stack">
-          {remaining > 0 && remaining < SOON_SECONDS && <Note tone="warn">{t('inbox.soon')}</Note>}
+          {remaining > 0 && remaining < Math.min(SOON_SECONDS, (ticket.deadline - ticket.createdAt) / 4) && <Note tone="warn">{t('inbox.soon')}</Note>}
           <textarea className="input" style={{ minHeight: 70 }} placeholder={t('inbox.reply')} value={text} maxLength={4000} onChange={(e) => setText(e.target.value)} />
           <div className="row">
             <Button

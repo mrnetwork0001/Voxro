@@ -54,7 +54,29 @@ export function okxConnectProvider(): Eip1193Provider & { disconnectSession(): P
         case 'eth_requestAccounts': {
           const p = await load();
           if (!p.connected() || !accountsOf(p).length) {
-            await p.connect({ namespaces: { eip155: { chains: [CHAIN], defaultChain: '196' } }, sessionConfig: { redirect: 'tg://resolve' } });
+            // In Telegram the webview is paused while the user approves in OKX Wallet, and connect() can miss the
+            // bridge's answer and never settle. So also watch the session itself: every second and whenever the
+            // user comes back to Telegram, for up to 5 minutes; whichever sees the account first wins.
+            const ready = () => p.connected() && accountsOf(p).length > 0;
+            const viaConnect = p.connect({ namespaces: { eip155: { chains: [CHAIN], defaultChain: '196' } }, sessionConfig: { redirect: 'tg://resolve' } });
+            const viaSession = new Promise<void>((resolve, reject) => {
+              const started = Date.now();
+              const check = () => {
+                if (ready()) return done(resolve);
+                if (Date.now() - started > 300_000) return done(() => reject(new Error('OKX Wallet did not confirm the connection. Please try again.')));
+              };
+              const timer = setInterval(check, 1000);
+              const onShow = () => document.visibilityState === 'visible' && setTimeout(check, 400);
+              document.addEventListener('visibilitychange', onShow);
+              window.addEventListener('focus', onShow);
+              const done = (f: () => void) => {
+                clearInterval(timer);
+                document.removeEventListener('visibilitychange', onShow);
+                window.removeEventListener('focus', onShow);
+                f();
+              };
+            });
+            await Promise.race([viaConnect.then(() => undefined), viaSession]);
           }
           const acc = accountsOf(p);
           if (!acc.length) throw new Error('OKX Wallet did not share an X Layer account');
