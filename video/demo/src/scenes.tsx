@@ -5,6 +5,7 @@ import { at, end, lineAt, lineEnd, mix, pop, ramp, rnd, sc, useT, win, inOut } f
 import { Dark, Msg, Shield, TapeOut, XLayer } from "./ui";
 import { Browser, Card, Count, Kicker, Ladder, LADDER, mark, tierColor } from "./kit";
 import onchain from "../data/onchain.json";
+import ticket from "../data/ticket.json";
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 const A = onchain.addresses;
@@ -325,54 +326,53 @@ export const Surge: React.FC = () => {
   );
 };
 
-// ─── 8. settle: reply verified on chain, 95% paid; or a full refund ────────────────────────
+// ─── 8. settle: ticket #1, really settled on mainnet (2026-11-25), then the refund rule ──────
+const TK = ticket as unknown as { txs: Array<{ what: string; hash: string; block: number; utc: string }> };
+const TX = (k: string) => TK.txs.find((x) => x.what.startsWith(k))!;
 export const Settle: React.FC = () => {
   const t = useT();
   const s = sc("settle");
   const ans = at("settle", "answer"), chk = at("settle", "checks"), ora = at("settle", "oracle,"), pay = at("settle", "ninety-five");
   const l1 = lineAt("settle", 1), full = at("settle", "full");
   const claimOut = ramp(t, l1 - 0.3, l1 + 0.2);
-  const env = ramp(t, ans, ans + 1.2, inOut);
-  const node = (label: string, sub: string, x: number, glow?: boolean) => (
-    <div style={{ position: "absolute", left: x, top: 260, width: 300, textAlign: "center" }}>
-      <div style={{ margin: "0 auto", width: 150, height: 150, borderRadius: 75, background: glow ? "#06120a" : "#1d2742", border: `2px solid ${glow ? C.green : "rgba(255,255,255,0.16)"}`, boxShadow: glow ? `0 0 60px ${C.green}44` : undefined }} />
-      <div style={{ fontFamily: sans, fontWeight: 700, fontSize: 38, color: C.ink, marginTop: 18, letterSpacing: "-0.03em" }}>{label}</div>
-      <Mono size={19} style={{ marginTop: 4 }}>{sub}</Mono>
-    </div>
-  );
-  const checks = ["entry.from is an inbox member container", "createdAt ≤ entry.timestamp ≤ deadline", "entry.digest == keccak256(ref ‖ keccak256(payload))"];
+  const reply = TX("DeWebHub.send"), claimTx = TX("claimBounty");
+  const hm = (u: string) => u.slice(11, 19);
   return (
-    <Dark>
-      <Fade t0={s.from + 0.2} style={{ left: 140, top: 90 }}><Kicker>How a ticket settles · VoxroEscrow.sol</Kicker></Fade>
+    <Dark glow={0.8}>
       <div style={{ opacity: 1 - claimOut }}>
-        {node("Sender", "10 USD₮0 locked", 140)}
-        {node("Escrow", short(A.escrow), 810, t >= chk)}
-        {node("Recipient", "@voxro", 1480)}
-        {/* reply envelope via TapeSend */}
-        <div style={{ position: "absolute", left: mix(1580, 910, env), top: 310, opacity: t >= ans ? 1 - ramp(t, ans + 1.2, ans + 1.5) : 0, fontFamily: mono, fontSize: 20, color: C.greenInk, background: C.green, padding: "10px 16px", borderRadius: 10, whiteSpace: "nowrap" }}>TapeSend reply</div>
-        <div style={{ position: "absolute", left: 760, top: 540, width: 700 }}>
-          {checks.map((c, i) => {
-            const p = pop(t, chk + 0.25 + i * 0.3);
-            return <div key={i} style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 12, opacity: Math.min(1, p), transform: `translateX(${(1 - p) * 30}px)` }}><span style={{ fontFamily: mono, fontWeight: 700, fontSize: 24, color: C.green }}>✓</span><Mono size={22} color={C.ink}>{c}</Mono></div>;
-          })}
-        </div>
-        <Fade t0={ora} style={{ left: 140, top: 560 }}>
-          <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 64, color: C.ink, letterSpacing: "-0.04em" }}>No <span style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 400, color: C.green }}>oracle.</span></div>
-          <Mono size={20} style={{ marginTop: 6 }}>reads DeWebHub.inboxAt() directly</Mono>
+        <Fade t0={s.from + 0.15} style={{ left: 110, top: 66 }}>
+          <Kicker>Ticket #1 · settled on X Layer mainnet · {reply.utc.slice(0, 10)}</Kicker>
         </Fade>
-        <Card t0={pay} x={1290} y={720} w={480} hot>
-          <Mono size={18} color={C.green} style={{ letterSpacing: "0.12em" }}>CLAIMED · 95%</Mono>
-          <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 76, color: C.green, letterSpacing: "-0.04em", lineHeight: 1.1 }}><Count to={9.5} t0={pay} decimals={2} /> <span style={{ fontSize: 32, color: C.ink }}>USD₮0</span></div>
-          <Mono size={19}>0.50 protocol fee (5%)</Mono>
+        <Browser name="receipt" url="voxro.shieldsuite.xyz/#/receipt/1" x={110} y={120} w={1080} enter={s.from}
+          cuts={[{ t: s.from, from: 1.5, speed: 1.15 }]}
+          cams={[{ t: s.from, z: 1.25, r: { x: 300, y: 120, w: 1000, h: 500 } }, { t: l1, z: 1.3, r: { x: 300, y: 260, w: 1000, h: 500 } }]} />
+        <Card t0={ans} x={1250} y={150} w={560}>
+          <Kicker style={{ fontSize: 17 }}>Reply · DeWebHub.send</Kicker>
+          <Mono size={21} color={C.ink} style={{ marginTop: 8 }}>{hm(reply.utc)} UTC · {short(reply.hash)}</Mono>
+          <Mono size={18} style={{ marginTop: 4 }}>sealed to the sender’s key</Mono>
         </Card>
+        <Card t0={chk} x={1250} y={330} w={560}>
+          <Kicker style={{ fontSize: 17 }} color={C.ink}>Checked on chain</Kicker>
+          {["from is the inbox container", "inside the reply window", "digest matches ref + payload"].map((c, i) => (
+            <div key={c} style={{ display: "flex", gap: 12, marginTop: 8, opacity: ramp(t, chk + 0.2 + i * 0.3, chk + 0.5 + i * 0.3) }}>
+              <span style={{ fontFamily: mono, fontWeight: 700, fontSize: 22, color: C.green }}>✓</span><Mono size={20} color={C.ink}>{c}</Mono>
+            </div>
+          ))}
+          <Mono size={19} color={C.green} style={{ marginTop: 10, opacity: ramp(t, ora - 0.1, ora + 0.3) }}>no oracle · reads DeWebHub.inboxAt()</Mono>
+        </Card>
+        <Card t0={pay} x={1250} y={590} w={560} hot>
+          <Mono size={17} color={C.green} style={{ letterSpacing: "0.12em" }}>CLAIMED · 95% · {hm(claimTx.utc)} UTC</Mono>
+          <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 80, color: C.green, letterSpacing: "-0.04em", lineHeight: 1.1 }}><Count to={9.5} t0={pay} decimals={2} /> <span style={{ fontSize: 32, color: C.ink }}>USD₮0</span></div>
+          <Mono size={18}>claimBounty · {short(claimTx.hash)} · 0.50 fee</Mono>
+        </Card>
+        <Fade t0={s.from + 0.8} style={{ left: 110, bottom: 120 }}><Mono size={18} color="#6b7488">Team smoke test: both wallets belong to the Voxro team</Mono></Fade>
       </div>
-      {/* refund path */}
+      {/* the other outcome: no reply in time */}
       <div style={{ opacity: ramp(t, l1, l1 + 0.4) }}>
         <div style={{ position: "absolute", left: 140, top: 230 }}>
           <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 96, color: C.ink, letterSpacing: "-0.05em" }}>No reply <span style={{ fontFamily: serif, fontStyle: "italic", fontWeight: 400, color: C.green }}>in time?</span></div>
           <Mono size={24} style={{ marginTop: 14 }}>refundExpired() · callable by anyone after the deadline</Mono>
         </div>
-        {/* SLA ring running out */}
         <svg width={300} height={300} style={{ position: "absolute", left: 1450, top: 160 }}>
           <circle cx={150} cy={150} r={120} stroke="rgba(255,255,255,0.12)" strokeWidth={14} fill="none" />
           <circle cx={150} cy={150} r={120} stroke={C.green} strokeWidth={14} fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={ramp(t, l1, full - 0.2, inOut)} transform="rotate(-90 150 150)" strokeLinecap="round" />
@@ -383,7 +383,6 @@ export const Settle: React.FC = () => {
           <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 90, color: C.green, letterSpacing: "-0.04em", lineHeight: 1.1 }}>10.00 <span style={{ fontSize: 36, color: C.ink }}>USD₮0 back to the sender</span></div>
         </Card>
       </div>
-      <Fade t0={s.from + 0.6} style={{ left: 140, bottom: 140 }}><Mono size={18} color="#6b7488">Shown with @voxro’s live 10 USD₮0 quote · logic from VoxroEscrow.sol</Mono></Fade>
     </Dark>
   );
 };
@@ -450,7 +449,7 @@ export const Live: React.FC = () => {
       ))}
       <div style={{ position: "absolute", left: 110, top: 880, display: "flex", alignItems: "center", gap: 14, opacity: ramp(t, beta - 0.1, beta + 0.4) }}>
         <span style={{ width: 14, height: 14, borderRadius: 7, background: C.green, boxShadow: `0 0 14px ${C.green}` }} />
-        <Mono size={26} color={C.ink}>Private beta · testers inside since Monday 23 Nov</Mono>
+        <Mono size={26} color={C.ink}>Public since 25 Nov · beta testers since 23 Nov · first paid ticket settled</Mono>
       </div>
     </Dark>
   );

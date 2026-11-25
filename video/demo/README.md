@@ -20,8 +20,7 @@ A 2:33 demo film of Voxro for the X Layer TapeOut judges. It is made with Remoti
   - 157 NAND and 3 LATCH in the catalog.
   - 2,656 transitions proven with 0 mismatches, from Pulse.
   - VOXR #4 at 512 out of 512 transitions, matching on-chain in 2,831 ms, from the Prover.
-- **Not a recorded event:** the settlement scene (reply, claim 95%, or refund 100%) is a labelled motion graphic of the VoxroEscrow.sol logic, priced with @voxro's live quote.
-  - On 2026-11-25 there were no paid tickets on mainnet: `VoxroLens.dashboard().ticketCount` was 0.
+- **Settlement scene:** real. Ticket #1 was locked, answered and claimed on mainnet on 2026-11-25 (`data/ticket.json`, from `scripts/ticket.mjs`): lock `0x3f521d0d…` 18:19:40 UTC, reply `0x82498fec…` 18:24:07, claim `0x424a42b6…` 18:24:17. The footage is the live receipt page `#/receipt/1`. It was a team smoke test (both wallets are ours), labelled on screen. Only the refund outcome that follows is an illustration, since no ticket has expired yet.
   - The three checks on screen are the labels from `VoxroLens.receipt()`.
 - **Outside fact:** Coinbase acquired Earn.com in 2018 for a reported $100M. The "20–50% fees" figure is from Voxro's own landing page.
 - **Logos:** X Layer (`xlayer-icon.svg`), TapeOut (`tapeout-mark.svg`), OKX (`okx.svg`) and ShieldSuite, all unaltered.

@@ -12,6 +12,7 @@ VOXR processor (Circuits): https://www.oklink.com/x-layer/address/0xd47C1A47d809
 VoxroEscrow: https://www.oklink.com/x-layer/address/0xd463a83b572AC72C8bE328069d61d2B19Cdf73D5
 VoxroLens: https://www.oklink.com/x-layer/address/0xc994Cd83C3eA571d38Ed7EbDa8f30c05D06F5640
 Create the VOXR processor: https://www.oklink.com/x-layer/tx/0x65b253cf685cb85c862a5128d84859241005a1d77d3691dfe74738b0059009e5
+First paid message, ticket #1 (team smoke test): lock https://www.oklink.com/x-layer/tx/0x3f521d0dadf9e7f14e43ace91fba1a933c7b80d36a186ab87a64ca5c515d6e1d · reply https://www.oklink.com/x-layer/tx/0x82498fec779594ccc7e360d0d58aa55eb32a8f32fbf8a25da313db7eb4539d65 · claim https://www.oklink.com/x-layer/tx/0x424a42b645ed36d0a1a0e58ff65b32df069d8ec715ef94648345f5bc6b032b5d
 Register the first inbox, @voxro: https://www.oklink.com/x-layer/tx/0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1
 
 CHAPTERS

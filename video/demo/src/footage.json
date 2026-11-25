@@ -126,5 +126,25 @@
   "rects": {
    "wave": null
   }
+ },
+ "scan_claim": {
+  "file": "footage/scan_claim.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 186,
+  "marks": {}
+ },
+ "receipt": {
+  "file": "footage/receipt.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 486,
+  "marks": {},
+  "deviceScale": 2,
+  "viewport": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {}
  }
 }

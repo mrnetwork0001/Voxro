@@ -176,7 +176,7 @@ The mailbox circuit sits on a hub-compatible processor (Factory index 212) becau
 
 - **Mainnet launch, 2026-11-21, 13:12:30 to 13:13:11 UTC:** 20 transactions in 41 seconds, blocks 76,497,714 to 76,497,755. The VOXR processor was created, the 8-circuit catalog taped out, `VoxroEscrow` and `VoxroLens` were deployed, and @voxro was registered as inbox #1 ([registerInbox transaction](https://www.oklink.com/x-layer/tx/0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1)).
 - **The full paid loop** (send, decrypt, reply through the real DeWebHub, permissionless claim, Lens receipt with all three checks) runs in `contracts/test/Fork.t.sol` and in the CLI against an Anvil fork of X Layer ([`cli/README.md`](./cli/README.md), run of 2026-11-02).
-- **No paid ticket has been settled on mainnet yet:** on 2026-11-25 `VoxroLens.dashboard()` reports 1 inbox and 0 tickets.
+- **First paid ticket settled on mainnet, 2026-11-25:** a sender locked 10 USD₮0 to @voxro at 18:19:40 UTC ([lock](https://www.oklink.com/x-layer/tx/0x3f521d0dadf9e7f14e43ace91fba1a933c7b80d36a186ab87a64ca5c515d6e1d)), the recipient replied through DeWebHub at 18:24:07 ([reply](https://www.oklink.com/x-layer/tx/0x82498fec779594ccc7e360d0d58aa55eb32a8f32fbf8a25da313db7eb4539d65)) and claimed 9.50 USD₮0 ten seconds later ([claim](https://www.oklink.com/x-layer/tx/0x424a42b645ed36d0a1a0e58ff65b32df069d8ec715ef94648345f5bc6b032b5d)); the sender then decrypted the reply on a phone. Receipt: [#/receipt/1](https://voxro.shieldsuite.xyz/#/receipt/1). This was a smoke test by the team: both wallets are ours.
 
 ## Safety model
 
@@ -204,11 +204,11 @@ The contracts are immutable, so these are handled in the app and stated here pla
 
 | Real | Simulated or not live yet |
 | --- | --- |
-| VOXR processor, 8 taped-out circuits, `VoxroEscrow`, `VoxroLens` and `TapeOutCommunityVip` on X Layer mainnet, all exact-match verified on Sourcify (2026-11-21) | No paid ticket has been settled on mainnet yet |
+| VOXR processor, 8 taped-out circuits, `VoxroEscrow`, `VoxroLens` and `TapeOutCommunityVip` on X Layer mainnet, all exact-match verified on Sourcify (2026-11-21) | The one settled ticket so far (#1) is a team smoke test between two of our own wallets |
 | Live quotes, queue depth and price ladders read from the circuits | The x402 gateway is live, but no agent payment has gone through it on mainnet yet |
 | The 512-transition replay in the Prover, against the chain via Multicall3; reply entries in claim checks and receipts are read from DeWebHub storage | The Studio's traffic waveform is a scripted burst, labelled on the page |
 | TAP-10 v2 encryption, byte-identical to the vendored `@tapekit/send` under fixed randomness | The CLI's end-to-end run was on an Anvil fork of X Layer, not mainnet |
-| The Telegram bot and its alerts | The demo film's settlement scene is a labelled animation (see `video/demo/README.md`) |
+| The Telegram bot and its alerts; ticket #1 sent, answered, claimed and read on mainnet | The demo film's refund outcome is an illustration (no ticket has expired yet) |
 
 ## Tech stack
 

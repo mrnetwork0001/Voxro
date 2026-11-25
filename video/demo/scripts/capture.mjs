@@ -269,12 +269,29 @@ CLIPS.prover = async () => {
   await endRec("prover");
 };
 
+/** The real Receipt of ticket #1 (settled on mainnet 2026-11-25), read live from VoxroLens. */
+CLIPS.receipt = async () => {
+  await open("#/receipt/1", { settle: 9000 });
+  await rec("receipt");
+  await sleep(3000);
+  setMeta("receipt", { rects: {} });
+  await scrollTo(420, 3000);
+  await sleep(3500);
+  await scrollTo(900, 3000);
+  await sleep(3500);
+  await endRec("receipt");
+  await still("receipt_top");
+  console.log("RECEIPT:", (await js("document.querySelector('main')?.innerText.slice(0, 1200)")).replace(/\s+/g, " "));
+};
+
 /** Explorer pages for the deploy (VOXR processor, escrow, inbox registration). */
 CLIPS.explorer = async () => {
   for (const [clip, url] of [
     ["scan_cpu", "https://www.oklink.com/x-layer/tx/0x65b253cf685cb85c862a5128d84859241005a1d77d3691dfe74738b0059009e5"],
     ["scan_register", "https://www.oklink.com/x-layer/tx/0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1"],
+    ["scan_claim", "https://www.oklink.com/x-layer/tx/0x424a42b645ed36d0a1a0e58ff65b32df069d8ec715ef94648345f5bc6b032b5d"],
   ]) {
+    if (process.env.SCAN && !process.env.SCAN.split(",").includes(clip)) continue;
     await b.goto(url, 9000);
     await overlay();
     await rec(clip);

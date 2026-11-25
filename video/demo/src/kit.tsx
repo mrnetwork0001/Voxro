@@ -140,9 +140,18 @@ export const Captions: React.FC<{ hidden: (t: number, scene: string) => boolean 
   if (!s || hidden(t, s.id)) return null;
   const line = s.lines.find((l) => t >= l.start - 0.15 && t <= l.end + 0.45);
   if (!line) return null;
+  // show the written script, not the respelling given to the voice ("Vox-roh", "M C P"): when the counts
+  // differ, spread the written words over the spoken span
+  const written = line.text.split(" ");
+  const words = written.length === line.words.length
+    ? line.words.map((w, i) => ({ ...w, word: written[i]! }))
+    : written.map((word, i) => {
+        const a = line.words[Math.floor((i / written.length) * line.words.length)]!;
+        return { word, start: a.start, end: a.end };
+      });
   const chunks: typeof line.words[] = [];
   let cur: typeof line.words = [];
-  for (const w of line.words) {
+  for (const w of words) {
     cur.push(w);
     if ((/[.,?]$/.test(w.word) && cur.length >= 4) || cur.length >= 9) { chunks.push(cur); cur = []; }
   }
