@@ -6,7 +6,7 @@ Voxro turns attention into an escrow market on X Layer. Every inbox is priced by
 
 Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.xyz) product · App: [voxro.shieldsuite.xyz](https://voxro.shieldsuite.xyz) · Demo: `<VIDEO_URL>` · Code: private repository, access on request
 
-**Judges, start here:** open [voxro.shieldsuite.xyz/#/@voxro](https://voxro.shieldsuite.xyz/#/@voxro) to see the live quote for the first inbox, read from its circuit. Then open [#/prover](https://voxro.shieldsuite.xyz/#/prover), enter `#4@2.438` and press **Load & prove** to replay all 512 transitions of that circuit against X Layer in about 3 seconds. Neither needs a wallet. The in-app **Guide** (11 steps) walks through every page. During the private beta the site asks for an access code; the gate lifts at public launch.
+**Judges, start here:** open [voxro.shieldsuite.xyz/#/@voxro](https://voxro.shieldsuite.xyz/#/@voxro) to see the live quote for the first inbox, read from its circuit. Then open [#/prover](https://voxro.shieldsuite.xyz/#/prover), enter `#4@2.438` and press **Load & prove** to replay all 512 transitions of that circuit against X Layer in about 3 seconds. Neither needs a wallet. The in-app **Guide** (11 steps) walks through every page. The app went public on 2026-11-25; no account or code is needed.
 
 ---
 
