@@ -1,6 +1,7 @@
 {
   "name": "voxro",
   "private": true,
+  "license": "MIT",
   "version": "0.1.0",
   "description": "Voxro (VOXR): attention-escrow and hardware surge-pricing priority inbox on X Layer DeWEB and TapeSend",
   "packageManager": "pnpm@9.15.9",

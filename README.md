@@ -350,7 +350,7 @@ Voxro is built by [ShieldSuite](https://shieldsuite.xyz) ([@ShieldSuite_](https:
 
 ## License
 
-No open-source license has been chosen yet. All rights reserved by ShieldSuite.
+[MIT](./LICENSE) © 2026 ShieldSuite. Vendored third-party files in [`docs/upstream/`](./docs/upstream/README.md) keep their own licenses.
 
 ---
 

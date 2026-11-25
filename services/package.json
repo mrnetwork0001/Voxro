@@ -1,6 +1,7 @@
 {
   "name": "@voxro/services",
   "private": true,
+  "license": "MIT",
   "version": "0.1.0",
   "description": "Voxro services: Telegram bot, agent MCP server and x402 gateway",
   "type": "module",

@@ -1,6 +1,7 @@
 {
   "name": "@voxro/app",
   "private": true,
+  "license": "MIT",
   "version": "0.1.0",
   "description": "Voxro dApp: bilingual six-view React + Vite client for X Layer DeWEB and HTTPS",
   "type": "module",
