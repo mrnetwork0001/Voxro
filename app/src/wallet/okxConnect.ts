@@ -47,6 +47,20 @@ export function openOkxWallet(link: string) {
 }
 const WALLET_LINK = 'https://web3.okx.com/ul/connect';
 
+/**
+ * After coming back from OKX Wallet the page has just been unfrozen and the relay socket is reconnecting;
+ * a request sent in that moment never reaches the wallet. Wait until the page has been visible for a bit.
+ */
+let shownAt = Date.now();
+if (typeof document !== 'undefined') document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') shownAt = Date.now(); });
+async function settled(ms = 2500) {
+  for (let i = 0; i < 40; i++) {
+    const since = Date.now() - shownAt;
+    if (document.visibilityState === 'visible' && since >= ms) return;
+    await new Promise((r) => setTimeout(r, Math.max(250, ms - since)));
+  }
+}
+
 let uni: Promise<Uni> | null = null;
 function load(): Promise<Uni> {
   return (uni ??= import('@okxconnect/universal-provider').then((m) => (m as unknown as { OKXUniversalProvider: { init(o: unknown): Promise<Uni> } }).OKXUniversalProvider.init({ dappMetaData: { name: 'Voxro', icon: ICON } })));
@@ -121,6 +135,7 @@ export function okxConnectProvider(): Eip1193Provider & { disconnectSession(): P
         default:
           if (WALLET_METHODS.has(method)) {
             const p = await load();
+            await settled();
             const sent = p.request({ method, params }, CHAIN);
             setPending({ link: WALLET_LINK, kind: 'sign' });
             try {

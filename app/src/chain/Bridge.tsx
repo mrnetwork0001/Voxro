@@ -16,7 +16,7 @@ export function ChainBridge() {
   useEffect(() => {
     if (!DEPLOYED) return;
     setSender(w.address);
-    setWalletContext(w.walletClient && w.address ? { walletClient: w.walletClient, address: w.address, ...(w.chainId !== undefined ? { chainId: w.chainId } : {}), switchToXLayer: w.switchToXLayer } : null);
+    setWalletContext(w.walletClient && w.address ? { walletClient: w.walletClient, address: w.address, ...(w.chainId !== undefined ? { chainId: w.chainId } : {}), switchToXLayer: w.switchToXLayer, okx: w.providerName === 'OKX Wallet' } : null);
   }, [w.address, w.walletClient, w.chainId, w.switchToXLayer]);
   useEffect(() => {
     if (!DEPLOYED) return;

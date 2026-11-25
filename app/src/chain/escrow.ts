@@ -392,6 +392,8 @@ export interface WalletCtx {
   address: Address;
   chainId?: number;
   switchToXLayer: () => Promise<void>;
+  /** OKX Wallet (injected or OKX Connect): signs deterministically, so the double-sign check is skipped. */
+  okx?: boolean;
 }
 let wallet: WalletCtx | null = null;
 export const setWalletContext = (w: WalletCtx | null) => {
@@ -483,7 +485,12 @@ export async function myMember(inbox: InboxView, holder: Address) {
 }
 
 /** Derive (and cache for the session) the X25519 key of a container from the holder's signature. Secret never persisted. */
-export async function recipientKey(circuits: Address, tokenId: bigint, container: Address) {
+/**
+ * `verify` asks for the same signature twice before a key is *published*, to refuse wallets that sign
+ * non-deterministically (they could never re-derive the key). Decrypting needs no second signature: the
+ * derived key is compared with the published one instead. OKX Wallet is deterministic and is never asked twice.
+ */
+export async function recipientKey(circuits: Address, tokenId: bigint, container: Address, verify = false) {
   const cpuIndex = await cpuIndexOf(circuits);
   const w = await requireWallet();
   const cacheKey = `${container.toLowerCase()}:${w.address.toLowerCase()}`;
@@ -495,9 +502,11 @@ export async function recipientKey(circuits: Address, tokenId: bigint, container
   const signature = await w.walletClient.signMessage({ account: w.walletClient.account ?? w.address, message: text });
   // The key is re-derived from this signature on every device, so the wallet must sign deterministically
   // (RFC 6979). Ask once more and compare before trusting it; MPC wallets can differ per call.
-  emit({ kind: 'info', label: 'Sign the same message once more, to check your wallet signs it the same way' });
-  const again = await w.walletClient.signMessage({ account: w.walletClient.account ?? w.address, message: text });
-  if (!isDeterministic(signature, again)) throw new Error('This wallet gives a different signature each time, so it could never re-derive your inbox key. Use OKX Wallet with a seed phrase or a hardware wallet for this inbox.');
+  if (verify && !w.okx) {
+    emit({ kind: 'info', label: 'Sign the same message once more, to check your wallet signs it the same way' });
+    const again = await w.walletClient.signMessage({ account: w.walletClient.account ?? w.address, message: text });
+    if (!isDeterministic(signature, again)) throw new Error('This wallet gives a different signature each time, so it could never re-derive your inbox key. Use OKX Wallet with a seed phrase or a hardware wallet for this inbox.');
+  }
   const kp = deriveKeyPair({ ...params, signature, app: 'voxro' });
   keyCache.set(cacheKey, kp);
   return kp;
@@ -858,7 +867,7 @@ async function registerSteps(
   const container = kv.container as Address;
   if (!kv.usable) {
     step('key', 'running');
-    const kp = await recipientKey(mailbox.circuits, mailbox.tokenId, container);
+    const kp = await recipientKey(mailbox.circuits, mailbox.tokenId, container, true);
     const r = await tx('DeWebHub.publishKey', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...hub, functionName: 'publishKey', args: [mailbox!.circuits, mailbox!.tokenId, 1, 0, bytesToHex(kp.publicKey), 4n] }));
     step('key', 'done', bytesToHex(kp.publicKey).slice(0, 14) + '…', r.transactionHash);
   } else step('key', 'skipped', 'key already published');
@@ -943,7 +952,7 @@ export async function publishInboxKey(inbox: InboxView): Promise<void> {
   const kv = await publicClient.readContract({ ...hub, functionName: 'keyFor', args: [me.circuits, me.tokenId] });
   if (!kv.opened) throw new Error('This mailbox container is not opened yet');
   if (kv.usable) return;
-  const kp = await recipientKey(me.circuits, me.tokenId, me.container);
+  const kp = await recipientKey(me.circuits, me.tokenId, me.container, true);
   await tx('DeWebHub.publishKey', () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, ...hub, functionName: 'publishKey', args: [me.circuits, me.tokenId, 1, 0, bytesToHex(kp.publicKey), 4n] }));
   await refresh();
 }
