@@ -4,7 +4,7 @@
 
 Voxro turns attention into an escrow market on X Layer. Every inbox is priced by a small sequential circuit taped out on the VOXR processor: each unread paid message steps an onchain LATCH counter, and the quote climbs from 1× to 4× as the queue fills. The recipient answers through TapeSend, the escrow checks that reply onchain with no oracle, and pays 95%. Silence past the reply window refunds 100%. Every ticket is measured by one question: **was it answered or refunded, and can anyone verify which from chain data alone?**
 
-Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.xyz) product · App: [voxro.shieldsuite.xyz](https://voxro.shieldsuite.xyz) · Demo: `<VIDEO_URL>` · Code: private repository, access on request
+Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.xyz) product · App: [voxro.shieldsuite.xyz](https://voxro.shieldsuite.xyz) · Demo: `<VIDEO_URL>` · Code: [github.com/mrnetwork0001/Voxro](https://github.com/mrnetwork0001/Voxro) · X: [@ShieldSuite_](https://x.com/ShieldSuite_) · Telegram: [t.me/ShieldSuite](https://t.me/ShieldSuite)
 
 **Judges, start here:** open [voxro.shieldsuite.xyz/#/@voxro](https://voxro.shieldsuite.xyz/#/@voxro) to see the live quote for the first inbox, read from its circuit. Then open [#/prover](https://voxro.shieldsuite.xyz/#/prover), enter `#4@2.438` and press **Load & prove** to replay all 512 transitions of that circuit against X Layer in about 3 seconds. Neither needs a wallet. The in-app **Guide** (11 steps) walks through every page. The app went public on 2026-11-25; no account or code is needed.
 
@@ -33,7 +33,7 @@ Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.x
 | **AI agents** | An MCP (Model Context Protocol) server with `voxro_list_inboxes`, `voxro_get_inbox`, `voxro_send_message`, `voxro_check_reply` and `voxro_refund`, for agents with their own X Layer wallet. An x402 gateway lets agents pay over HTTP with USD₮0: `GET /api/agent`, then `POST /api/agent/send/@handle` answers 402 with the payment terms. The hosted MCP endpoint is `POST /mcp`. | [`/api/agent`](https://voxro.shieldsuite.xyz/api/agent), `services/src/mcp.ts`, `services/src/gateway.ts` |
 | **CLI** | `voxro catalog`, `prove`, `quote`, `send`, `stress`, `inbox --decrypt`, `reply`, `refund`, `receipt`, `deweb plan`. | [`cli/README.md`](./cli/README.md) |
 
-The app is bilingual (English and 简体中文), has dark (Obsidian) and light (Paper) themes, connects OKX Wallet through the injected provider or an OKX Connect deep link, and ships as one relative-path bundle with no CDN, web fonts or analytics, so the same build can be served from a DeWEB container.
+The app is bilingual (English and 简体中文), has dark (Obsidian) and light (Paper) themes, connects OKX Wallet through the injected provider or an OKX Connect deep link (and asks the wallet to switch to X Layer automatically), opens the Outbox for wallets that only send, and ships as one relative-path bundle with no CDN, web fonts or analytics, so the same build can be served from a DeWEB container.
 
 ## Why the TapeOut circuit is essential
 
@@ -42,6 +42,26 @@ The app is bilingual (English and 简体中文), has dark (Obsidian) and light (
 - **No TapeSend, no oracle-free settlement.** `claimBounty()` reads `DeWebHub.inboxAt(endpoint, index)` and recomputes the digest. The reply itself is the proof; no server or oracle attests to it.
 - **No DeWEB, no serverless presence.** Contact cards live in `SiteRegistry` under `tape://` names (`sdk/src/deweb/`, `app/src/card/template.ts`), so a recipient's page has no hosting bill and no host to take it down.
 - **No REF, no free composition.** Controllers compose the standard cells (`SaturatingQueue3`, `SurgeCurveDecoder`, `VipPassGate`) by reference: each is 6 NAND of glue around three REF cells, so inbox controllers reuse the shared cells for no extra transistor burn.
+
+## How Voxro is different
+
+| | Paid-DM platforms with a server (Earn.com model) | Voxro |
+| --- | --- | --- |
+| Who reads your messages | The platform's server stores them in plaintext | Nobody: sealed in the browser (TAP-10 v2), ciphertext on chain |
+| Who sets and can change the price | The platform | Your own taped-out circuit, provable before anyone pays |
+| Who decides that you replied | The platform | `claimBounty()` checks the DeWebHub reply entry on chain, no oracle |
+| Fee | Commonly 20–50% | 5% of answered messages only, 0% on refunds |
+| If the company disappears | Inboxes and balances go with it | Ownerless escrow, inbox NFT and DeWebHub messages stay on X Layer |
+| Price under load | Flat | Surges 1× → 4× as unread messages pile up, cools as you reply |
+| Agents | None | MCP tools and x402 pay-per-message over HTTP |
+
+## What's next
+
+- **Contact cards on DeWEB:** publish each inbox's bio page under `tape://` from the Card page, so a link in a bio has no host at all.
+- **Team inboxes:** up to 16 member containers already work in the contract; the app gets shared triage and per-member replies.
+- **VIP rules for the TapeOut community:** discounts for FabX rig, TapeCode, BEM and FAB holders are deployed (`TapeOutCommunityVip`); next is rules for any partner processor from the Studio.
+- **Agents as senders and as recipients:** agents already pay to reach people over MCP and x402; next, agents with their own inboxes that answer for a fee.
+- **Reputation on every inbox:** answered, refunded and reply-time stats are on chain today; next, a public leaderboard so senders can find the people who reply.
 
 ## Architecture
 
@@ -299,6 +319,14 @@ Voxro/
 ├── TAPEOUT_XLAYER_SPEC.md     verified X Layer addresses, ABIs and fee formulas
 └── CIRCUITS_AND_CONTRACTS.md  gate-level circuit specs and contract design
 ```
+
+## Team
+
+Voxro is built by [ShieldSuite](https://shieldsuite.xyz) ([@ShieldSuite_](https://x.com/ShieldSuite_)), a small Web3 security and tooling studio on X Layer that builds onchain products end to end: Solidity contracts, TypeScript SDKs, web apps, Telegram bots and AI agent integrations.
+
+- Placed in three X Layer hackathons: **Build X S2 (3rd)**, **X Layer X Cup (2nd)** and **Hook X World Cup hackathon (2nd)**.
+- Our main product, ShieldSuite, is a token security scanner and agent live on the OKX.AI marketplace (agent #4959).
+- Voxro was built from scratch for TapeOut, starting 2026-11-01, launched on X Layer mainnet on 2026-11-21 and opened to the public on 2026-11-25.
 
 ## Pre-existing work and credits
 
