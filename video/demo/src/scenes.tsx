@@ -346,6 +346,10 @@ export const Settle: React.FC = () => {
         <Browser name="receipt" url="voxro.shieldsuite.xyz/#/receipt/1" x={110} y={120} w={1080} enter={s.from}
           cuts={[{ t: s.from, from: 1.5, speed: 1.15 }]}
           cams={[{ t: s.from, z: 1.25, r: { x: 300, y: 120, w: 1000, h: 500 } }, { t: l1, z: 1.3, r: { x: 300, y: 260, w: 1000, h: 500 } }]} />
+        {/* at "ninety-five percent": the claim transaction itself on the OKX explorer, USD₮0 landing in the recipient's wallet */}
+        <Browser name="scan_claim" url={`web3.okx.com/explorer/x-layer/tx/${claimTx.hash.slice(0, 12)}…`} x={110} y={120} w={1080} enter={pay - 0.35}
+          cuts={[{ t: pay - 0.35, from: 1.0 }]}
+          cams={[{ t: pay - 0.35, r: { x: 180, y: 300, w: 820, h: 280 } }, { t: l1, r: { x: 180, y: 330, w: 760, h: 240 } }]} />
         <Card t0={ans} x={1250} y={150} w={560}>
           <Kicker style={{ fontSize: 17 }}>Reply · DeWebHub.send</Kicker>
           <Mono size={21} color={C.ink} style={{ marginTop: 8 }}>{hm(reply.utc)} UTC · {short(reply.hash)}</Mono>
@@ -363,7 +367,7 @@ export const Settle: React.FC = () => {
         <Card t0={pay} x={1250} y={590} w={560} hot>
           <Mono size={17} color={C.green} style={{ letterSpacing: "0.12em" }}>CLAIMED · 95% · {hm(claimTx.utc)} UTC</Mono>
           <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 80, color: C.green, letterSpacing: "-0.04em", lineHeight: 1.1 }}><Count to={9.5} t0={pay} decimals={2} /> <span style={{ fontSize: 32, color: C.ink }}>USD₮0</span></div>
-          <Mono size={18}>claimBounty · {short(claimTx.hash)} · 0.50 fee</Mono>
+          <Mono size={18}>claimBounty · {short(claimTx.hash)} · 5% fee, 0.01 of it tips the caller</Mono>
         </Card>
         <Fade t0={s.from + 0.8} style={{ left: 110, bottom: 120 }}><Mono size={18} color="#6b7488">Team smoke test: both wallets belong to the Voxro team</Mono></Fade>
       </div>
@@ -440,7 +444,7 @@ export const Live: React.FC = () => {
         <Kicker>X Layer mainnet · {FIRST.utc.slice(0, 10)} · {onchain.txs.length} transactions in {LAUNCH_SECONDS} seconds</Kicker>
       </Fade>
       <Browser name="scan_register" url={`web3.okx.com/explorer/x-layer/tx/${REG.hash.slice(0, 14)}…`} x={110} y={140} w={1000} enter={s.from + 0.1}
-        cuts={[{ t: s.from, from: 0.5 }]} cams={[{ t: s.from, r: { x: 140, y: 160, w: 1100, h: 520 }, z: 1.3 }, { t: end("live"), r: { x: 140, y: 230, w: 1000, h: 420 }, z: 1.45 }]} />
+        cuts={[{ t: s.from, from: 0.5 }]} cams={[{ t: s.from, r: { x: 150, y: 150, w: 900, h: 480 }, z: 1.4 }, { t: end("live"), r: { x: 150, y: 250, w: 860, h: 400 }, z: 1.5 }]} />
       {items.map(([a, title, sub], i) => (
         <Card key={title} t0={a} x={1170} y={150 + i * 175} w={640} hot={i === 3}>
           <div style={{ fontFamily: sans, fontWeight: 700, fontSize: 40, color: C.ink, letterSpacing: "-0.03em" }}>{title}</div>

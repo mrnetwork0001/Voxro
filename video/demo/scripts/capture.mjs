@@ -293,6 +293,12 @@ CLIPS.explorer = async () => {
   ]) {
     if (process.env.SCAN && !process.env.SCAN.split(",").includes(clip)) continue;
     await b.goto(url, 9000);
+    // OKX's bot check shows "Just a moment..." first: wait for the real page (and reload once if needed)
+    for (let i = 0; i < 20 && /moment|verification/i.test(await js("document.title + ' ' + document.body.innerText.slice(0, 200)")); i++) {
+      await sleep(2000);
+      if (i === 8) await b.goto(url, 9000);
+    }
+    await sleep(3000);
     await overlay();
     await rec(clip);
     await sleep(6000);
