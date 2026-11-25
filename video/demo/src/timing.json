@@ -1,0 +1,1946 @@
+{
+ "total": 153.03699999999998,
+ "scenes": [
+  {
+   "id": "open",
+   "from": 0,
+   "dur": 10.02,
+   "lines": [
+    {
+     "text": "This price tag is made of logic gates.",
+     "file": "audio/vo/open_0.mp3",
+     "start": 0.8,
+     "end": 3.447,
+     "words": [
+      {
+       "word": "This",
+       "start": 0.8,
+       "end": 1.055
+      },
+      {
+       "word": "price",
+       "start": 1.137,
+       "end": 1.439
+      },
+      {
+       "word": "tag",
+       "start": 1.473,
+       "end": 1.717
+      },
+      {
+       "word": "is",
+       "start": 1.764,
+       "end": 1.833
+      },
+      {
+       "word": "made",
+       "start": 1.903,
+       "end": 2.1
+      },
+      {
+       "word": "of",
+       "start": 2.124,
+       "end": 2.17
+      },
+      {
+       "word": "logic",
+       "start": 2.251,
+       "end": 2.588
+      },
+      {
+       "word": "gates.",
+       "start": 2.658,
+       "end": 3.447
+      }
+     ]
+    },
+    {
+     "text": "A hundred and fifty-seven of them, taped out on X Layer. And they decide what it costs to reach you.",
+     "file": "audio/vo/open_1.mp3",
+     "start": 3.847,
+     "end": 9.42,
+     "words": [
+      {
+       "word": "A",
+       "start": 3.847,
+       "end": 3.94
+      },
+      {
+       "word": "hundred",
+       "start": 4.021,
+       "end": 4.277
+      },
+      {
+       "word": "and",
+       "start": 4.311,
+       "end": 4.381
+      },
+      {
+       "word": "fifty-seven",
+       "start": 4.439,
+       "end": 5.02
+      },
+      {
+       "word": "of",
+       "start": 5.066,
+       "end": 5.112
+      },
+      {
+       "word": "them,",
+       "start": 5.159,
+       "end": 5.403
+      },
+      {
+       "word": "taped",
+       "start": 5.496,
+       "end": 5.786
+      },
+      {
+       "word": "out",
+       "start": 5.821,
+       "end": 5.972
+      },
+      {
+       "word": "on",
+       "start": 6.018,
+       "end": 6.099
+      },
+      {
+       "word": "X",
+       "start": 6.181,
+       "end": 6.32
+      },
+      {
+       "word": "Layer.",
+       "start": 6.413,
+       "end": 6.831
+      },
+      {
+       "word": "And",
+       "start": 7.017,
+       "end": 7.144
+      },
+      {
+       "word": "they",
+       "start": 7.179,
+       "end": 7.307
+      },
+      {
+       "word": "decide",
+       "start": 7.365,
+       "end": 7.76
+      },
+      {
+       "word": "what",
+       "start": 7.783,
+       "end": 7.899
+      },
+      {
+       "word": "it",
+       "start": 7.934,
+       "end": 7.992
+      },
+      {
+       "word": "costs",
+       "start": 8.05,
+       "end": 8.421
+      },
+      {
+       "word": "to",
+       "start": 8.479,
+       "end": 8.549
+      },
+      {
+       "word": "reach",
+       "start": 8.63,
+       "end": 8.839
+      },
+      {
+       "word": "you.",
+       "start": 8.897,
+       "end": 9.42
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "problem",
+   "from": 10.02,
+   "dur": 14.789000000000001,
+   "lines": [
+    {
+     "text": "Everyone worth reaching has closed their DMs.",
+     "file": "audio/vo/problem_0.mp3",
+     "start": 10.32,
+     "end": 13.06,
+     "words": [
+      {
+       "word": "Everyone",
+       "start": 10.32,
+       "end": 10.784
+      },
+      {
+       "word": "worth",
+       "start": 10.819,
+       "end": 11.051
+      },
+      {
+       "word": "reaching",
+       "start": 11.121,
+       "end": 11.458
+      },
+      {
+       "word": "has",
+       "start": 11.516,
+       "end": 11.62
+      },
+      {
+       "word": "closed",
+       "start": 11.678,
+       "end": 11.992
+      },
+      {
+       "word": "their",
+       "start": 12.015,
+       "end": 12.166
+      },
+      {
+       "word": "DMs.",
+       "start": 12.201,
+       "end": 13.06
+      }
+     ]
+    },
+    {
+     "text": "Founders, investors and auditors drown in bots and scams. So they stop reading.",
+     "file": "audio/vo/problem_1.mp3",
+     "start": 13.41,
+     "end": 18.843,
+     "words": [
+      {
+       "word": "Founders,",
+       "start": 13.41,
+       "end": 13.932
+      },
+      {
+       "word": "investors",
+       "start": 13.956,
+       "end": 14.513
+      },
+      {
+       "word": "and",
+       "start": 14.548,
+       "end": 14.641
+      },
+      {
+       "word": "auditors",
+       "start": 14.71,
+       "end": 15.186
+      },
+      {
+       "word": "drown",
+       "start": 15.244,
+       "end": 15.569
+      },
+      {
+       "word": "in",
+       "start": 15.616,
+       "end": 15.686
+      },
+      {
+       "word": "bots",
+       "start": 15.767,
+       "end": 16.08
+      },
+      {
+       "word": "and",
+       "start": 16.115,
+       "end": 16.208
+      },
+      {
+       "word": "scams.",
+       "start": 16.278,
+       "end": 16.997
+      },
+      {
+       "word": "So",
+       "start": 17.404,
+       "end": 17.532
+      },
+      {
+       "word": "they",
+       "start": 17.59,
+       "end": 17.706
+      },
+      {
+       "word": "stop",
+       "start": 17.764,
+       "end": 18.008
+      },
+      {
+       "word": "reading.",
+       "start": 18.089,
+       "end": 18.843
+      }
+     ]
+    },
+    {
+     "text": "And the real deal, the bug report, the partnership, gets lost with the spam.",
+     "file": "audio/vo/problem_2.mp3",
+     "start": 19.193,
+     "end": 24.209,
+     "words": [
+      {
+       "word": "And",
+       "start": 19.193,
+       "end": 19.344
+      },
+      {
+       "word": "the",
+       "start": 19.39,
+       "end": 19.46
+      },
+      {
+       "word": "real",
+       "start": 19.53,
+       "end": 19.762
+      },
+      {
+       "word": "deal,",
+       "start": 19.832,
+       "end": 20.296
+      },
+      {
+       "word": "the",
+       "start": 20.424,
+       "end": 20.528
+      },
+      {
+       "word": "bug",
+       "start": 20.575,
+       "end": 20.772
+      },
+      {
+       "word": "report,",
+       "start": 20.853,
+       "end": 21.457
+      },
+      {
+       "word": "the",
+       "start": 21.619,
+       "end": 21.712
+      },
+      {
+       "word": "partnership,",
+       "start": 21.77,
+       "end": 22.432
+      },
+      {
+       "word": "gets",
+       "start": 22.513,
+       "end": 22.722
+      },
+      {
+       "word": "lost",
+       "start": 22.78,
+       "end": 23.024
+      },
+      {
+       "word": "with",
+       "start": 23.059,
+       "end": 23.187
+      },
+      {
+       "word": "the",
+       "start": 23.222,
+       "end": 23.291
+      },
+      {
+       "word": "spam.",
+       "start": 23.326,
+       "end": 24.209
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "evidence",
+   "from": 24.809,
+   "dur": 11,
+   "lines": [
+    {
+     "text": "Paying for attention works.",
+     "file": "audio/vo/evidence_0.mp3",
+     "start": 25.109,
+     "end": 26.781,
+     "words": [
+      {
+       "word": "Paying",
+       "start": 25.109,
+       "end": 25.457
+      },
+      {
+       "word": "for",
+       "start": 25.504,
+       "end": 25.597
+      },
+      {
+       "word": "attention",
+       "start": 25.643,
+       "end": 26.061
+      },
+      {
+       "word": "works.",
+       "start": 26.119,
+       "end": 26.781
+      }
+     ]
+    },
+    {
+     "text": "Coinbase bought Earn.com for a hundred million dollars.",
+     "file": "audio/vo/evidence_1.mp3",
+     "start": 27.081,
+     "end": 30.332,
+     "words": [
+      {
+       "word": "Coinbase",
+       "start": 27.081,
+       "end": 27.627
+      },
+      {
+       "word": "bought",
+       "start": 27.673,
+       "end": 27.894
+      },
+      {
+       "word": "Earn",
+       "start": 27.963,
+       "end": 28.103
+      },
+      {
+       "word": "dot",
+       "start": 28.161,
+       "end": 28.323
+      },
+      {
+       "word": "com",
+       "start": 28.381,
+       "end": 28.625
+      },
+      {
+       "word": "for",
+       "start": 28.695,
+       "end": 28.811
+      },
+      {
+       "word": "a",
+       "start": 28.857,
+       "end": 28.881
+      },
+      {
+       "word": "hundred",
+       "start": 28.939,
+       "end": 29.206
+      },
+      {
+       "word": "million",
+       "start": 29.24,
+       "end": 29.519
+      },
+      {
+       "word": "dollars.",
+       "start": 29.566,
+       "end": 30.332
+      }
+     ]
+    },
+    {
+     "text": "But a server sat in the middle, read every message, and took up to half.",
+     "file": "audio/vo/evidence_2.mp3",
+     "start": 30.682000000000002,
+     "end": 34.769,
+     "words": [
+      {
+       "word": "But",
+       "start": 30.682,
+       "end": 30.868
+      },
+      {
+       "word": "a",
+       "start": 30.903,
+       "end": 30.926
+      },
+      {
+       "word": "server",
+       "start": 30.995,
+       "end": 31.297
+      },
+      {
+       "word": "sat",
+       "start": 31.355,
+       "end": 31.541
+      },
+      {
+       "word": "in",
+       "start": 31.599,
+       "end": 31.657
+      },
+      {
+       "word": "the",
+       "start": 31.68,
+       "end": 31.75
+      },
+      {
+       "word": "middle,",
+       "start": 31.785,
+       "end": 32.11
+      },
+      {
+       "word": "read",
+       "start": 32.238,
+       "end": 32.447
+      },
+      {
+       "word": "every",
+       "start": 32.516,
+       "end": 32.772
+      },
+      {
+       "word": "message,",
+       "start": 32.83,
+       "end": 33.317
+      },
+      {
+       "word": "and",
+       "start": 33.41,
+       "end": 33.55
+      },
+      {
+       "word": "took",
+       "start": 33.596,
+       "end": 33.759
+      },
+      {
+       "word": "up",
+       "start": 33.805,
+       "end": 33.898
+      },
+      {
+       "word": "to",
+       "start": 33.944,
+       "end": 34.002
+      },
+      {
+       "word": "half.",
+       "start": 34.084,
+       "end": 34.769
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "turn",
+   "from": 35.809,
+   "dur": 7,
+   "lines": [
+    {
+     "text": "So we built Voxro.",
+     "file": "audio/vo/turn_0.mp3",
+     "start": 36.409,
+     "end": 38.22,
+     "words": [
+      {
+       "word": "So",
+       "start": 36.409,
+       "end": 36.618
+      },
+      {
+       "word": "we",
+       "start": 36.688,
+       "end": 36.781
+      },
+      {
+       "word": "built",
+       "start": 36.85,
+       "end": 37.094
+      },
+      {
+       "word": "Vox-roh.",
+       "start": 37.164,
+       "end": 38.22
+      }
+     ]
+    },
+    {
+     "text": "A paid priority inbox, with no server.",
+     "file": "audio/vo/turn_1.mp3",
+     "start": 38.519999999999996,
+     "end": 41.306,
+     "words": [
+      {
+       "word": "A",
+       "start": 38.52,
+       "end": 38.613
+      },
+      {
+       "word": "paid",
+       "start": 38.694,
+       "end": 38.938
+      },
+      {
+       "word": "priority",
+       "start": 38.996,
+       "end": 39.495
+      },
+      {
+       "word": "inbox,",
+       "start": 39.565,
+       "end": 40.122
+      },
+      {
+       "word": "with",
+       "start": 40.157,
+       "end": 40.331
+      },
+      {
+       "word": "no",
+       "start": 40.378,
+       "end": 40.494
+      },
+      {
+       "word": "server.",
+       "start": 40.575,
+       "end": 41.306
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "stack",
+   "from": 42.809,
+   "dur": 14.161000000000001,
+   "lines": [
+    {
+     "text": "It runs on X Layer, and you sign with OKX Wallet.",
+     "file": "audio/vo/stack_0.mp3",
+     "start": 43.108999999999995,
+     "end": 46.546,
+     "words": [
+      {
+       "word": "It",
+       "start": 43.109,
+       "end": 43.272
+      },
+      {
+       "word": "runs",
+       "start": 43.318,
+       "end": 43.55
+      },
+      {
+       "word": "on",
+       "start": 43.597,
+       "end": 43.689
+      },
+      {
+       "word": "X",
+       "start": 43.771,
+       "end": 43.933
+      },
+      {
+       "word": "Layer,",
+       "start": 44.015,
+       "end": 44.398
+      },
+      {
+       "word": "and",
+       "start": 44.56,
+       "end": 44.676
+      },
+      {
+       "word": "you",
+       "start": 44.734,
+       "end": 44.804
+      },
+      {
+       "word": "sign",
+       "start": 44.862,
+       "end": 45.071
+      },
+      {
+       "word": "with",
+       "start": 45.106,
+       "end": 45.222
+      },
+      {
+       "word": "OKX",
+       "start": 45.28,
+       "end": 45.756
+      },
+      {
+       "word": "Wallet.",
+       "start": 45.849,
+       "end": 46.546
+      }
+     ]
+    },
+    {
+     "text": "Every part comes from the TapeOut ecosystem. Circuits set the price. TapeSend carries the message. DeWEB hosts your contact card.",
+     "file": "audio/vo/stack_1.mp3",
+     "start": 46.896,
+     "end": 56.37,
+     "words": [
+      {
+       "word": "Every",
+       "start": 46.896,
+       "end": 47.221
+      },
+      {
+       "word": "part",
+       "start": 47.279,
+       "end": 47.546
+      },
+      {
+       "word": "comes",
+       "start": 47.616,
+       "end": 47.86
+      },
+      {
+       "word": "from",
+       "start": 47.906,
+       "end": 48.057
+      },
+      {
+       "word": "the",
+       "start": 48.103,
+       "end": 48.173
+      },
+      {
+       "word": "TapeOut",
+       "start": 48.22,
+       "end": 48.661
+      },
+      {
+       "word": "ecosystem.",
+       "start": 48.73,
+       "end": 49.636
+      },
+      {
+       "word": "Circuits",
+       "start": 50.1,
+       "end": 50.588
+      },
+      {
+       "word": "set",
+       "start": 50.623,
+       "end": 50.843
+      },
+      {
+       "word": "the",
+       "start": 50.89,
+       "end": 50.959
+      },
+      {
+       "word": "price.",
+       "start": 51.006,
+       "end": 51.575
+      },
+      {
+       "word": "Tape",
+       "start": 52.039,
+       "end": 52.364
+      },
+      {
+       "word": "Send",
+       "start": 52.399,
+       "end": 52.678
+      },
+      {
+       "word": "carries",
+       "start": 52.759,
+       "end": 53.096
+      },
+      {
+       "word": "the",
+       "start": 53.131,
+       "end": 53.2
+      },
+      {
+       "word": "message.",
+       "start": 53.235,
+       "end": 53.804
+      },
+      {
+       "word": "Dee",
+       "start": 54.059,
+       "end": 54.292
+      },
+      {
+       "word": "Web",
+       "start": 54.361,
+       "end": 54.64
+      },
+      {
+       "word": "hosts",
+       "start": 54.721,
+       "end": 55
+      },
+      {
+       "word": "your",
+       "start": 55.046,
+       "end": 55.162
+      },
+      {
+       "word": "contact",
+       "start": 55.209,
+       "end": 55.615
+      },
+      {
+       "word": "card.",
+       "start": 55.673,
+       "end": 56.37
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "send",
+   "from": 56.97,
+   "dur": 17,
+   "lines": [
+    {
+     "text": "Find someone in the Directory. Here's the first inbox, at voxro.",
+     "file": "audio/vo/send_0.mp3",
+     "start": 57.269999999999996,
+     "end": 61.775,
+     "words": [
+      {
+       "word": "Find",
+       "start": 57.27,
+       "end": 57.583
+      },
+      {
+       "word": "someone",
+       "start": 57.63,
+       "end": 57.897
+      },
+      {
+       "word": "in",
+       "start": 57.92,
+       "end": 57.978
+      },
+      {
+       "word": "the",
+       "start": 58.013,
+       "end": 58.083
+      },
+      {
+       "word": "Directory.",
+       "start": 58.129,
+       "end": 58.907
+      },
+      {
+       "word": "Here's",
+       "start": 59.244,
+       "end": 59.522
+      },
+      {
+       "word": "the",
+       "start": 59.557,
+       "end": 59.627
+      },
+      {
+       "word": "first",
+       "start": 59.673,
+       "end": 59.94
+      },
+      {
+       "word": "inbox,",
+       "start": 59.998,
+       "end": 60.521
+      },
+      {
+       "word": "at",
+       "start": 60.556,
+       "end": 60.718
+      },
+      {
+       "word": "Vox-roh.",
+       "start": 60.765,
+       "end": 61.775
+      }
+     ]
+    },
+    {
+     "text": "The live quote is ten dollars, read straight from its circuit.",
+     "file": "audio/vo/send_1.mp3",
+     "start": 62.125,
+     "end": 65.608,
+     "words": [
+      {
+       "word": "The",
+       "start": 62.125,
+       "end": 62.276
+      },
+      {
+       "word": "live",
+       "start": 62.346,
+       "end": 62.578
+      },
+      {
+       "word": "quote",
+       "start": 62.613,
+       "end": 62.868
+      },
+      {
+       "word": "is",
+       "start": 62.914,
+       "end": 62.984
+      },
+      {
+       "word": "ten",
+       "start": 63.031,
+       "end": 63.216
+      },
+      {
+       "word": "dollars,",
+       "start": 63.274,
+       "end": 63.716
+      },
+      {
+       "word": "read",
+       "start": 63.901,
+       "end": 64.11
+      },
+      {
+       "word": "straight",
+       "start": 64.168,
+       "end": 64.459
+      },
+      {
+       "word": "from",
+       "start": 64.493,
+       "end": 64.598
+      },
+      {
+       "word": "its",
+       "start": 64.644,
+       "end": 64.76
+      },
+      {
+       "word": "circuit.",
+       "start": 64.795,
+       "end": 65.608
+      }
+     ]
+    },
+    {
+     "text": "Your message is sealed in your browser to their key, and the money waits in escrow.",
+     "file": "audio/vo/send_2.mp3",
+     "start": 65.958,
+     "end": 70.648,
+     "words": [
+      {
+       "word": "Your",
+       "start": 65.958,
+       "end": 66.19
+      },
+      {
+       "word": "message",
+       "start": 66.237,
+       "end": 66.608
+      },
+      {
+       "word": "is",
+       "start": 66.643,
+       "end": 66.724
+      },
+      {
+       "word": "sealed",
+       "start": 66.771,
+       "end": 67.084
+      },
+      {
+       "word": "in",
+       "start": 67.119,
+       "end": 67.189
+      },
+      {
+       "word": "your",
+       "start": 67.235,
+       "end": 67.351
+      },
+      {
+       "word": "browser",
+       "start": 67.398,
+       "end": 67.781
+      },
+      {
+       "word": "to",
+       "start": 67.827,
+       "end": 67.885
+      },
+      {
+       "word": "their",
+       "start": 67.955,
+       "end": 68.106
+      },
+      {
+       "word": "key,",
+       "start": 68.176,
+       "end": 68.547
+      },
+      {
+       "word": "and",
+       "start": 68.733,
+       "end": 68.884
+      },
+      {
+       "word": "the",
+       "start": 68.93,
+       "end": 69
+      },
+      {
+       "word": "money",
+       "start": 69.046,
+       "end": 69.267
+      },
+      {
+       "word": "waits",
+       "start": 69.337,
+       "end": 69.615
+      },
+      {
+       "word": "in",
+       "start": 69.662,
+       "end": 69.731
+      },
+      {
+       "word": "escrow.",
+       "start": 69.801,
+       "end": 70.648
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "surge",
+   "from": 73.97,
+   "dur": 15,
+   "lines": [
+    {
+     "text": "Every unread message steps a counter inside the circuit.",
+     "file": "audio/vo/surge_0.mp3",
+     "start": 74.27,
+     "end": 77.846,
+     "words": [
+      {
+       "word": "Every",
+       "start": 74.27,
+       "end": 74.618
+      },
+      {
+       "word": "unread",
+       "start": 74.7,
+       "end": 75.083
+      },
+      {
+       "word": "message",
+       "start": 75.152,
+       "end": 75.594
+      },
+      {
+       "word": "steps",
+       "start": 75.721,
+       "end": 76.035
+      },
+      {
+       "word": "a",
+       "start": 76.07,
+       "end": 76.093
+      },
+      {
+       "word": "counter",
+       "start": 76.162,
+       "end": 76.499
+      },
+      {
+       "word": "inside",
+       "start": 76.546,
+       "end": 76.905
+      },
+      {
+       "word": "the",
+       "start": 76.94,
+       "end": 77.01
+      },
+      {
+       "word": "circuit.",
+       "start": 77.056,
+       "end": 77.846
+      }
+     ]
+    },
+    {
+     "text": "The busier they are, the more it costs. Ten. Fifteen. Twenty-five. Forty.",
+     "file": "audio/vo/surge_1.mp3",
+     "start": 78.196,
+     "end": 83.955,
+     "words": [
+      {
+       "word": "The",
+       "start": 78.196,
+       "end": 78.359
+      },
+      {
+       "word": "busier",
+       "start": 78.405,
+       "end": 78.742
+      },
+      {
+       "word": "they",
+       "start": 78.788,
+       "end": 78.927
+      },
+      {
+       "word": "are,",
+       "start": 78.985,
+       "end": 79.241
+      },
+      {
+       "word": "the",
+       "start": 79.276,
+       "end": 79.345
+      },
+      {
+       "word": "more",
+       "start": 79.392,
+       "end": 79.543
+      },
+      {
+       "word": "it",
+       "start": 79.578,
+       "end": 79.647
+      },
+      {
+       "word": "costs.",
+       "start": 79.717,
+       "end": 80.379
+      },
+      {
+       "word": "Ten.",
+       "start": 80.715,
+       "end": 81.18
+      },
+      {
+       "word": "Fifteen.",
+       "start": 81.307,
+       "end": 81.9
+      },
+      {
+       "word": "Twenty-five.",
+       "start": 81.992,
+       "end": 82.875
+      },
+      {
+       "word": "Forty.",
+       "start": 83.13,
+       "end": 83.955
+      }
+     ]
+    },
+    {
+     "text": "Reply, and the price cools back down.",
+     "file": "audio/vo/surge_2.mp3",
+     "start": 84.30499999999999,
+     "end": 86.766,
+     "words": [
+      {
+       "word": "Reply,",
+       "start": 84.305,
+       "end": 84.874
+      },
+      {
+       "word": "and",
+       "start": 84.897,
+       "end": 85.013
+      },
+      {
+       "word": "the",
+       "start": 85.048,
+       "end": 85.118
+      },
+      {
+       "word": "price",
+       "start": 85.153,
+       "end": 85.42
+      },
+      {
+       "word": "cools",
+       "start": 85.466,
+       "end": 85.745
+      },
+      {
+       "word": "back",
+       "start": 85.803,
+       "end": 85.977
+      },
+      {
+       "word": "down.",
+       "start": 86.046,
+       "end": 86.766
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "settle",
+   "from": 88.97,
+   "dur": 15,
+   "lines": [
+    {
+     "text": "They answer through TapeSend. The escrow checks that reply on chain, with no oracle, and pays them ninety-five percent.",
+     "file": "audio/vo/settle_0.mp3",
+     "start": 89.27,
+     "end": 97.304,
+     "words": [
+      {
+       "word": "They",
+       "start": 89.27,
+       "end": 89.502
+      },
+      {
+       "word": "answer",
+       "start": 89.572,
+       "end": 89.897
+      },
+      {
+       "word": "through",
+       "start": 89.955,
+       "end": 90.199
+      },
+      {
+       "word": "Tape",
+       "start": 90.257,
+       "end": 90.547
+      },
+      {
+       "word": "Send.",
+       "start": 90.582,
+       "end": 91.104
+      },
+      {
+       "word": "The",
+       "start": 91.743,
+       "end": 91.871
+      },
+      {
+       "word": "escrow",
+       "start": 91.94,
+       "end": 92.3
+      },
+      {
+       "word": "checks",
+       "start": 92.358,
+       "end": 92.649
+      },
+      {
+       "word": "that",
+       "start": 92.683,
+       "end": 92.811
+      },
+      {
+       "word": "reply",
+       "start": 92.881,
+       "end": 93.183
+      },
+      {
+       "word": "on",
+       "start": 93.252,
+       "end": 93.345
+      },
+      {
+       "word": "chain,",
+       "start": 93.426,
+       "end": 93.926
+      },
+      {
+       "word": "with",
+       "start": 94.053,
+       "end": 94.227
+      },
+      {
+       "word": "no",
+       "start": 94.286,
+       "end": 94.425
+      },
+      {
+       "word": "oracle,",
+       "start": 94.506,
+       "end": 95.087
+      },
+      {
+       "word": "and",
+       "start": 95.249,
+       "end": 95.412
+      },
+      {
+       "word": "pays",
+       "start": 95.47,
+       "end": 95.702
+      },
+      {
+       "word": "them",
+       "start": 95.748,
+       "end": 95.864
+      },
+      {
+       "word": "ninety-five",
+       "start": 95.923,
+       "end": 96.445
+      },
+      {
+       "word": "percent.",
+       "start": 96.468,
+       "end": 97.304
+      }
+     ]
+    },
+    {
+     "text": "No reply in time? You get a full refund.",
+     "file": "audio/vo/settle_1.mp3",
+     "start": 97.70400000000001,
+     "end": 100.583,
+     "words": [
+      {
+       "word": "No",
+       "start": 97.704,
+       "end": 97.878
+      },
+      {
+       "word": "reply",
+       "start": 97.959,
+       "end": 98.25
+      },
+      {
+       "word": "in",
+       "start": 98.308,
+       "end": 98.389
+      },
+      {
+       "word": "time?",
+       "start": 98.459,
+       "end": 98.923
+      },
+      {
+       "word": "You",
+       "start": 99.109,
+       "end": 99.213
+      },
+      {
+       "word": "get",
+       "start": 99.283,
+       "end": 99.387
+      },
+      {
+       "word": "a",
+       "start": 99.422,
+       "end": 99.445
+      },
+      {
+       "word": "full",
+       "start": 99.492,
+       "end": 99.678
+      },
+      {
+       "word": "refund.",
+       "start": 99.747,
+       "end": 100.583
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "proof",
+   "from": 103.97,
+   "dur": 15.066999999999993,
+   "lines": [
+    {
+     "text": "And you can prove the rules before you pay.",
+     "file": "audio/vo/proof_0.mp3",
+     "start": 104.27,
+     "end": 106.731,
+     "words": [
+      {
+       "word": "And",
+       "start": 104.27,
+       "end": 104.433
+      },
+      {
+       "word": "you",
+       "start": 104.491,
+       "end": 104.572
+      },
+      {
+       "word": "can",
+       "start": 104.63,
+       "end": 104.746
+      },
+      {
+       "word": "prove",
+       "start": 104.804,
+       "end": 105.059
+      },
+      {
+       "word": "the",
+       "start": 105.083,
+       "end": 105.152
+      },
+      {
+       "word": "rules",
+       "start": 105.21,
+       "end": 105.489
+      },
+      {
+       "word": "before",
+       "start": 105.547,
+       "end": 105.849
+      },
+      {
+       "word": "you",
+       "start": 105.884,
+       "end": 105.965
+      },
+      {
+       "word": "pay.",
+       "start": 106.035,
+       "end": 106.731
+      }
+     ]
+    },
+    {
+     "text": "Each inbox circuit has five hundred and twelve possible moves. Voxro replays every one against the chain.",
+     "file": "audio/vo/proof_1.mp3",
+     "start": 107.08099999999999,
+     "end": 113.675,
+     "words": [
+      {
+       "word": "Each",
+       "start": 107.081,
+       "end": 107.348
+      },
+      {
+       "word": "inbox",
+       "start": 107.406,
+       "end": 107.859
+      },
+      {
+       "word": "circuit",
+       "start": 107.905,
+       "end": 108.277
+      },
+      {
+       "word": "has",
+       "start": 108.335,
+       "end": 108.463
+      },
+      {
+       "word": "five",
+       "start": 108.532,
+       "end": 108.788
+      },
+      {
+       "word": "hundred",
+       "start": 108.822,
+       "end": 109.066
+      },
+      {
+       "word": "and",
+       "start": 109.09,
+       "end": 109.159
+      },
+      {
+       "word": "twelve",
+       "start": 109.206,
+       "end": 109.531
+      },
+      {
+       "word": "possible",
+       "start": 109.577,
+       "end": 109.983
+      },
+      {
+       "word": "moves.",
+       "start": 110.03,
+       "end": 110.529
+      },
+      {
+       "word": "Voxro",
+       "start": 110.994,
+       "end": 111.504
+      },
+      {
+       "word": "replays",
+       "start": 111.574,
+       "end": 111.98
+      },
+      {
+       "word": "every",
+       "start": 112.05,
+       "end": 112.259
+      },
+      {
+       "word": "one",
+       "start": 112.305,
+       "end": 112.445
+      },
+      {
+       "word": "against",
+       "start": 112.48,
+       "end": 112.77
+      },
+      {
+       "word": "the",
+       "start": 112.816,
+       "end": 112.886
+      },
+      {
+       "word": "chain.",
+       "start": 112.932,
+       "end": 113.675
+      }
+     ]
+    },
+    {
+     "text": "Two thousand six hundred and fifty-six transitions. Zero mismatches.",
+     "file": "audio/vo/proof_2.mp3",
+     "start": 114.02499999999999,
+     "end": 118.437,
+     "words": [
+      {
+       "word": "Two",
+       "start": 114.025,
+       "end": 114.246
+      },
+      {
+       "word": "thousand",
+       "start": 114.304,
+       "end": 114.652
+      },
+      {
+       "word": "six",
+       "start": 114.71,
+       "end": 114.907
+      },
+      {
+       "word": "hundred",
+       "start": 114.954,
+       "end": 115.186
+      },
+      {
+       "word": "and",
+       "start": 115.209,
+       "end": 115.279
+      },
+      {
+       "word": "fifty-six",
+       "start": 115.325,
+       "end": 115.859
+      },
+      {
+       "word": "transitions.",
+       "start": 115.906,
+       "end": 116.672
+      },
+      {
+       "word": "Zero",
+       "start": 117.009,
+       "end": 117.369
+      },
+      {
+       "word": "mismatches.",
+       "start": 117.427,
+       "end": 118.437
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "live",
+   "from": 119.03699999999999,
+   "dur": 13,
+   "lines": [
+    {
+     "text": "It's live on X Layer mainnet. The VOXR processor, eight circuits taped out, the escrow, and the first inbox.",
+     "file": "audio/vo/live_0.mp3",
+     "start": 119.33699999999999,
+     "end": 126.767,
+     "words": [
+      {
+       "word": "It's",
+       "start": 119.337,
+       "end": 119.546
+      },
+      {
+       "word": "live",
+       "start": 119.604,
+       "end": 119.859
+      },
+      {
+       "word": "on",
+       "start": 119.894,
+       "end": 119.976
+      },
+      {
+       "word": "X",
+       "start": 120.103,
+       "end": 120.289
+      },
+      {
+       "word": "Layer",
+       "start": 120.382,
+       "end": 120.614
+      },
+      {
+       "word": "mainnet.",
+       "start": 120.672,
+       "end": 121.218
+      },
+      {
+       "word": "The",
+       "start": 121.508,
+       "end": 121.613
+      },
+      {
+       "word": "VOXR",
+       "start": 121.659,
+       "end": 122.205
+      },
+      {
+       "word": "processor,",
+       "start": 122.298,
+       "end": 122.994
+      },
+      {
+       "word": "eight",
+       "start": 123.122,
+       "end": 123.342
+      },
+      {
+       "word": "circuits",
+       "start": 123.389,
+       "end": 123.795
+      },
+      {
+       "word": "taped",
+       "start": 123.842,
+       "end": 124.109
+      },
+      {
+       "word": "out,",
+       "start": 124.155,
+       "end": 124.48
+      },
+      {
+       "word": "the",
+       "start": 124.643,
+       "end": 124.747
+      },
+      {
+       "word": "escrow,",
+       "start": 124.817,
+       "end": 125.305
+      },
+      {
+       "word": "and",
+       "start": 125.339,
+       "end": 125.455
+      },
+      {
+       "word": "the",
+       "start": 125.502,
+       "end": 125.572
+      },
+      {
+       "word": "first",
+       "start": 125.606,
+       "end": 125.885
+      },
+      {
+       "word": "inbox.",
+       "start": 125.943,
+       "end": 126.767
+      }
+     ]
+    },
+    {
+     "text": "Beta testers have been inside since Monday.",
+     "file": "audio/vo/live_1.mp3",
+     "start": 127.11699999999999,
+     "end": 129.95,
+     "words": [
+      {
+       "word": "Beta",
+       "start": 127.117,
+       "end": 127.477
+      },
+      {
+       "word": "testers",
+       "start": 127.523,
+       "end": 127.953
+      },
+      {
+       "word": "have",
+       "start": 127.999,
+       "end": 128.104
+      },
+      {
+       "word": "been",
+       "start": 128.127,
+       "end": 128.301
+      },
+      {
+       "word": "inside",
+       "start": 128.348,
+       "end": 128.812
+      },
+      {
+       "word": "since",
+       "start": 128.847,
+       "end": 129.067
+      },
+      {
+       "word": "Monday.",
+       "start": 129.126,
+       "end": 129.95
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "unique",
+   "from": 132.03699999999998,
+   "dur": 12,
+   "lines": [
+    {
+     "text": "No server to trust. No plaintext. No fee unless someone replies.",
+     "file": "audio/vo/unique_0.mp3",
+     "start": 132.337,
+     "end": 137.167,
+     "words": [
+      {
+       "word": "No",
+       "start": 132.337,
+       "end": 132.534
+      },
+      {
+       "word": "server",
+       "start": 132.604,
+       "end": 132.883
+      },
+      {
+       "word": "to",
+       "start": 132.929,
+       "end": 132.987
+      },
+      {
+       "word": "trust.",
+       "start": 133.045,
+       "end": 133.579
+      },
+      {
+       "word": "No",
+       "start": 133.719,
+       "end": 133.846
+      },
+      {
+       "word": "plaintext.",
+       "start": 133.916,
+       "end": 134.671
+      },
+      {
+       "word": "No",
+       "start": 135.205,
+       "end": 135.367
+      },
+      {
+       "word": "fee",
+       "start": 135.448,
+       "end": 135.669
+      },
+      {
+       "word": "unless",
+       "start": 135.716,
+       "end": 135.948
+      },
+      {
+       "word": "someone",
+       "start": 135.971,
+       "end": 136.226
+      },
+      {
+       "word": "replies.",
+       "start": 136.261,
+       "end": 137.167
+      }
+     ]
+    },
+    {
+     "text": "And no way to change the rules after you've paid.",
+     "file": "audio/vo/unique_1.mp3",
+     "start": 137.517,
+     "end": 140.211,
+     "words": [
+      {
+       "word": "And",
+       "start": 137.517,
+       "end": 137.68
+      },
+      {
+       "word": "no",
+       "start": 137.749,
+       "end": 137.842
+      },
+      {
+       "word": "way",
+       "start": 137.9,
+       "end": 138.028
+      },
+      {
+       "word": "to",
+       "start": 138.086,
+       "end": 138.144
+      },
+      {
+       "word": "change",
+       "start": 138.202,
+       "end": 138.469
+      },
+      {
+       "word": "the",
+       "start": 138.515,
+       "end": 138.585
+      },
+      {
+       "word": "rules",
+       "start": 138.643,
+       "end": 138.957
+      },
+      {
+       "word": "after",
+       "start": 139.026,
+       "end": 139.258
+      },
+      {
+       "word": "you've",
+       "start": 139.293,
+       "end": 139.467
+      },
+      {
+       "word": "paid.",
+       "start": 139.491,
+       "end": 140.211
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "from": 144.03699999999998,
+   "dur": 9,
+   "lines": [
+    {
+     "text": "Voxro. Your inbox, priced by a circuit.",
+     "file": "audio/vo/close_0.mp3",
+     "start": 144.337,
+     "end": 147.82,
+     "words": [
+      {
+       "word": "Vox-roh.",
+       "start": 144.337,
+       "end": 145.185
+      },
+      {
+       "word": "Your",
+       "start": 145.417,
+       "end": 145.591
+      },
+      {
+       "word": "inbox,",
+       "start": 145.672,
+       "end": 146.171
+      },
+      {
+       "word": "priced",
+       "start": 146.206,
+       "end": 146.566
+      },
+      {
+       "word": "by",
+       "start": 146.624,
+       "end": 146.763
+      },
+      {
+       "word": "a",
+       "start": 146.833,
+       "end": 146.856
+      },
+      {
+       "word": "circuit.",
+       "start": 146.926,
+       "end": 147.82
+      }
+     ]
+    },
+    {
+     "text": "Built on X Layer, for TapeOut.",
+     "file": "audio/vo/close_1.mp3",
+     "start": 148.22,
+     "end": 150.403,
+     "words": [
+      {
+       "word": "Built",
+       "start": 148.22,
+       "end": 148.522
+      },
+      {
+       "word": "on",
+       "start": 148.58,
+       "end": 148.684
+      },
+      {
+       "word": "X",
+       "start": 148.766,
+       "end": 148.928
+      },
+      {
+       "word": "Layer,",
+       "start": 149.009,
+       "end": 149.346
+      },
+      {
+       "word": "for",
+       "start": 149.381,
+       "end": 149.52
+      },
+      {
+       "word": "TapeOut.",
+       "start": 149.567,
+       "end": 150.403
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

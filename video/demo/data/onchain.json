@@ -1,0 +1,197 @@
+{
+ "readAt": "2026-11-25T14:09:20.880Z",
+ "chainId": 196,
+ "addresses": {
+  "voxrCircuits": "0xd47C1A47d809438d66fd472cd2A30392ace4e581",
+  "escrow": "0xd463a83b572AC72C8bE328069d61d2B19Cdf73D5",
+  "lens": "0xc994Cd83C3eA571d38Ed7EbDa8f30c05D06F5640",
+  "deWebHub": "0xe61A9C7213a6Aa616C246a2B569e555B417b25ee",
+  "factory": "0x1f09daefa827f02cbb40967cc91b259763760761"
+ },
+ "voxrFactoryIndex": 438,
+ "tapeouts": 8,
+ "txs": [
+  {
+   "what": "approve",
+   "hash": "0x5215d696da712ba3b96b4fd410a547ada5e48f63e770a06c43997f6de1e87dbd",
+   "block": 76497714,
+   "utc": "2026-11-21T13:12:30.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0x60e62efa9405d6873c5deabd4e6cc91c25363952",
+   "status": "success"
+  },
+  {
+   "what": "createCPU",
+   "hash": "0x65b253cf685cb85c862a5128d84859241005a1d77d3691dfe74738b0059009e5",
+   "block": 76497716,
+   "utc": "2026-11-21T13:12:32.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0x1f09daefa827f02cbb40967cc91b259763760761",
+   "status": "success"
+  },
+  {
+   "what": "approve",
+   "hash": "0xe5cd88643dc8162f092d623f35a013199dd4a9507e250d0b3389ef2d3d789003",
+   "block": 76497718,
+   "utc": "2026-11-21T13:12:34.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0x60e62efa9405d6873c5deabd4e6cc91c25363952",
+   "status": "success"
+  },
+  {
+   "what": "mint",
+   "hash": "0x2cf68e06e3594221d068a5ca477946ba66fc7f412421935a057012b425975053",
+   "block": 76497720,
+   "utc": "2026-11-21T13:12:36.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0x32d7b2566d1ef037621a97bc854d5bca963e8848",
+   "status": "success"
+  },
+  {
+   "what": "approve",
+   "hash": "0x31dd8599d4b1034417459b41ddd8ec7a9b662fe82c5266913ae43379c84ef7d1",
+   "block": 76497724,
+   "utc": "2026-11-21T13:12:40.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0x60e62efa9405d6873c5deabd4e6cc91c25363952",
+   "status": "success"
+  },
+  {
+   "what": "mint",
+   "hash": "0x43ac60b1caa121593241631b30fb87520ffab20151a83d538700197603f4325e",
+   "block": 76497726,
+   "utc": "2026-11-21T13:12:42.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0x32d7b2566d1ef037621a97bc854d5bca963e8848",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0x071507fe423f728507a9493ca334de8c1cefab54588d5b8d31d2f9b5c12d141b",
+   "block": 76497728,
+   "utc": "2026-11-21T13:12:44.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd47c1a47d809438d66fd472cd2a30392ace4e581",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0xca02dd3525b62c9241e97481e3cf72d4eeae6bae7655b835cba71ae8a4655def",
+   "block": 76497730,
+   "utc": "2026-11-21T13:12:46.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd47c1a47d809438d66fd472cd2a30392ace4e581",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0xa002ca2fd4bfb58b6a4f4e414d034b196ac578cae9601ac36e9a5ed9ece34839",
+   "block": 76497732,
+   "utc": "2026-11-21T13:12:48.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd47c1a47d809438d66fd472cd2a30392ace4e581",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0x603634254fe7f0f38bff1cdfae142a1d64c237d39c44c6fc858b0cc1caebf7e9",
+   "block": 76497735,
+   "utc": "2026-11-21T13:12:51.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd47c1a47d809438d66fd472cd2a30392ace4e581",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0xa01244ffe776e4b011c86184ee05cb0a8b87a69d125d63a90a966f46856dd38e",
+   "block": 76497738,
+   "utc": "2026-11-21T13:12:54.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd47c1a47d809438d66fd472cd2a30392ace4e581",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0x81668665c188a32bf08f82a3befe7cdb2ad11ad200ecf55a36bc9dae21910b61",
+   "block": 76497740,
+   "utc": "2026-11-21T13:12:56.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd47c1a47d809438d66fd472cd2a30392ace4e581",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0x46d4ef1c71c5d759afc2b9bc87c7c8ecbb102b5fa8006133a8345cb0d051d335",
+   "block": 76497742,
+   "utc": "2026-11-21T13:12:58.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd47c1a47d809438d66fd472cd2a30392ace4e581",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0x18582e661c30d27674e1366533487fe54efd6c3d1e2dc9d6609b336f94cc2729",
+   "block": 76497744,
+   "utc": "2026-11-21T13:13:00.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd47c1a47d809438d66fd472cd2a30392ace4e581",
+   "status": "success"
+  },
+  {
+   "what": "create VoxroEscrow",
+   "hash": "0x1176a14398306c782d09d42415645cabb87c7491db9a5ccd3e20dea61b354088",
+   "block": 76497746,
+   "utc": "2026-11-21T13:13:02.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd463a83b572ac72c8be328069d61d2b19cdf73d5",
+   "contract": "0xd463a83b572ac72c8be328069d61d2b19cdf73d5",
+   "status": "success"
+  },
+  {
+   "what": "create VoxroLens",
+   "hash": "0x8e4f243ee5febe96794a35a7641a047855aa54b2b72ce414ef62f9461314b6b8",
+   "block": 76497748,
+   "utc": "2026-11-21T13:13:04.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xc994cd83c3ea571d38ed7ebda8f30c05d06f5640",
+   "contract": "0xc994cd83c3ea571d38ed7ebda8f30c05d06f5640",
+   "status": "success"
+  },
+  {
+   "what": "mint",
+   "hash": "0xf37bcb9d8e3c61ed39276e02aa8076047a76915623575d85a792354b4188a1ae",
+   "block": 76497750,
+   "utc": "2026-11-21T13:13:06.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xbdfacbddd158eac441a5c4f721d88c6b242cd39b",
+   "status": "success"
+  },
+  {
+   "what": "tapeout",
+   "hash": "0x4facb8c5cfa45cf96cd9d9d61d915cd671624bf72e7948bfebdd044cfb5c5003",
+   "block": 76497752,
+   "utc": "2026-11-21T13:13:08.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xaa13ae45b0b2d52f210ad7ef12997113a0ebaf21",
+   "status": "success"
+  },
+  {
+   "what": "open",
+   "hash": "0x0075dfa13ff21151d5dd537991558fa6159cb19c36f324a8a0da2eb516e486e4",
+   "block": 76497753,
+   "utc": "2026-11-21T13:13:09.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0x536add8f30f03b69f6fbf29d425a816a0dc50106",
+   "status": "success"
+  },
+  {
+   "what": "registerInbox",
+   "hash": "0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1",
+   "block": 76497755,
+   "utc": "2026-11-21T13:13:11.000Z",
+   "from": "0x6d64ee62738f462121a66c3a23e0210b708bde3f",
+   "to": "0xd463a83b572ac72c8be328069d61d2b19cdf73d5",
+   "status": "success"
+  }
+ ]
+}

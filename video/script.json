@@ -1,0 +1,83 @@
+{
+ "model": "eleven_multilingual_v2",
+ "voice": {
+  "name": "George",
+  "id": "JBFqnCBsd6RMkjVDRZzb",
+  "settings": {
+   "stability": 0.42,
+   "similarity_boost": 0.85,
+   "style": 0.35,
+   "use_speaker_boost": true,
+   "speed": 0.92
+  }
+ },
+ "scenes": [
+  {
+   "id": "open",
+   "min": 4.4,
+   "tail": 0.45,
+   "lines": [
+    {
+     "text": "Your inbox is free to enter."
+    },
+    {
+     "text": "That's the problem."
+    }
+   ]
+  },
+  {
+   "id": "noise",
+   "min": 4.0,
+   "tail": 0.5,
+   "lines": [
+    {
+     "text": "Everyone gets in. So nothing gets through."
+    }
+   ]
+  },
+  {
+   "id": "turn",
+   "min": 5.2,
+   "tail": 1.2,
+   "lines": [
+    {
+     "text": "So we built a gate."
+    },
+    {
+     "text": "This is Voxro.",
+     "say": "This is Voxroh.",
+     "gap": 1.1
+    }
+   ]
+  },
+  {
+   "id": "live",
+   "min": 5.4,
+   "tail": 0.8,
+   "lines": [
+    {
+     "text": "Live on X Layer mainnet."
+    },
+    {
+     "text": "Built for TapeOut.",
+     "say": "Built for Tape Out.",
+     "gap": 0.7
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "min": 5.6,
+   "tail": 2.6,
+   "lines": [
+    {
+     "text": "Private beta. Invite only."
+    },
+    {
+     "text": "Get on the list.",
+     "gap": 0.35
+    }
+   ]
+  }
+ ]
+}

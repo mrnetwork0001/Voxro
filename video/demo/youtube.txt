@@ -1,0 +1,29 @@
+TITLE
+Voxro: your inbox, priced by a circuit | X Layer TapeOut
+
+DESCRIPTION
+Everyone worth reaching has closed their DMs. Voxro is a paid priority inbox with no server, built on X Layer for the TapeOut hackathon. Senders lock USD₮0 to reach you. An on-chain LATCH circuit raises the price when you are busy. Your encrypted TapeSend reply releases 95% of the stake to you, checked on chain with no oracle. No reply in time, and the sender gets a full refund.
+
+Try it: https://voxro.shieldsuite.xyz
+Built by ShieldSuite on X Layer, with OKX Wallet, TapeOut circuits, TapeSend and DeWEB.
+
+On-chain (X Layer mainnet, chain 196), launched 2026-11-21:
+VOXR processor (Circuits): https://www.oklink.com/x-layer/address/0xd47C1A47d809438d66fd472cd2A30392ace4e581
+VoxroEscrow: https://www.oklink.com/x-layer/address/0xd463a83b572AC72C8bE328069d61d2B19Cdf73D5
+VoxroLens: https://www.oklink.com/x-layer/address/0xc994Cd83C3eA571d38Ed7EbDa8f30c05D06F5640
+Create the VOXR processor: https://www.oklink.com/x-layer/tx/0x65b253cf685cb85c862a5128d84859241005a1d77d3691dfe74738b0059009e5
+Register the first inbox, @voxro: https://www.oklink.com/x-layer/tx/0x4faa8becb72420f8a8270902608f8b66a6b16dc92a6adde904dd13658c8f60c1
+
+CHAPTERS
+0:00 A price tag made of gates
+0:10 Everyone closed their DMs
+0:24 The $100M attention market
+0:35 Voxro
+0:42 Why X Layer and TapeOut
+0:56 Send a priority message
+1:13 Surge pricing on a LATCH circuit
+1:28 Reply, claim, or refund
+1:43 Prove the rules before you pay
+1:59 Live on X Layer mainnet
+2:12 What makes it different
+2:24 Try it

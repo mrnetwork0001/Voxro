@@ -1,0 +1,317 @@
+{
+ "total": 25.92,
+ "scenes": [
+  {
+   "id": "open",
+   "from": 0,
+   "dur": 4.4,
+   "lines": [
+    {
+     "text": "Your inbox is free to enter.",
+     "file": "audio/vo/open_0.mp3",
+     "start": 0.3,
+     "end": 2.343,
+     "words": [
+      {
+       "word": "Your",
+       "start": 0.3,
+       "end": 0.544
+      },
+      {
+       "word": "inbox",
+       "start": 0.602,
+       "end": 1.055
+      },
+      {
+       "word": "is",
+       "start": 1.113,
+       "end": 1.194
+      },
+      {
+       "word": "free",
+       "start": 1.252,
+       "end": 1.438
+      },
+      {
+       "word": "to",
+       "start": 1.473,
+       "end": 1.531
+      },
+      {
+       "word": "enter.",
+       "start": 1.624,
+       "end": 2.343
+      }
+     ]
+    },
+    {
+     "text": "That's the problem.",
+     "file": "audio/vo/open_1.mp3",
+     "start": 2.643,
+     "end": 3.897,
+     "words": [
+      {
+       "word": "That's",
+       "start": 2.643,
+       "end": 2.968
+      },
+      {
+       "word": "the",
+       "start": 3.003,
+       "end": 3.073
+      },
+      {
+       "word": "problem.",
+       "start": 3.119,
+       "end": 3.897
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "noise",
+   "from": 4.4,
+   "dur": 4,
+   "lines": [
+    {
+     "text": "Everyone gets in. So nothing gets through.",
+     "file": "audio/vo/noise_0.mp3",
+     "start": 4.7,
+     "end": 7.533,
+     "words": [
+      {
+       "word": "Everyone",
+       "start": 4.7,
+       "end": 5.234
+      },
+      {
+       "word": "gets",
+       "start": 5.269,
+       "end": 5.501
+      },
+      {
+       "word": "in.",
+       "start": 5.559,
+       "end": 5.896
+      },
+      {
+       "word": "So",
+       "start": 6.024,
+       "end": 6.163
+      },
+      {
+       "word": "nothing",
+       "start": 6.244,
+       "end": 6.5
+      },
+      {
+       "word": "gets",
+       "start": 6.534,
+       "end": 6.72
+      },
+      {
+       "word": "through.",
+       "start": 6.767,
+       "end": 7.533
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "turn",
+   "from": 8.4,
+   "dur": 5.432999999999998,
+   "lines": [
+    {
+     "text": "So we built a gate.",
+     "file": "audio/vo/turn_0.mp3",
+     "start": 8.700000000000001,
+     "end": 10.093,
+     "words": [
+      {
+       "word": "So",
+       "start": 8.7,
+       "end": 8.874
+      },
+      {
+       "word": "we",
+       "start": 8.921,
+       "end": 9.002
+      },
+      {
+       "word": "built",
+       "start": 9.06,
+       "end": 9.269
+      },
+      {
+       "word": "a",
+       "start": 9.315,
+       "end": 9.35
+      },
+      {
+       "word": "gate.",
+       "start": 9.397,
+       "end": 10.093
+      }
+     ]
+    },
+    {
+     "text": "This is Voxro.",
+     "file": "audio/vo/turn_1.mp3",
+     "start": 11.193,
+     "end": 12.633,
+     "words": [
+      {
+       "word": "This",
+       "start": 11.193,
+       "end": 11.437
+      },
+      {
+       "word": "is",
+       "start": 11.495,
+       "end": 11.576
+      },
+      {
+       "word": "Voxroh.",
+       "start": 11.657,
+       "end": 12.633
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "live",
+   "from": 13.832999999999998,
+   "dur": 5.4,
+   "lines": [
+    {
+     "text": "Live on X Layer mainnet.",
+     "file": "audio/vo/live_0.mp3",
+     "start": 14.133,
+     "end": 15.898,
+     "words": [
+      {
+       "word": "Live",
+       "start": 14.133,
+       "end": 14.458
+      },
+      {
+       "word": "on",
+       "start": 14.493,
+       "end": 14.563
+      },
+      {
+       "word": "X",
+       "start": 14.655,
+       "end": 14.818
+      },
+      {
+       "word": "Layer",
+       "start": 14.922,
+       "end": 15.19
+      },
+      {
+       "word": "mainnet.",
+       "start": 15.248,
+       "end": 15.898
+      }
+     ]
+    },
+    {
+     "text": "Built for TapeOut.",
+     "file": "audio/vo/live_1.mp3",
+     "start": 16.598,
+     "end": 17.852,
+     "words": [
+      {
+       "word": "Built",
+       "start": 16.598,
+       "end": 16.888
+      },
+      {
+       "word": "for",
+       "start": 16.935,
+       "end": 17.039
+      },
+      {
+       "word": "Tape",
+       "start": 17.086,
+       "end": 17.353
+      },
+      {
+       "word": "Out.",
+       "start": 17.411,
+       "end": 17.852
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "from": 19.232999999999997,
+   "dur": 6.687000000000005,
+   "lines": [
+    {
+     "text": "Private beta. Invite only.",
+     "file": "audio/vo/close_0.mp3",
+     "start": 19.532999999999998,
+     "end": 21.716,
+     "words": [
+      {
+       "word": "Private",
+       "start": 19.533,
+       "end": 19.951
+      },
+      {
+       "word": "beta.",
+       "start": 19.997,
+       "end": 20.508
+      },
+      {
+       "word": "Invite",
+       "start": 20.566,
+       "end": 20.996
+      },
+      {
+       "word": "only.",
+       "start": 21.042,
+       "end": 21.716
+      }
+     ]
+    },
+    {
+     "text": "Get on the list.",
+     "file": "audio/vo/close_1.mp3",
+     "start": 22.066000000000003,
+     "end": 23.32,
+     "words": [
+      {
+       "word": "Get",
+       "start": 22.066,
+       "end": 22.333
+      },
+      {
+       "word": "on",
+       "start": 22.379,
+       "end": 22.449
+      },
+      {
+       "word": "the",
+       "start": 22.484,
+       "end": 22.554
+      },
+      {
+       "word": "list.",
+       "start": 22.6,
+       "end": 23.32
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

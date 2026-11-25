@@ -1,0 +1,130 @@
+{
+ "directory": {
+  "file": "footage/directory.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 1151,
+  "marks": {
+   "dir_type": 91,
+   "dir_open": 223,
+   "dir_quote": 340,
+   "dir_subject": 458,
+   "dir_body": 579,
+   "dir_seal": 819,
+   "dir_ladder": 894
+  },
+  "deviceScale": 2,
+  "viewport": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {
+   "quote": {
+    "x": 846,
+    "y": 218,
+    "w": 714,
+    "h": 805
+   },
+   "compose": {
+    "x": 846,
+    "y": 218,
+    "w": 714,
+    "h": 805
+   },
+   "card": {
+    "x": 313,
+    "y": 277,
+    "w": 508,
+    "h": 138
+   },
+   "ladder": {
+    "x": 869,
+    "y": 588,
+    "w": 551,
+    "h": 43
+   }
+  }
+ },
+ "gallery": {
+  "file": "footage/gallery.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 422,
+  "marks": {
+   "gal_controller": 123,
+   "gal_bits": 343
+  },
+  "deviceScale": 2,
+  "viewport": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {
+   "bench": {
+    "x": 846,
+    "y": -336,
+    "w": 714,
+    "h": 319
+   }
+  }
+ },
+ "landing": {
+  "file": "footage/landing.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 327,
+  "marks": {
+   "landing_scroll": 104
+  }
+ },
+ "prover": {
+  "file": "footage/prover.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 605,
+  "marks": {
+   "prove_go": 164,
+   "prove_done": 321
+  }
+ },
+ "pulse": {
+  "file": "footage/pulse.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 393,
+  "marks": {},
+  "deviceScale": 2,
+  "viewport": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {}
+ },
+ "scan_register": {
+  "file": "footage/scan_register.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 186,
+  "marks": {}
+ },
+ "studio": {
+  "file": "footage/studio.mp4",
+  "width": 3200,
+  "height": 1800,
+  "durationFrames": 678,
+  "marks": {
+   "studio_fortress": 104,
+   "studio_steep": 218,
+   "studio_balanced": 333,
+   "studio_table": 417
+  },
+  "deviceScale": 2,
+  "viewport": {
+   "w": 1600,
+   "h": 900
+  },
+  "rects": {
+   "wave": null
+  }
+ }
+}

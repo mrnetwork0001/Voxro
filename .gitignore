@@ -13,3 +13,17 @@ SUBMISSION_AND_DEMO_PLAYBOOK.md
 
 # beta gate page embeds the access-cookie hash: keep out of git
 ops/gate/
+
+# film
+video/node_modules/
+video/out/
+video/.cache/
+video/public/footage/
+video/public/stills/
+
+# demo film (generated)
+video/demo/node_modules
+video/demo/out/
+video/demo/.cache/
+video/demo/public/footage/
+video/demo/public/stills/

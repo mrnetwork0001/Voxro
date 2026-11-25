@@ -1,0 +1,223 @@
+{
+ "title": "Voxro: your inbox, priced by a circuit",
+ "model": "eleven_multilingual_v2",
+ "voice": {
+  "name": "George",
+  "id": "JBFqnCBsd6RMkjVDRZzb",
+  "settings": {
+   "stability": 0.45,
+   "similarity_boost": 0.85,
+   "style": 0.3,
+   "use_speaker_boost": true,
+   "speed": 0.95
+  }
+ },
+ "scenes": [
+  {
+   "id": "open",
+   "min": 9,
+   "tail": 0.6,
+   "lead": 0.8,
+   "lines": [
+    {
+     "text": "This price tag is made of logic gates.",
+     "settings": {
+      "speed": 0.9
+     }
+    },
+    {
+     "text": "A hundred and fifty-seven of them, taped out on X Layer. And they decide what it costs to reach you.",
+     "say": "A hundred and fifty-seven of them, taped out on X Layer. And they decide what it costs to reach you.",
+     "gap": 0.4
+    }
+   ]
+  },
+  {
+   "id": "problem",
+   "min": 12,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "Everyone worth reaching has closed their DMs."
+    },
+    {
+     "text": "Founders, investors and auditors drown in bots and scams. So they stop reading.",
+     "gap": 0.35
+    },
+    {
+     "text": "And the real deal, the bug report, the partnership, gets lost with the spam.",
+     "gap": 0.35
+    }
+   ]
+  },
+  {
+   "id": "evidence",
+   "min": 11,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "Paying for attention works."
+    },
+    {
+     "text": "Coinbase bought Earn.com for a hundred million dollars.",
+     "say": "Coinbase bought Earn dot com for a hundred million dollars.",
+     "gap": 0.3
+    },
+    {
+     "text": "But a server sat in the middle, read every message, and took up to half.",
+     "gap": 0.35
+    }
+   ]
+  },
+  {
+   "id": "turn",
+   "min": 7,
+   "tail": 1.0,
+   "lead": 0.6,
+   "lines": [
+    {
+     "text": "So we built Voxro.",
+     "say": "So we built Vox-roh.",
+     "settings": {
+      "speed": 0.88
+     }
+    },
+    {
+     "text": "A paid priority inbox, with no server.",
+     "gap": 0.3
+    }
+   ]
+  },
+  {
+   "id": "stack",
+   "min": 14,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "It runs on X Layer, and you sign with OKX Wallet."
+    },
+    {
+     "text": "Every part comes from the TapeOut ecosystem. Circuits set the price. TapeSend carries the message. DeWEB hosts your contact card.",
+     "say": "Every part comes from the TapeOut ecosystem. Circuits set the price. Tape Send carries the message. Dee Web hosts your contact card.",
+     "gap": 0.35
+    }
+   ]
+  },
+  {
+   "id": "send",
+   "min": 17,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "Find someone in the Directory. Here's the first inbox, at voxro.",
+     "say": "Find someone in the Directory. Here's the first inbox, at Vox-roh."
+    },
+    {
+     "text": "The live quote is ten dollars, read straight from its circuit.",
+     "gap": 0.35
+    },
+    {
+     "text": "Your message is sealed in your browser to their key, and the money waits in escrow.",
+     "gap": 0.35
+    }
+   ]
+  },
+  {
+   "id": "surge",
+   "min": 15,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "Every unread message steps a counter inside the circuit."
+    },
+    {
+     "text": "The busier they are, the more it costs. Ten. Fifteen. Twenty-five. Forty.",
+     "gap": 0.35
+    },
+    {
+     "text": "Reply, and the price cools back down.",
+     "gap": 0.35
+    }
+   ]
+  },
+  {
+   "id": "settle",
+   "min": 15,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "They answer through TapeSend. The escrow checks that reply on chain, with no oracle, and pays them ninety-five percent.",
+     "say": "They answer through Tape Send. The escrow checks that reply on chain, with no oracle, and pays them ninety-five percent."
+    },
+    {
+     "text": "No reply in time? You get a full refund.",
+     "gap": 0.4
+    }
+   ]
+  },
+  {
+   "id": "proof",
+   "min": 15,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "And you can prove the rules before you pay."
+    },
+    {
+     "text": "Each inbox circuit has five hundred and twelve possible moves. Voxro replays every one against the chain.",
+     "gap": 0.35
+    },
+    {
+     "text": "Two thousand six hundred and fifty-six transitions. Zero mismatches.",
+     "gap": 0.35
+    }
+   ]
+  },
+  {
+   "id": "live",
+   "min": 13,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "It's live on X Layer mainnet. The VOXR processor, eight circuits taped out, the escrow, and the first inbox."
+    },
+    {
+     "text": "Beta testers have been inside since Monday.",
+     "gap": 0.35
+    }
+   ]
+  },
+  {
+   "id": "unique",
+   "min": 12,
+   "tail": 0.6,
+   "lines": [
+    {
+     "text": "No server to trust. No plaintext. No fee unless someone replies."
+    },
+    {
+     "text": "And no way to change the rules after you've paid.",
+     "gap": 0.35
+    }
+   ]
+  },
+  {
+   "id": "close",
+   "min": 9,
+   "tail": 2.4,
+   "lines": [
+    {
+     "text": "Voxro. Your inbox, priced by a circuit.",
+     "say": "Vox-roh. Your inbox, priced by a circuit.",
+     "settings": {
+      "speed": 0.88
+     }
+    },
+    {
+     "text": "Built on X Layer, for TapeOut.",
+     "gap": 0.4
+    }
+   ]
+  }
+ ]
+}
