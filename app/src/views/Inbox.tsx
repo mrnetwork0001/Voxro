@@ -270,11 +270,11 @@ function PublishKey({ inbox }: { inbox: InboxView }) {
   );
 }
 
-export function Inbox(_: { arg: string }) {
+export function Inbox({ arg }: { arg: string }) {
   const { t } = useI18n();
   const state = useInboxState();
   const w = useWallet();
-  const [tab, setTab] = useState<Tab>('inbox');
+  const [picked, setPicked] = useState<Tab | null>(arg === 'outbox' ? 'outbox' : arg === 'inbox' ? 'inbox' : null);
   const [inboxId, setInboxId] = useState<number | null>(null);
   const now = useNow();
   const me = w.address?.toLowerCase();
@@ -282,6 +282,12 @@ export function Inbox(_: { arg: string }) {
   const inbox = owned.find((i) => i.id === inboxId) ?? owned[0];
   const inboxTickets = useMemo(() => state.tickets.filter((x) => x.inboxId === inbox?.id).sort((a, b) => (a.status === 'Pending' ? -1 : 1) - (b.status === 'Pending' ? -1 : 1) || b.id - a.id), [state.tickets, inbox?.id]);
   const outbox = useMemo(() => (me ? state.tickets.filter((x) => x.sender.toLowerCase() === me).sort((a, b) => b.id - a.id) : []), [state.tickets, me]);
+  // a wallet that only sends (no inbox of its own) lands on its Outbox unless it picked a tab
+  const tab: Tab = picked ?? (owned.length === 0 && outbox.length > 0 ? 'outbox' : 'inbox');
+  const setTab = (x: Tab) => {
+    setPicked(x);
+    history.replaceState(null, '', href('inbox', x));
+  };
 
   return (
     <>
@@ -310,6 +316,11 @@ export function Inbox(_: { arg: string }) {
           <a className="btn sm signal" href={href('start')} style={{ marginLeft: 8 }}>
             {t('nav.start')}
           </a>
+          {outbox.length > 0 && (
+            <button className="btn sm" style={{ marginLeft: 8 }} onClick={() => setTab('outbox')}>
+              {t('inbox.outbox')} ({outbox.length})
+            </button>
+          )}
         </Note>
       )}
 

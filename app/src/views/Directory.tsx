@@ -221,7 +221,7 @@ export function Directory({ arg }: { arg: string }) {
                 </Panel>
 
                 {last && last.inboxId === inbox.id && (
-                  <Panel signal kicker={t('dir.sent')} info={<H k="dir.sent" />} title={`${t('c.ticket')} #${last.id}`} right={<a className="btn sm" href={href('inbox')}>{t('nav.inbox')}</a>}>
+                  <Panel signal kicker={t('dir.sent')} info={<H k="dir.sent" />} title={`${t('c.ticket')} #${last.id}`} right={<a className="btn sm" href={href('inbox', 'outbox')}>{t('inbox.outbox')}</a>}>
                     <dl className="kv">
                       <dt>{t('c.lane')}</dt>
                       <dd>{t('c.lane.guest')}</dd>
