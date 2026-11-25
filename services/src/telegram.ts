@@ -17,6 +17,10 @@ const DIR = process.env.BOT_DATA_DIR ?? '/var/lib/voxro-bot';
 const WAITLIST = process.env.WAITLIST_FILE ?? '/var/lib/voxro-waitlist/waitlist.jsonl';
 const POLL_MS = 20_000;
 const REMIND_S = 6 * 3600;
+/** Remind in the last quarter of the reply window, at most 6 h before the deadline (15 min for a 1 h inbox). */
+const remindAt = (t: Ticket) => Math.min(REMIND_S, Math.floor((t.deadline - t.createdAt) / 4));
+/** The x402 gateway locks on behalf of AI agents that pay over HTTP. */
+const GATEWAY = (process.env.VOXRO_GATEWAY_ADDRESS ?? '0x57b9a23f487d385B544aa468976B618B955c6497').toLowerCase();
 if (!TOKEN) throw new Error('TELEGRAM_BOT_TOKEN missing');
 
 // ─── state ──────────────────────────────────────────────────────────────────────────────────
@@ -217,7 +221,7 @@ async function alertLoop() {
         const msg = alertText(t, ib, prev, who(t.sender), now);
         if (msg) for (const c of chats) await say(c, msg, btn(c)).catch((e) => console.error('send', c, e.message));
       }
-      if (t.status === 'Pending' && t.deadline > now && t.deadline - now <= REMIND_S && !state.reminded.includes(t.id) && t.createdAt < now - 60) {
+      if (t.status === 'Pending' && t.deadline > now && t.deadline - now <= remindAt(t) && !state.reminded.includes(t.id) && t.createdAt < now - 60) {
         state.reminded.push(t.id);
         for (const c of chats) await say(c, `⏰ <b>${hours(t.deadline - now)} left</b> to reply to the ${money(t.token, t.amount)} message to @${esc(ib.handle)}. Reply now or the sender is refunded.`, btn(c)).catch(() => {});
       }
@@ -230,7 +234,7 @@ async function alertLoop() {
 
 function alertText(t: Ticket, ib: Inbox, prev: string | undefined, from: string, now: number): string | null {
   const amt = money(t.token, t.amount);
-  if (t.status === 'Pending' && !prev) return `💰 <b>New paid message</b> to @${esc(ib.handle)}: <b>${amt}</b> from ${esc(from)}.\nReply within ${hours(t.deadline - now)} to earn ${money(t.token, (t.amount * 9500n) / 10_000n)}. The message is encrypted and opens only in your browser.`;
+  if (t.status === 'Pending' && !prev) return `💰 <b>New paid message</b> to @${esc(ib.handle)}: <b>${amt}</b> from ${t.sender.toLowerCase() === GATEWAY ? 'an AI agent (paid over x402)' : esc(from)}.\nReply within ${hours(t.deadline - now)} to earn ${money(t.token, (t.amount * 9500n) / 10_000n)}. The message is encrypted and opens only in your browser.`;
   if (t.status === 'Claimed') return `✅ <b>Bounty claimed</b>: ${money(t.token, (t.amount * 9500n) / 10_000n)} paid to @${esc(ib.handle)} for replying.`;
   if (t.status === 'Refunded') return `↩️ A ${amt} message to @${esc(ib.handle)} wasn’t answered in time, so the sender got 100% back.`;
   if (t.status === 'Declined') return `🚫 @${esc(ib.handle)} declined a ${amt} message; the sender was refunded in full.`;
