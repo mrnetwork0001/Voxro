@@ -8,6 +8,19 @@ Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.x
 
 **Judges, start here:** open [voxro.shieldsuite.xyz/#/@voxro](https://voxro.shieldsuite.xyz/#/@voxro) to see the live quote for the first inbox, read from its circuit. Then open [#/prover](https://voxro.shieldsuite.xyz/#/prover), enter `#4@2.438` and press **Load & prove** to replay all 512 transitions of that circuit against X Layer in about 3 seconds. Neither needs a wallet. The in-app **Guide** (11 steps) walks through every page. The app went public on 2026-11-25; no account or code is needed.
 
+
+<p align="center">
+  <a href="https://voxro.shieldsuite.xyz"><img src="docs/screenshots/landing.png" alt="Voxro landing page: your inbox, priced by a circuit, with the live @voxro quote and price ladder" width="100%"></a>
+</p>
+
+<table>
+  <tr>
+    <td width="33%" valign="top"><a href="https://voxro.shieldsuite.xyz/#/@voxro"><img src="docs/screenshots/directory.png" alt="Directory: @voxro with its live 10 USD₮0 quote read from the circuit"></a><br><sub><b>Directory.</b> @voxro's live quote, queue and reply record, read from its circuit. Compose and seal a message in the browser.</sub></td>
+    <td width="33%" valign="top"><a href="https://voxro.shieldsuite.xyz/#/receipt/1"><img src="docs/screenshots/receipt.png" alt="Receipt for ticket #1: locked, reply recorded by DeWebHub, three checks passed, claimed 9.5 USD₮0"></a><br><sub><b>Receipt #1.</b> The first paid ticket on mainnet: locked, answered through DeWebHub, three checks passed, 9.5 USD₮0 claimed.</sub></td>
+    <td width="33%" valign="top"><a href="https://voxro.shieldsuite.xyz/#/prover"><img src="docs/screenshots/prover.png" alt="Universal Prover: VOXR #4 with all 512 transitions matching onchain"></a><br><sub><b>Prover.</b> VOXR #4, the circuit pricing @voxro: all 512 transitions replayed against X Layer, every one matches.</sub></td>
+  </tr>
+</table>
+
 ---
 
 ## Four verbs, no wallet needed to see them
