@@ -6,6 +6,7 @@ import './styles.css';
 import { ThemeProvider } from './theme.tsx';
 import { initTelegram } from './telegram.ts';
 import { WalletProvider } from './wallet/wallet.tsx';
+import { OkxPrompt } from './components/OkxPrompt.tsx';
 
 initTelegram();
 
@@ -15,6 +16,7 @@ createRoot(document.getElementById('root')!).render(
       <I18nProvider>
         <WalletProvider>
           <App />
+          <OkxPrompt />
         </WalletProvider>
       </I18nProvider>
     </ThemeProvider>

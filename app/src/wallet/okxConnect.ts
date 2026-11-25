@@ -19,6 +19,34 @@ type Uni = {
   session?: { namespaces?: Record<string, { accounts?: string[] }> };
 };
 
+/**
+ * The request has to reach OKX's relay before OKX Wallet opens: on iPhone the library opens the wallet first,
+ * Telegram then freezes this page, and the wallet finds nothing to approve. So inside Telegram the library
+ * never opens the wallet itself (openUniversalUrl: false); once the request is sent, the app shows an
+ * "Open OKX Wallet" button and the user's own tap opens it (iOS only opens apps from a direct tap).
+ */
+export interface OkxPending { link: string; kind: 'connect' | 'sign' }
+let pending: OkxPending | null = null;
+const pendingListeners = new Set<() => void>();
+const setPending = (p: OkxPending | null) => {
+  pending = p;
+  pendingListeners.forEach((l) => l());
+};
+export const okxPending = {
+  get: () => pending,
+  subscribe(cb: () => void) {
+    pendingListeners.add(cb);
+    return () => void pendingListeners.delete(cb);
+  },
+};
+/** Opens OKX Wallet from a user tap: Telegram's own openLink when available. */
+export function openOkxWallet(link: string) {
+  const tgw = (window as unknown as { Telegram?: { WebApp?: { openLink?: (u: string) => void } } }).Telegram?.WebApp;
+  if (tgw?.openLink) tgw.openLink(link);
+  else window.open(link, '_blank');
+}
+const WALLET_LINK = 'https://web3.okx.com/ul/connect';
+
 let uni: Promise<Uni> | null = null;
 function load(): Promise<Uni> {
   return (uni ??= import('@okxconnect/universal-provider').then((m) => (m as unknown as { OKXUniversalProvider: { init(o: unknown): Promise<Uni> } }).OKXUniversalProvider.init({ dappMetaData: { name: 'Voxro', icon: ICON } })));
@@ -58,7 +86,8 @@ export function okxConnectProvider(): Eip1193Provider & { disconnectSession(): P
             // bridge's answer and never settle. So also watch the session itself: every second and whenever the
             // user comes back to Telegram, for up to 5 minutes; whichever sees the account first wins.
             const ready = () => p.connected() && accountsOf(p).length > 0;
-            const viaConnect = p.connect({ namespaces: { eip155: { chains: [CHAIN], defaultChain: '196' } }, sessionConfig: { redirect: 'tg://resolve' } });
+            p.on('display_uri', (u) => typeof u === 'string' && setPending({ link: u, kind: 'connect' }));
+            const viaConnect = p.connect({ namespaces: { eip155: { chains: [CHAIN], defaultChain: '196' } }, sessionConfig: { redirect: 'tg://resolve', openUniversalUrl: false } });
             const viaSession = new Promise<void>((resolve, reject) => {
               const started = Date.now();
               const check = () => {
@@ -76,7 +105,11 @@ export function okxConnectProvider(): Eip1193Provider & { disconnectSession(): P
                 f();
               };
             });
-            await Promise.race([viaConnect.then(() => undefined), viaSession]);
+            try {
+              await Promise.race([viaConnect.then(() => undefined), viaSession]);
+            } finally {
+              setPending(null);
+            }
           }
           const acc = accountsOf(p);
           if (!acc.length) throw new Error('OKX Wallet did not share an X Layer account');
@@ -86,7 +119,16 @@ export function okxConnectProvider(): Eip1193Provider & { disconnectSession(): P
         case 'wallet_addEthereumChain':
           return null; // the session is already on X Layer
         default:
-          if (WALLET_METHODS.has(method)) return (await load()).request({ method, params }, CHAIN);
+          if (WALLET_METHODS.has(method)) {
+            const p = await load();
+            const sent = p.request({ method, params }, CHAIN);
+            setPending({ link: WALLET_LINK, kind: 'sign' });
+            try {
+              return await sent;
+            } finally {
+              setPending(null);
+            }
+          }
           return rpc(method, params);
       }
     },
