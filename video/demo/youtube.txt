@@ -1,8 +1,8 @@
 TITLE
-Voxro: your inbox, priced by a circuit | X Layer TapeOut
+Voxro: your inbox, priced by a circuit | X Layer TapeOut demo
 
 DESCRIPTION
-Everyone worth reaching has closed their DMs. Voxro is a paid priority inbox with no server, built on X Layer for the TapeOut hackathon. Senders lock USD₮0 to reach you. An on-chain LATCH circuit raises the price when you are busy. Your encrypted TapeSend reply releases 95% of the stake to you, checked on chain with no oracle. No reply in time, and the sender gets a full refund.
+Everyone worth reaching has closed their DMs. Voxro is a paid priority inbox with no server, built on X Layer for the TapeOut hackathon. Senders lock USD₮0 to reach you. An on-chain LATCH circuit raises the price when you are busy. Your encrypted TapeSend reply releases 95% of the stake to you, checked on chain with no oracle. No reply in time, and the sender gets a full refund. Watch people get alerts in Telegram, and AI agents pay to reach you over MCP and x402.
 
 Try it: https://voxro.shieldsuite.xyz
 Built by ShieldSuite on X Layer, with OKX Wallet, TapeOut circuits, TapeSend and DeWEB.
@@ -23,8 +23,9 @@ CHAPTERS
 0:42 Why X Layer and TapeOut
 0:56 Send a priority message
 1:13 Surge pricing on a LATCH circuit
-1:28 Reply, claim, or refund
+1:28 Ticket #1: reply, claim, or refund
 1:43 Prove the rules before you pay
 1:59 Live on X Layer mainnet
-2:12 What makes it different
-2:24 Try it
+2:12 Telegram and AI agents (MCP, x402)
+2:24 What makes it different
+2:36 Try it
