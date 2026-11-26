@@ -70,6 +70,7 @@ The app is bilingual (English and 简体中文), has dark (Obsidian) and light (
 
 ## What's next
 
+- **Alerts in TapeTape:** new-ticket alerts and reminders go to the recipient's [TapeTape](http://tapetape.org) over TapeRelay, encrypted to their key, next to the Telegram bot. Nobody needs a second app just to hear about a paid message.
 - **Contact cards on DeWEB:** publish each inbox's bio page under `tape://` from the Card page, so a link in a bio has no host at all.
 - **Team inboxes:** up to 16 member containers already work in the contract; the app gets shared triage and per-member replies.
 - **VIP rules for the TapeOut community:** discounts for FabX rig, TapeCode, BEM and FAB holders are deployed (`TapeOutCommunityVip`); next is rules for any partner processor from the Studio.
