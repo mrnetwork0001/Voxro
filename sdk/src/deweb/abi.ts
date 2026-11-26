@@ -12,5 +12,6 @@ export const siteRegistryAbi = parseAbi([
 
 export const domainBindingAbi = parseAbi([
   'function monthlyFee() view returns (uint256)',
+  'function isLive(string domain, address container) view returns (bool)',
   'function bind(string name, address container, uint256 months) payable',
 ]);

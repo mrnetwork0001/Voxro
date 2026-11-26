@@ -968,6 +968,9 @@ export async function publishCard(plan: PublishPlan, name: string, inbox: InboxV
     await tx(`SiteRegistry.${call.functionName} (${i + 1}/${plan.calls.length})`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: plan.registry, abi: siteRegistryAbi, functionName: call.functionName, args: call.args as never }));
     onProgress?.(i + 1, total);
   }
+  // A name that is already paid for this container needs no new payment (re-binding a live name reverts).
+  const live = await publicClient.readContract({ address: XLAYER.domainBinding, abi: domainBindingAbi, functionName: 'isLive', args: [name, plan.container] }).catch(() => false);
+  if (live) { onProgress?.(total, total); return; }
   const months = 120n;
   const fee = await publicClient.readContract({ address: XLAYER.domainBinding, abi: domainBindingAbi, functionName: 'monthlyFee' });
   await tx(`DomainBinding.bind ${name}`, () => w.walletClient.writeContract({ account: w.walletClient.account ?? w.address, chain: w.walletClient.chain, address: XLAYER.domainBinding, abi: domainBindingAbi, functionName: 'bind', args: [name, plan.container, months], value: fee * months }));
