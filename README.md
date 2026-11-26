@@ -4,9 +4,9 @@
 
 Voxro turns attention into an escrow market on X Layer. Every inbox is priced by a small sequential circuit taped out on the VOXR processor: each unread paid message steps an onchain LATCH counter, and the quote climbs from 1× to 4× as the queue fills. The recipient answers through TapeSend, the escrow checks that reply onchain with no oracle, and pays 95%. Silence past the reply window refunds 100%. Every ticket is measured by one question: **was it answered or refunded, and can anyone verify which from chain data alone?**
 
-Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.xyz) product · App: [voxro.shieldsuite.xyz](https://voxro.shieldsuite.xyz) · Demo: [youtu.be/29HEdWh5408](https://youtu.be/29HEdWh5408) · Code: [github.com/mrnetwork0001/Voxro](https://github.com/mrnetwork0001/Voxro) · X: [@ShieldSuite_](https://x.com/ShieldSuite_) · Telegram: [t.me/ShieldSuite](https://t.me/ShieldSuite)
+Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.xyz) product · App: [voxro.shieldsuite.xyz](https://voxro.shieldsuite.xyz) · On-chain app: `tape://5.2.212.tape` (open `5.2.212` in [TapeTape](http://tapetape.org)) · Demo: [youtu.be/29HEdWh5408](https://youtu.be/29HEdWh5408) · Code: [github.com/mrnetwork0001/Voxro](https://github.com/mrnetwork0001/Voxro) · X: [@ShieldSuite_](https://x.com/ShieldSuite_) · Telegram: [t.me/ShieldSuite](https://t.me/ShieldSuite)
 
-**Judges, start here:** watch the [2:45 demo](https://youtu.be/29HEdWh5408), then open [voxro.shieldsuite.xyz/#/@voxro](https://voxro.shieldsuite.xyz/#/@voxro) to see the live quote for the first inbox, read from its circuit. Then open [#/prover](https://voxro.shieldsuite.xyz/#/prover), enter `#4@2.438` and press **Load & prove** to replay all 512 transitions of that circuit against X Layer in about 3 seconds. Neither needs a wallet. The in-app **Guide** (11 steps) walks through every page. The app went public on 2026-11-25; no account or code is needed.
+**Judges, start here:** watch the [2:45 demo](https://youtu.be/29HEdWh5408), then open [voxro.shieldsuite.xyz/#/@voxro](https://voxro.shieldsuite.xyz/#/@voxro) to see the live quote for the first inbox, read from its circuit. Then open [#/prover](https://voxro.shieldsuite.xyz/#/prover), enter `#4@2.438` and press **Load & prove** to replay all 512 transitions of that circuit against X Layer in about 3 seconds. Neither needs a wallet. The in-app **Guide** (11 steps) walks through every page. The app went public on 2026-11-25; no account or code is needed. The same app is also stored entirely on X Layer: on Android, open `5.2.212` in TapeTape's DeWEB browser and it loads from the chain with a verified check, no web server involved (see [Updates](#updates)).
 
 
 <p align="center">
@@ -23,6 +23,29 @@ Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.x
 
 ---
 
+## Updates
+
+Newest first. Everything below is live on X Layer mainnet and can be checked on chain.
+
+**2026-11-26: Voxro runs inside TapeTape, served from the chain**
+
+- **The whole app is on DeWEB at `tape://5.2.212.tape`.** All 6 files of the production build (1,757,190 bytes, 77 chunks of 24,000 bytes) are stored in `SiteRegistry` under Voxro's own mailbox circuit (#5 on processor 212, container `0x670B…a9D1`), in 78 gas-only transactions ([index.html](https://web3.okx.com/explorer/x-layer/tx/0x330037ff4629c9615501b5ee2464c8a8b9bf3132b64aa6ae7b474f696ef09dbb), [fallback](https://web3.okx.com/explorer/x-layer/tx/0x32ed6bcef5550c3c148948dc11a9df8c5e2304bd6b2e7cd8f12342fe2a4174f8)). Every file was read back and matches the build byte for byte and by SHA-256. The name is paid for 120 months ([bind](https://web3.okx.com/explorer/x-layer/tx/0x2f67b590c0b255dfaf00fe583026e493e70f08d7a04a0c8e72eb69ef9d0dfd6f)). Total cost: about 0.008 OKB. voxro.shieldsuite.xyz keeps serving the same build.
+- **Tested in [TapeTape](http://tapetape.org) 2.1.0 on Android.** TapeTape is the TapeOut messenger with its own X Layer wallet and a DeWEB browser. In it, a contact card and the app open by their on-chain names with the verified check; **Connect** uses TapeTape's built-in wallet on X Layer; the Directory, live quote and price ladder, and the compose screen all work. A read-only probe page confirmed that sites opened in TapeTape can run scripts, read the chain through the wallet and the public X Layer RPCs, and reach the TapeOut relay and the agent gateway.
+- **Contact cards now open in every TAP-10 browser.** Cards were stored as `/index.html`, but TAP-10 §7.2 browsers look up `index.html` without the slash, so TapeTape showed "No such file". The SDK, app and CLI now store paths the TAP-10 way, with a test based on the spec's own example site. @gsucoin's card is re-published at `tape://6.2.212.tape`. Re-publishing a card whose name is already paid no longer asks for a payment.
+- **MIT license** for the whole repository.
+
+**2026-11-25: public launch and mainnet tests**
+
+- The beta gate came down and the agent gateway went public.
+- Ticket #1 was paid, answered and claimed on mainnet (see [Verified end to end](#verified-end-to-end)).
+- An AI agent paid for a message over x402, and was refunded in full when it expired.
+- A third ticket was claimed from the Telegram Mini App.
+- Fixes from these tests:
+  - OKX Connect in Telegram now sends the request before opening the wallet, which fixes iOS.
+  - Decrypting needs one signature.
+  - The mobile header shows the connected wallet.
+  - Reminders scale to the reply window.
+
 ## Four verbs, no wallet needed to see them
 
 | Verb | What it is | Try it without a wallet |
@@ -38,7 +61,7 @@ Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.x
 | --- | --- | --- |
 | **Network Pulse** | Live X Layer telemetry: block, TapeOut processor count (451 on 2026-11-25), deploy, tape-out and container fees, DeWebHub, the compiled VOXR catalog (8 circuits, 157 NAND and 3 LATCH) and the in-browser prover (2,656 transitions, 0 mismatches). | `#/pulse` |
 | **Create inbox** | Guided setup: name, price and window, extras, review, then up to five wallet steps: mailbox circuit, open container, publish key, register inbox, instant notifications. Steps already done are skipped. | `#/start` |
-| **Contact Card** | A self-contained bio page for an inbox, published to X Layer `SiteRegistry` under `tape://<#ID>.2.<cpu>.tape`, with its 24,000-byte chunk plan and SHA-256 manifest. | `#/card` |
+| **Contact Card** | A self-contained bio page for an inbox, published to X Layer `SiteRegistry` under `tape://<#ID>.2.<cpu>.tape`, with its 24,000-byte chunk plan and SHA-256 manifest. Live example: `tape://6.2.212.tape` (@gsucoin). | `#/card` |
 | **Circuit Gallery** | Every VOXR circuit with its netlist, REF targets, datasheet and a live bench that runs one `step()` beat locally and on chain. | `#/gallery` |
 | **Receipt** | A verifiable receipt for any ticket from `VoxroLens.receipt()`: the ticket, the DeWebHub reply entry and the three claim checks. | `#/receipt/<ticketId>` |
 | **Public profile link** | `voxro.shieldsuite.xyz/#/@handle` opens the Directory on that inbox, ready for an X, Telegram or GitHub bio. | `#/@voxro` |
@@ -46,14 +69,14 @@ Built for the X Layer TapeOut hackathon · A [ShieldSuite](https://shieldsuite.x
 | **AI agents** | An MCP (Model Context Protocol) server with `voxro_list_inboxes`, `voxro_get_inbox`, `voxro_send_message`, `voxro_check_reply` and `voxro_refund`, for agents with their own X Layer wallet. An x402 gateway lets agents pay over HTTP with USD₮0: `GET /api/agent`, then `POST /api/agent/send/@handle` answers 402 with the payment terms. The hosted MCP endpoint is `POST /mcp`. | [`/api/agent`](https://voxro.shieldsuite.xyz/api/agent), `services/src/mcp.ts`, `services/src/gateway.ts` |
 | **CLI** | `voxro catalog`, `prove`, `quote`, `send`, `stress`, `inbox --decrypt`, `reply`, `refund`, `receipt`, `deweb plan`. | [`cli/README.md`](./cli/README.md) |
 
-The app is bilingual (English and 简体中文), has dark (Obsidian) and light (Paper) themes, connects OKX Wallet through the injected provider or an OKX Connect deep link (and asks the wallet to switch to X Layer automatically), opens the Outbox for wallets that only send, and ships as one relative-path bundle with no CDN, web fonts or analytics, so the same build can be served from a DeWEB container.
+The app is bilingual (English and 简体中文), has dark (Obsidian) and light (Paper) themes, connects OKX Wallet through the injected provider or an OKX Connect deep link (and asks the wallet to switch to X Layer automatically), opens the Outbox for wallets that only send, and ships as one relative-path bundle with no CDN, web fonts or analytics, and the same build is served from a DeWEB container at `tape://5.2.212.tape`.
 
 ## Why the TapeOut circuit is essential
 
 - **No circuit, no provable price.** The quote is not Solidity arithmetic that someone could later change. `quoteSend()` calls `ICircuits(policyCpu).step(policyCircuitId, latchState, inputs)` on the taped-out controller ([`VoxroEscrow.sol`](./contracts/src/VoxroEscrow.sol), `_run`). Taped-out netlists are immutable, and 3 state bits with 6 inputs are small enough to prove exhaustively before signing.
 - **No LATCH, no surge.** The queue lives in the circuit's own state bits. Every lock steps it up (`dir = 1`); every claim, refund or decline steps it down (`dir = 0`). The escrow stores those 3 bits and nothing else about pricing.
 - **No TapeSend, no oracle-free settlement.** `claimBounty()` reads `DeWebHub.inboxAt(endpoint, index)` and recomputes the digest. The reply itself is the proof; no server or oracle attests to it.
-- **No DeWEB, no serverless presence.** Contact cards live in `SiteRegistry` under `tape://` names (`sdk/src/deweb/`, `app/src/card/template.ts`), so a recipient's page has no hosting bill and no host to take it down.
+- **No DeWEB, no serverless presence.** Contact cards live in `SiteRegistry` under `tape://` names (`sdk/src/deweb/`, `app/src/card/template.ts`), so a recipient's page has no hosting bill and no host to take it down. The app itself is served the same way at `tape://5.2.212.tape`.
 - **No REF, no free composition.** Controllers compose the standard cells (`SaturatingQueue3`, `SurgeCurveDecoder`, `VipPassGate`) by reference: each is 6 NAND of glue around three REF cells, so inbox controllers reuse the shared cells for no extra transistor burn.
 
 ## How Voxro is different
@@ -71,7 +94,7 @@ The app is bilingual (English and 简体中文), has dark (Obsidian) and light (
 ## What's next
 
 - **Alerts in TapeTape:** new-ticket alerts and reminders go to the recipient's [TapeTape](http://tapetape.org) over TapeRelay, encrypted to their key, next to the Telegram bot. Nobody needs a second app just to hear about a paid message.
-- **Contact cards on DeWEB:** publish each inbox's bio page under `tape://` from the Card page, so a link in a bio has no host at all.
+- **Voxro in the TapeTape Plaza:** list the on-chain app in TapeTape's app directory, so TapeTape users can reach any Voxro inbox without leaving the messenger.
 - **Team inboxes:** up to 16 member containers already work in the contract; the app gets shared triage and per-member replies.
 - **VIP rules for the TapeOut community:** discounts for FabX rig, TapeCode, BEM and FAB holders are deployed (`TapeOutCommunityVip`); next is rules for any partner processor from the Studio.
 - **Agents as senders and as recipients:** agents already pay to reach people over MCP and x402; next, agents with their own inboxes that answer for a fee.
@@ -238,11 +261,13 @@ The contracts are immutable, so these are handled in the app and stated here pla
 
 | Real | Simulated or not live yet |
 | --- | --- |
-| VOXR processor, 8 taped-out circuits, `VoxroEscrow`, `VoxroLens` and `TapeOutCommunityVip` on X Layer mainnet, all exact-match verified on Sourcify (2026-11-21) | The one settled ticket so far (#1) is a team smoke test between two of our own wallets |
-| Live quotes, queue depth and price ladders read from the circuits | The x402 gateway is live, but no agent payment has gone through it on mainnet yet |
-| The 512-transition replay in the Prover, against the chain via Multicall3; reply entries in claim checks and receipts are read from DeWebHub storage | The Studio's traffic waveform is a scripted burst, labelled on the page |
-| TAP-10 v2 encryption, byte-identical to the vendored `@tapekit/send` under fixed randomness | The CLI's end-to-end run was on an Anvil fork of X Layer, not mainnet |
-| The Telegram bot and its alerts; ticket #1 sent, answered, claimed and read on mainnet | The demo film's refund outcome is an illustration (no ticket has expired yet) |
+| VOXR processor, 8 taped-out circuits, `VoxroEscrow`, `VoxroLens` and `TapeOutCommunityVip` on X Layer mainnet, all exact-match verified on Sourcify (2026-11-21) | Every ticket so far (#1 to #3) is a team test between our own wallets and agent |
+| Live quotes, queue depth and price ladders read from the circuits | The Studio's traffic waveform is a scripted burst, labelled on the page |
+| The 512-transition replay in the Prover, against the chain via Multicall3; reply entries in claim checks and receipts are read from DeWebHub storage | The CLI's end-to-end run was on an Anvil fork of X Layer, not mainnet |
+| TAP-10 v2 encryption, byte-identical to the vendored `@tapekit/send` under fixed randomness | The demo film's refund scene is an illustration; it was made before the first real refund below |
+| The Telegram bot and its alerts; ticket #1 sent, answered, claimed and read on mainnet; ticket #3 claimed from the Telegram Mini App | |
+| An AI agent paid over x402 on mainnet (ticket #2): USD₮0 payment ([settle](https://web3.okx.com/explorer/x-layer/tx/0x4f444e0af7c74bba28fe01dffcc41e40ff5a88e1a870b244bda06595d7f9bbe7)), lock ([tx](https://web3.okx.com/explorer/x-layer/tx/0x5402f9f9da78bf190f5bb7e995792bfa76370e02389a7fdbffe70044f451ea34)), and after the window expired a 100% refund ([refund](https://web3.okx.com/explorer/x-layer/tx/0x6f1582aca9774e375fb0f607045a231fa8c029d0b53f30e64fdd7598f2503efc)) forwarded back to the agent ([forward](https://web3.okx.com/explorer/x-layer/tx/0xccf80f8ab83423fd4aab9424fe2422e5242cfa0bfc1b5c37811396a0460bc564)) | |
+| The app and a contact card served from DeWEB (`tape://5.2.212.tape`, `tape://6.2.212.tape`) and opened in TapeTape | |
 
 ## Tech stack
 
@@ -288,7 +313,7 @@ forge test --no-match-contract Fork   19 tests passed, 0 failed, 0 skipped (19 t
 1. **Contracts.** Import the deploy key once into a Foundry keystore (`cast wallet import voxro --interactive`), dry-run `script/Deploy.s.sol` on an Anvil fork, then broadcast to X Layer with `--verify --verifier sourcify`. The script creates VOXR through TapeOut Factory V2 (0.1 BEM deploy fee), mints transistors, tapes out the 8-circuit catalog, deploys the escrow and lens, and registers the flagship inbox. Budget and options: [`contracts/README.md`](./contracts/README.md).
 2. **Addresses.** Commit `contracts/deployments/xlayer.json`; the app reads it at build time.
 3. **Publish the flagship key.** Connect the deploy wallet, open **Inbox**, press **Publish key** (one signature, one gas-only transaction).
-4. **Client.** `pnpm --filter @voxro/app build` and serve `app/dist/` as static files over HTTPS. The same bundle can be published to DeWEB with `voxro deweb plan`.
+4. **Client.** `pnpm --filter @voxro/app build` and serve `app/dist/` as static files over HTTPS. The same bundle is published to DeWEB with `voxro deweb publish app/dist --container <container>`, signed by the container's holder or by an operator it authorised with `SiteRegistry.setOperator` for a limited time (`voxro deweb plan` shows the transactions first).
 5. **Helpers.** `pnpm --filter @voxro/services build`, then run the Telegram bot and gateway under a process manager with their env files on the server.
 6. **Live:** [voxro.shieldsuite.xyz](https://voxro.shieldsuite.xyz).
 
