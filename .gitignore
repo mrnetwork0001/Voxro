@@ -27,3 +27,6 @@ video/demo/out/
 video/demo/.cache/
 video/demo/public/footage/
 video/demo/public/stills/
+
+# DeWEB probe and upload snapshots (local only)
+ops/probe/
