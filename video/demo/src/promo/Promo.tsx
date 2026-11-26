@@ -28,7 +28,7 @@ const DEFS: SceneDef[] = [
   },
   {
     id: "find", clips: [{ a: 79.2, b: 81.2 }, { a: 85, b: 99 }], maxBoost: 2.4,
-    cams: [{ src: 79.2, z: 1.22, fx: 288, fy: 300 }, { src: 99, z: 1.22, fx: 288, fy: 300 }],
+    cams: [{ src: 79.2, z: 1, fx: 288, fy: 300 }, { src: 99, z: 1, fx: 288, fy: 300 }],
   },
   {
     id: "proof", clips: [{ a: 106, b: 110.6, sp: 2.5 }, { a: 110.9, b: 120.6 }], maxBoost: 1.6,
