@@ -27,7 +27,7 @@ ${bold('TapeSend (DeWebHub)')}
   voxro key derive|publish <0xcircuits> <tokenId> --cpu-index <n>   TapeSend X25519 key from a wallet signature (VOXRO_PRIVATE_KEY)
 
 ${bold('DeWEB')}
-  voxro deweb plan <dir> [--container 0x..] [--fallback /index.html] [--json]
+  voxro deweb plan <dir> [--container 0x..] [--fallback index.html] [--json]
   voxro deweb publish <dir> --container 0x.. [--bind <#id>.2.<cpu>.tape]   putFile/appendChunk/setFallback + DomainBinding.bind (VOXRO_PRIVATE_KEY)
 
 ${bold('Escrow')} ${dim('(--escrow 0x.. or VOXRO_ESCROW; writes sign with VOXRO_PRIVATE_KEY)')}

@@ -9,7 +9,7 @@ export const MAX_CHUNKS = 350;
 export const MAX_FILE_BYTES = CHUNK_MAX * MAX_CHUNKS;
 
 export interface SiteFile {
-  /** Served path, e.g. `/index.html`. */
+  /** Served path, e.g. `index.html`. A leading `/` is accepted and dropped: TAP-10 §7.2 stores paths without it. */
   path: string;
   contentType?: string;
   data: Uint8Array;
@@ -55,8 +55,21 @@ export function contentTypeFor(path: string): string {
   return TYPES[ext] ?? 'application/octet-stream';
 }
 
+/**
+ * Canonical SiteRegistry path (TAP-10 §7.2): no leading `/`, no empty, `.` or `..` segments, no control
+ * characters, NFC. Shells strip the leading `/` before `fileInfo`, so a file stored as `/index.html` is never found.
+ */
+export function sitePath(path: string): string {
+  const p = path.normalize('NFC').replace(/\/{2,}/g, '/').replace(/^\/+/, '');
+  if (!p || p.endsWith('/')) throw new RangeError(`not a file path: ${JSON.stringify(path)}`);
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001f\u007f]/.test(p)) throw new RangeError(`control character in path: ${JSON.stringify(path)}`);
+  if (p.split('/').some((seg) => seg === '.' || seg === '..')) throw new RangeError(`"." or ".." segment in path: ${JSON.stringify(path)}`);
+  return p;
+}
+
 export function chunkFile(f: SiteFile, chunkMax = CHUNK_MAX): ChunkedFile {
-  if (!f.path.startsWith('/')) throw new RangeError(`path must start with "/": ${f.path}`);
+  f = { ...f, path: sitePath(f.path) };
   if (f.data.length === 0) throw new RangeError(`empty file: ${f.path}`);
   if (f.data.length > chunkMax * MAX_CHUNKS) throw new RangeError(`${f.path} is ${f.data.length} bytes; max ${chunkMax * MAX_CHUNKS}`);
   const chunks: Uint8Array[] = [];
@@ -99,6 +112,6 @@ export function planPublish(container: Address, files: readonly ChunkedFile[], o
     calls.push({ functionName: 'putFile', args: [container, f.path, f.contentType, f.sha256, bytesToHex(first)] });
     rest.forEach((chunk, k) => calls.push({ functionName: 'appendChunk', args: [container, f.path, BigInt(k + 1), bytesToHex(chunk)] }));
   }
-  if (opts.fallback) calls.push({ functionName: 'setFallback', args: [container, opts.fallback] });
+  if (opts.fallback) calls.push({ functionName: 'setFallback', args: [container, sitePath(opts.fallback)] });
   return { registry: opts.registry ?? XLAYER.siteRegistry, container, calls, manifest: buildManifest(files) };
 }

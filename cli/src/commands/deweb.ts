@@ -11,18 +11,18 @@ function walk(dir: string, root = dir): ChunkedFile[] {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
     if (statSync(p).isDirectory()) out.push(...walk(p, root));
-    else out.push(chunkFile({ path: '/' + relative(root, p).split(sep).join('/'), data: new Uint8Array(readFileSync(p)) }));
+    else out.push(chunkFile({ path: relative(root, p).split(sep).join('/'), data: new Uint8Array(readFileSync(p)) }));
   }
   return out;
 }
 
 export async function deweb(f: Flags): Promise<void> {
   if (f._[1] === 'publish') return publish(f);
-  if (f._[1] !== 'plan' || !f._[2]) throw new CliError('usage: voxro deweb plan|publish <dir> [--container 0x..] [--fallback /index.html] [--bind <#id>.2.<cpu>.tape] [--json]');
+  if (f._[1] !== 'plan' || !f._[2]) throw new CliError('usage: voxro deweb plan|publish <dir> [--container 0x..] [--fallback index.html] [--bind <#id>.2.<cpu>.tape] [--json]');
   const container = (str(f, 'container') ?? '0x0000000000000000000000000000000000000000') as Address;
   if (!isAddress(container)) throw new CliError('--container must be an address');
   const files = walk(f._[2]);
-  const plan = planPublish(container, files, { fallback: str(f, 'fallback') ?? '/index.html' });
+  const plan = planPublish(container, files, { fallback: str(f, 'fallback') ?? 'index.html' });
   if (f.json) {
     console.log(JSON.stringify({ ...plan, calls: plan.calls.map((c) => ({ functionName: c.functionName, args: c.args.map((a) => (typeof a === 'bigint' ? a.toString() : typeof a === 'string' && a.length > 80 ? `${a.slice(0, 18)}…(${(a.length - 2) / 2} B)` : a)) })) }, (_k, v) => (typeof v === 'bigint' ? v.toString() : v), 2));
     return;
@@ -38,16 +38,16 @@ export async function deweb(f: Flags): Promise<void> {
 }
 
 
-/** voxro deweb publish <dir> --container 0x.. [--fallback /index.html] [--bind name] — putFile/appendChunk/setFallback from the holder's wallet, then DomainBinding.bind. */
+/** voxro deweb publish <dir> --container 0x.. [--fallback index.html] [--bind name] — putFile/appendChunk/setFallback from the holder's wallet, then DomainBinding.bind. */
 async function publish(f: Flags): Promise<void> {
   const dir = f._[2];
   const container = str(f, 'container');
-  if (!dir || !container || !isAddress(container)) throw new CliError('usage: voxro deweb publish <dir> --container 0x.. [--fallback /index.html] [--bind name]   (signer: VOXRO_PRIVATE_KEY = container holder)');
+  if (!dir || !container || !isAddress(container)) throw new CliError('usage: voxro deweb publish <dir> --container 0x.. [--fallback index.html] [--bind name]   (signer: VOXRO_PRIVATE_KEY = container holder)');
   const pk = process.env.VOXRO_PRIVATE_KEY;
   if (!pk || !/^0x[0-9a-fA-F]{64}$/.test(pk)) throw new CliError('VOXRO_PRIVATE_KEY env var is required');
   const wallet = createWalletClient({ account: privateKeyToAccount(pk as Hex), chain: xLayer, transport: http(rpcUrl(f)) });
   const pc = client(f);
-  const plan = planPublish(container, walk(dir), { fallback: str(f, 'fallback') ?? '/index.html' });
+  const plan = planPublish(container, walk(dir), { fallback: str(f, 'fallback') ?? 'index.html' });
   console.log(bold(`publishing ${plan.manifest.files.length} files · ${plan.manifest.totalBytes.toLocaleString()} B · ${plan.calls.length} transactions`), dim(`manifest root ${plan.manifest.root}`));
   await publishSite(wallet, pc, plan, (p) => console.log(`  ${p.index + 1}/${p.total} ${p.call.functionName}(${p.call.args[1]}) ${dim(p.hash)}`));
   const name = str(f, 'bind');

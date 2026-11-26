@@ -75,8 +75,8 @@ function CardEditor({ inbox, owned, onPick }: { inbox: InboxView; owned: InboxVi
   }, [inbox, name, bio, x, tg, gh, cardLang, cardTheme, tapeName]);
 
   const bundle = useMemo(() => {
-    const file = chunkFile({ path: '/index.html', data: new TextEncoder().encode(html) });
-    const plan = planPublish(inbox.container, [file], { fallback: '/index.html' });
+    const file = chunkFile({ path: 'index.html', data: new TextEncoder().encode(html) });
+    const plan = planPublish(inbox.container, [file], { fallback: 'index.html' });
     return { file, plan };
   }, [html, inbox]);
 
