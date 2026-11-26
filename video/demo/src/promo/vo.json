@@ -1,0 +1,112 @@
+{
+ "scenes": [
+  {
+   "id": "intro",
+   "lead": 0.6,
+   "tail": 0.5,
+   "lines": [
+    {
+     "id": "tt_intro_0",
+     "text": "This is TapeTape: the encrypted messenger built on TapeOut, with no server and its own X Layer wallet.",
+     "gap": 0,
+     "dur": 6.594467
+    }
+   ]
+  },
+  {
+   "id": "open",
+   "lead": 0.2,
+   "tail": 0.6,
+   "lines": [
+    {
+     "id": "tt_open_0",
+     "text": "Its DeWEB browser opens sites by their on-chain name.",
+     "gap": 0,
+     "dur": 3.482993
+    },
+    {
+     "id": "tt_open_1",
+     "text": "Type 5.2.212, and Voxro loads straight from X Layer. No web server, no hosting.",
+     "gap": 0.3,
+     "dur": 7.941224
+    }
+   ]
+  },
+  {
+   "id": "connect",
+   "lead": 0.2,
+   "tail": 0.5,
+   "lines": [
+    {
+     "id": "tt_connect_0",
+     "text": "Every file is read from the chain and checked against its hash.",
+     "gap": 0,
+     "dur": 3.529433
+    },
+    {
+     "id": "tt_connect_1",
+     "text": "Connect with TapeTape's built-in wallet. One tap, no extension, nothing to import.",
+     "gap": 0.35,
+     "dur": 5.944308
+    }
+   ]
+  },
+  {
+   "id": "find",
+   "lead": 0.2,
+   "tail": 0.5,
+   "lines": [
+    {
+     "id": "tt_find_0",
+     "text": "Find anyone with a Voxro inbox. @gsucoin charges 1 USD₮0 to reach them.",
+     "gap": 0,
+     "dur": 6.362268
+    },
+    {
+     "id": "tt_find_1",
+     "text": "A TapeOut circuit sets the price, and if they don't reply in time, you get it all back.",
+     "gap": 0.3,
+     "dur": 4.829751
+    }
+   ]
+  },
+  {
+   "id": "proof",
+   "lead": 0.2,
+   "tail": 0.6,
+   "lines": [
+    {
+     "id": "tt_proof_0",
+     "text": "Don't trust us. Check.",
+     "gap": 0,
+     "dur": 1.764717
+    },
+    {
+     "id": "tt_proof_1",
+     "text": "TapeTape's own status page shows every file verified against the chain, and no off-chain references.",
+     "gap": 0.3,
+     "dur": 6.455147
+    }
+   ]
+  },
+  {
+   "id": "outro",
+   "lead": 0.3,
+   "tail": 1.6,
+   "lines": [
+    {
+     "id": "tt_outro_0",
+     "text": "TapeTape for people you know. Voxro for people you don't.",
+     "gap": 0,
+     "dur": 3.622313
+    },
+    {
+     "id": "tt_outro_1",
+     "text": "Voxro, by ShieldSuite.",
+     "gap": 0.45,
+     "dur": 1.904036
+    }
+   ]
+  }
+ ]
+}

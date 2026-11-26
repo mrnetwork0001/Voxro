@@ -1,0 +1,23 @@
+{
+  "voice": { "id": "JBFqnCBsd6RMkjVDRZzb", "settings": { "stability": 0.45, "similarity_boost": 0.85, "style": 0.3, "use_speaker_boost": true, "speed": 0.97 } },
+  "model": "eleven_multilingual_v2",
+  "scenes": [
+    { "id": "intro", "lead": 0.6, "tail": 0.5, "lines": [
+      { "text": "This is TapeTape: the encrypted messenger built on TapeOut, with no server and its own X Layer wallet." } ] },
+    { "id": "open", "lead": 0.2, "tail": 0.6, "lines": [
+      { "text": "Its DeWEB browser opens sites by their on-chain name." },
+      { "text": "Type 5.2.212, and Voxro loads straight from X Layer. No web server, no hosting.", "say": "Type five, dot two, dot two-one-two, and Voxro loads straight from X Layer. No web server, no hosting.", "gap": 0.3 } ] },
+    { "id": "connect", "lead": 0.2, "tail": 0.5, "lines": [
+      { "text": "Every file is read from the chain and checked against its hash." },
+      { "text": "Connect with TapeTape's built-in wallet. One tap, no extension, nothing to import.", "gap": 0.35 } ] },
+    { "id": "find", "lead": 0.2, "tail": 0.5, "lines": [
+      { "text": "Find anyone with a Voxro inbox. @gsucoin charges 1 USD₮0 to reach them.", "say": "Find anyone with a Voxro inbox. G S U coin charges one U S D T zero to reach them." },
+      { "text": "A TapeOut circuit sets the price, and if they don't reply in time, you get it all back.", "gap": 0.3 } ] },
+    { "id": "proof", "lead": 0.2, "tail": 0.6, "lines": [
+      { "text": "Don't trust us. Check." , "settings": { "speed": 0.92 } },
+      { "text": "TapeTape's own status page shows every file verified against the chain, and no off-chain references.", "gap": 0.3 } ] },
+    { "id": "outro", "lead": 0.3, "tail": 1.6, "lines": [
+      { "text": "TapeTape for people you know. Voxro for people you don't." },
+      { "text": "Voxro, by ShieldSuite.", "gap": 0.45 } ] }
+  ]
+}

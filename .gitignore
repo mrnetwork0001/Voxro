@@ -30,3 +30,7 @@ video/demo/public/stills/
 
 # DeWEB probe and upload snapshots (local only)
 ops/probe/
+
+# TapeTape promo screen recording (local only)
+video/demo/public/promo/
+video/demo/out/
